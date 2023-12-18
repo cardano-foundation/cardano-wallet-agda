@@ -1,0 +1,10 @@
+-- repeating the index-state for hackage to work around hackage.nix parsing limitation
+
+index-state:
+  , hackage.haskell.org 2023-12-18T14:05:14Z
+
+packages:
+    lib/customer-deposit-wallet-pure/
+
+tests:
+  True

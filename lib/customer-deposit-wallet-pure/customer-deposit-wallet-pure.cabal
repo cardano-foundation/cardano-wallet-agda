@@ -1,0 +1,66 @@
+cabal-version:      3.0
+name:               customer-deposit-wallet-pure
+build-type:         Simple
+version:            0.1.0.0
+synopsis:           A wallet for the Cardano blockchain.
+description:        Please see README.md
+homepage:           https://github.com/cardano-foundation/cardano-wallet-agda
+license:            Apache-2.0
+license-file:       LICENSE
+author:             HAL, Cardano Foundation
+maintainer:         hal@cardanofoundation.org
+copyright:          2023-24 Cardano Foundation
+category:           Web
+
+extra-doc-files:
+  CHANGELOG.md
+extra-source-files:
+  generate-haskell.sh
+  customer-deposit-wallet-pure.agda-lib
+  src/agda/**/*.agda
+
+
+common language
+  default-language:
+    Haskell2010
+  default-extensions:
+    NoImplicitPrelude
+    OverloadedStrings
+
+common opts-lib
+  ghc-options:
+    -Wall -Wcompat
+    -Wredundant-constraints
+    -Wincomplete-uni-patterns -Wincomplete-record-updates
+
+  if flag(release)
+    ghc-options: -O2 -Werror
+
+common opts-exe
+  import:      opts-lib
+  ghc-options: -threaded -rtsopts
+
+flag release
+  description: Enable optimization and `-Werror`
+  default:     False
+  manual:      True
+
+library
+  import:          language, opts-lib
+  hs-source-dirs:
+    src/haskell
+  build-depends:
+    , async
+    , base >=4.14.3.0
+    , bytestring
+    , containers
+    , deepseq >= 1.4.4
+    , text
+    , time
+  exposed-modules:
+    Cardano.Wallet.Deposit.Pure
+    Cardano.Wallet.Deposit.Pure.Balance
+    Cardano.Wallet.Deposit.Pure.UTxO
+    Cardano.Wallet.Deposit.Pure.UTxOHistory
+    Cardano.Wallet.Deposit.Read
+    Cardano.Wallet.Deposit.Write
