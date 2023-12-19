@@ -77,7 +77,7 @@ open import Data.Sum public using () renaming
   ; inj₁ to inl
   ; inj₂ to inr
   )
-open import Data.Product using () renaming
+open import Data.Product public using () renaming
   ( _×_ to _⋀_
   ; proj₁ to projl
   ; proj₂ to projr
