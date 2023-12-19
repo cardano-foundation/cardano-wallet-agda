@@ -1,5 +1,5 @@
 name: customer-deposit-wallet-pure
-include: src/agda
+include: agda
 depend:
   standard-library
   agda2hs
