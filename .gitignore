@@ -1,0 +1,29 @@
+### Haskell ###
+*.o
+*.hi
+*.hie
+*.chi
+*.chs.h
+*.dyn_o
+*.dump-hi
+*.dyn_hi
+*.tix
+.hpc
+.hsenv
+*.prof
+*.aux
+*.hp
+*.eventlog
+
+### Cabal ###
+dist
+dist-*
+.ghc.environment.*
+cabal*.project.local*
+
+### Local configs ###
+.ghci
+hie.yaml
+
+## Agda
+*.agdai
