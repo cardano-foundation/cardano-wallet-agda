@@ -3,12 +3,17 @@
 -- Address management for the Customer Deposit Wallet
 module Cardano.Wallet.Deposit.Pure.Address
     {-
+    ; deriveAddress
     ; Customer
+      ; deriveCustomerAddress
     ; AddressState
+      ; isOurs
       ; listCustomers
       ; knownCustomerAddress
 
       ; createAddress
+      ; prop-create-derive
+      ; prop-create-known
 
       ; newChangeAddress
       ; prop-changeAddress-not-Customer
@@ -38,14 +43,35 @@ import Haskell.Data.Map as Map
     Assumptions
 ------------------------------------------------------------------------------}
 
+Customer = Nat
+
 deriveAddress : Nat → Address
 deriveAddress ix = suc ix
+
+deriveCustomerAddress : Customer → Address
+deriveCustomerAddress c = deriveAddress (suc c)
+
+--
+@0 lemma-derive-injective
+  : ∀ {x y : Nat}
+  → deriveAddress x ≡ deriveAddress y
+  → x ≡ y
+--
+lemma-derive-injective refl = refl
+
+--
+@0 lemma-derive-notCustomer
+  : ∀ (c : Customer)
+  → ¬(deriveAddress 0 ≡ deriveCustomerAddress c)
+--
+lemma-derive-notCustomer c eq = bang (lemma-derive-injective eq)
+  where
+    bang : 0 ≡ suc c → ⊥
+    bang ()
 
 {-----------------------------------------------------------------------------
     Type definition
 ------------------------------------------------------------------------------}
-
-Customer = Nat
 
 record AddressState : Set where
   field
@@ -64,7 +90,7 @@ record AddressState : Set where
     @0 invariant-customer
       : ∀ (addr : Address)
       → isCustomerAddress addr ≡ True
-      → ∃ (λ ix → (addr ≡ deriveAddress ix) ⋀ ¬(ix ≡ 0))
+      → ∃ (λ ix → addr ≡ deriveCustomerAddress ix)
 
 open AddressState
 
@@ -91,12 +117,12 @@ suc-injective refl = refl
 lemma-change-not-known s =
   case Map.lookup (change s) (addresses s) of λ
     { (Just _) {{eq}} →
-        let (ix `witness` (eq `and` not0)) =
+        let (ix `witness` eq) =
               invariant-customer s (change s) (cong isJust eq)
 
-            eq0 : ix ≡ 0
-            eq0 = suc-injective (trans (sym eq) (invariant-change s))
-        in  magic (not0 eq0)
+            lem1 : deriveAddress 0 ≡ deriveCustomerAddress ix
+            lem1 = trans (sym (invariant-change s)) eq
+        in  magic (lemma-derive-notCustomer ix lem1)
     ; Nothing {{eq}} → eq
     }
 
@@ -230,20 +256,16 @@ lemma-isCustomerAddress-knownCustomerAddress s addr =
 createAddress : Customer → AddressState → (Address × AddressState)
 createAddress c s0 = ( addr , s1 )
   where
-    ix = suc c
-    addr = deriveAddress ix
+    addr = deriveCustomerAddress c
 
     addresses1 = Map.insert addr c (addresses s0)
-
-    lem1 : ¬ (ix ≡ 0)
-    lem1 = λ ()
 
     @0 lem2
       : ∀ (addr2 : Address)
       → isJust (Map.lookup addr2 addresses1) ≡ True
-      → ∃ (λ ix → (addr2 ≡ deriveAddress ix) ⋀ ¬(ix ≡ 0))
+      → ∃ (λ ix → addr2 ≡ deriveCustomerAddress ix)
     lem2 addr2 isMember = case addr2 == addr of λ
-        { True {{eq}} → ix `witness` (equality addr2 addr eq `and` lem1)
+        { True {{eq}} → c `witness` equality addr2 addr eq
         ; False {{eq}} →
             let lem3
                   : Map.lookup addr2 addresses1
@@ -272,6 +294,53 @@ createAddress c s0 = ( addr , s1 )
       ; invariant-change = invariant-change s0
       ; invariant-customer = lem2
       }
+
+--
+prop-create-derive
+  : ∀ (c : Customer)
+      (s0 : AddressState)
+  → let (address , _) = createAddress c s0
+    in  deriveCustomerAddress c ≡ address
+--
+prop-create-derive = λ c s0 → refl
+
+
+-- lemma about converting == to ≡
+--
+lemma-lookup-insert-same
+  : ∀ (a : Address)
+      (c : Customer)
+      (m : Map.Map Address Customer)
+  → Map.lookup a (Map.insert a c m) ≡ Just c
+--
+lemma-lookup-insert-same a c m =
+  begin
+    Map.lookup a (Map.insert a c m)
+  ≡⟨ Map.prop-lookup-insert a a c m ⟩
+    (if (a == a) then Just c else Map.lookup a m)
+  ≡⟨ cong (λ b → if b then Just c else Map.lookup a m) (equality' a a refl) ⟩
+    (if True then Just c else Map.lookup a m)
+  ≡⟨⟩
+    Just c
+  ∎
+
+--
+@0 prop-create-known
+  : ∀ (c  : Customer)
+      (s0 : AddressState)
+  → let (address , s1) = createAddress c s0
+    in  knownCustomerAddress address s1 ≡ True
+--
+prop-create-known c s0 =
+  let (a , s1) = createAddress c s0
+  in
+    begin
+      knownCustomerAddress a s1
+    ≡⟨ sym (lemma-isCustomerAddress-knownCustomerAddress s1 a) ⟩
+      isCustomerAddress s1 a
+    ≡⟨ cong isJust (lemma-lookup-insert-same a c (addresses s0)) ⟩
+      True
+    ∎
 
 {-----------------------------------------------------------------------------
     Operations
