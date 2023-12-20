@@ -7,10 +7,13 @@ module Cardano.Wallet.Deposit.Pure.Address
     ; Customer
       ; deriveCustomerAddress
     ; AddressState
+      ; isOurs
       ; listCustomers
       ; knownCustomerAddress
 
       ; createAddress
+      ; prop-create-derive
+      ; prop-create-known
 
       ; newChangeAddress
       ; prop-changeAddress-not-Customer
@@ -291,6 +294,53 @@ createAddress c s0 = ( addr , s1 )
       ; invariant-change = invariant-change s0
       ; invariant-customer = lem2
       }
+
+--
+prop-create-derive
+  : ∀ (c : Customer)
+      (s0 : AddressState)
+  → let (address , _) = createAddress c s0
+    in  deriveCustomerAddress c ≡ address
+--
+prop-create-derive = λ c s0 → refl
+
+
+-- lemma about converting == to ≡
+--
+lemma-lookup-insert-same
+  : ∀ (a : Address)
+      (c : Customer)
+      (m : Map.Map Address Customer)
+  → Map.lookup a (Map.insert a c m) ≡ Just c
+--
+lemma-lookup-insert-same a c m =
+  begin
+    Map.lookup a (Map.insert a c m)
+  ≡⟨ Map.prop-lookup-insert a a c m ⟩
+    (if (a == a) then Just c else Map.lookup a m)
+  ≡⟨ cong (λ b → if b then Just c else Map.lookup a m) (equality' a a refl) ⟩
+    (if True then Just c else Map.lookup a m)
+  ≡⟨⟩
+    Just c
+  ∎
+
+--
+@0 prop-create-known
+  : ∀ (c  : Customer)
+      (s0 : AddressState)
+  → let (address , s1) = createAddress c s0
+    in  knownCustomerAddress address s1 ≡ True
+--
+prop-create-known c s0 =
+  let (a , s1) = createAddress c s0
+  in
+    begin
+      knownCustomerAddress a s1
+    ≡⟨ sym (lemma-isCustomerAddress-knownCustomerAddress s1 a) ⟩
+      isCustomerAddress s1 a
+    ≡⟨ cong isJust (lemma-lookup-insert-same a c (addresses s0)) ⟩
+      True
+    ∎
 
 {-----------------------------------------------------------------------------
     Operations
