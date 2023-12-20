@@ -8,7 +8,11 @@ module Cardano.Wallet.Deposit.Pure
       ; TxSummary
     ; WalletState
       ; listCustomers
+      ; knownCustomerAddress
+
       ; createAddress
+      ; prop-create-derive
+      ; prop-create-known
 
       ; availableBalance
       ; applyTx
@@ -22,6 +26,11 @@ module Cardano.Wallet.Deposit.Pure
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
+open import Cardano.Wallet.Deposit.Pure.Address using
+    ( Customer
+    ; deriveCustomerAddress
+    ; AddressState
+    )
 open import Cardano.Wallet.Deposit.Pure.UTxO using
     ( UTxO
     )
@@ -49,6 +58,7 @@ open import Haskell.Data.Maybe using
     ; catMaybes
     )
 
+import Cardano.Wallet.Deposit.Pure.Address as Addr
 import Cardano.Wallet.Deposit.Pure.Balance as Balance
 import Cardano.Wallet.Deposit.Pure.UTxO as UTxO
 import Haskell.Data.Map as Map
@@ -74,12 +84,9 @@ TxSummary = Slot × TxId × ValueTransfer
     Type definition
 ------------------------------------------------------------------------------}
 
-Customer = Nat
-
 record WalletState : Set where
   field
-    addresses : Map.Map Address Customer
-    change    : Address
+    addresses : AddressState
 
     utxo        : UTxO
     txSummaries : Map.Map Customer (List TxSummary)
@@ -91,96 +98,46 @@ open WalletState
 ------------------------------------------------------------------------------}
 -- Operations
 
--- Helper function
-swap : ∀ {a b : Set} → a × b → b × a
-swap (x , y) = (y , x)
-
 -- Specification
 listCustomers : WalletState → List (Customer × Address)
-listCustomers = map swap ∘ Map.toAscList ∘ addresses
-
-deriveAddress : Nat → Address
-deriveAddress ix = suc ix
+listCustomers = Addr.listCustomers ∘ addresses
 
 -- Specification
 createAddress : Customer → WalletState → (Address × WalletState)
 createAddress c s0 = ( addr , s1 )
   where
-    addr = deriveAddress c
+    pair : Address × AddressState
+    pair = Addr.createAddress c (addresses s0)
+
+    a1 = snd pair
+    addr = fst pair
 
     s1 : WalletState
-    addresses s1 = Map.insert addr c (addresses s0)
-    change s1 = change s0
-    utxo s1 = utxo s0
-    txSummaries s1 = txSummaries s0
-
-isCustomerAddress : WalletState → Address → Bool
-isCustomerAddress = λ s addr → isJust $ Map.lookup addr (addresses s)
-
-isChangeAddress : WalletState → Address → Bool
-isChangeAddress = λ s addr → change s == addr
+    s1 = record
+      { addresses = a1
+      ; utxo = utxo s0
+      ; txSummaries = txSummaries s0
+      }
 
 isOurs : WalletState → Address → Bool
-isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
+isOurs s = Addr.isOurs (addresses s)
 
 -- Properties
 
 -- Specification
 knownCustomerAddress : Address → WalletState → Bool
-knownCustomerAddress address = elem address ∘ map snd ∘ listCustomers
+knownCustomerAddress address =
+    elem address ∘ map snd ∘ listCustomers
 
--- alternate definition of knownCustomerAddress
-knownCustomerAddress' : Address → WalletState → Bool
-knownCustomerAddress' address =
-    elem address ∘ map fst ∘ Map.toAscList ∘ addresses
-
--- alternate definition and original definition are equal
-lemma-known-known'
-  : ∀ (a : Address) (s : WalletState)
-  → knownCustomerAddress a s ≡ knownCustomerAddress' a s
-lemma-known-known' a s =
-  begin
-    (elem a ∘ map snd ∘ listCustomers) s
-  ≡⟨⟩
-    (elem a ∘ map snd ∘ map swap ∘ Map.toAscList ∘ addresses) s
-  ≡⟨ cong (elem a) (sym (map-∘ snd swap (Map.toAscList (addresses s)))) ⟩
-    (elem a ∘ map (snd ∘ swap) ∘ Map.toAscList ∘ addresses) s
-  ≡⟨⟩
-    (elem a ∘ map fst ∘ Map.toAscList ∘ addresses) s
-  ∎
-
--- lemma about converting == to ≡
-lemma-lookup-insert-same
-    : ∀ (a : Address) (c : Customer) (m : Map.Map Address Customer)
-    → Map.lookup a (Map.insert a c m) ≡ Just c
-lemma-lookup-insert-same a c m =
-  begin
-    Map.lookup a (Map.insert a c m)
-  ≡⟨ Map.prop-lookup-insert a a c m ⟩
-    (if (a == a) then Just c else Map.lookup a m)
-  ≡⟨ cong! (equality' a a refl) ⟩
-    (if True then Just c else Map.lookup a m)
-  ≡⟨⟩
-    Just c
-  ∎
-
--- Specification
-prop-create-known
-  : ∀ (c : Customer) (s0 : WalletState)
+--
+@0 prop-create-known
+  : ∀ (c  : Customer)
+      (s0 : WalletState)
   → let (address , s1) = createAddress c s0
     in  knownCustomerAddress address s1 ≡ True
+--
 prop-create-known c s0 =
-  let (a , s1) = createAddress c s0
-  in
-    begin
-      knownCustomerAddress a s1
-    ≡⟨ lemma-known-known' a s1 ⟩
-      knownCustomerAddress' a s1
-    ≡⟨ Map.prop-lookup-toAscList-Just a c (addresses s1)
-        (lemma-lookup-insert-same a c (addresses s0))
-      ⟩
-      True
-    ∎
+  Addr.prop-create-known c (addresses s0)
 
 {-----------------------------------------------------------------------------
     Address derivation
@@ -188,11 +145,29 @@ prop-create-known c s0 =
 
 -- Specification
 prop-create-derive
-  : ∀ (c : Customer) (s0 : WalletState)
+  : ∀ (c : Customer)
+      (s0 : WalletState)
   → let (address , _) = createAddress c s0
-    in  deriveAddress c ≡ address
-prop-create-derive = λ c s0 → refl
+    in  deriveCustomerAddress c ≡ address
+prop-create-derive c s0 = Addr.prop-create-derive c (addresses s0)
  
+{-----------------------------------------------------------------------------
+    Change address generation
+------------------------------------------------------------------------------}
+
+newChangeAddress : WalletState → ChangeAddressGen ⊤
+newChangeAddress = Addr.newChangeAddress ∘ addresses
+
+--
+@0 prop-changeAddress-not-Customer
+  : ∀ (s : WalletState)
+      (addr : Address)
+  → knownCustomerAddress addr s ≡ True
+  → ¬(isChange (newChangeAddress s) addr)
+--
+prop-changeAddress-not-Customer s addr =
+  Addr.prop-changeAddress-not-Customer (addresses s) addr
+
 {-----------------------------------------------------------------------------
     Tracking incoming funds
 ------------------------------------------------------------------------------}
@@ -287,11 +262,11 @@ applyTx : Tx → WalletState → WalletState
 applyTx tx s0 = s1
   where
     s1 : WalletState
-    addresses s1 = addresses s0
-    change s1 = change s0
-    utxo s1 = snd $ Balance.applyTx (isOurs s0) tx (utxo s0)
-    txSummaries s1 = txSummaries s0
-
+    s1 = record
+      { addresses = addresses s0
+      ; utxo = snd $ Balance.applyTx (isOurs s0) tx (utxo s0)
+      ; txSummaries = txSummaries s0
+      }
 
 {-----------------------------------------------------------------------------
     Creating transactions
@@ -300,16 +275,13 @@ applyTx tx s0 = s1
 txOutFromPair : Address × Value → TxOut
 txOutFromPair (x , y) = record { address = x ; value = y }
 
-newAddress : WalletState → ChangeAddressGen ⊤
-newAddress s = λ _ → (change s , tt)
-
 -- Specification
 createPayment
     : List (Address × Value)
     → WalletState
     → Maybe Tx
 createPayment destinations s =
-    balanceTransaction (utxo s) (newAddress s) tt partialTx
+    balanceTransaction (utxo s) (newChangeAddress s) tt partialTx
   where
     partialTx = record { outputs = map txOutFromPair destinations }
 
@@ -335,16 +307,8 @@ prop-createPayment-success = λ s destinations x → {!   !}
 
 {-----------------------------------------------------------------------------
     Creating transactions
-    Property: Never sends funds to known address
+    Proposition: Never sends funds to known address
 ------------------------------------------------------------------------------}
-
-lemma-address-not-known
-  : ∀ (s : WalletState)
-      (address : Address)
-  → knownCustomerAddress address s ≡ True
-  → ¬(isChange (newAddress s) address)
-
-lemma-address-not-known = {!   !}
 
 lemma-neg-or
   : ∀ {A B : Set}
@@ -357,7 +321,8 @@ lemma-neg-impl
   → (A → B) → ¬ B → ¬ A
 lemma-neg-impl = λ f ¬b a → ¬b (f a)
 
-prop-createPayment-not-known
+--
+@0 prop-createPayment-not-known
   : ∀ (s : WalletState)
       (destinations : List (Address × Value))
       (tx : Tx)
@@ -366,16 +331,16 @@ prop-createPayment-not-known
     → knownCustomerAddress address s ≡ True
     → ¬ (address ∈ map fst destinations)
     → ¬ (address ∈ map TxOut.address (Tx.outputs tx))
-
+--
 prop-createPayment-not-known s destinations tx created addr known ¬dest =
     lemma-neg-impl
-        (λ outs → lemma-neg-or (changeOrPartial outs) ¬partial)
-        (lemma-address-not-known s addr known)
+        (λ outs → lemma-neg-or (changeOrPartial outs) lem2)
+        (prop-changeAddress-not-Customer s addr known)
   where
-    new = newAddress s
+    new = newChangeAddress s
     partialTx = record { outputs = map txOutFromPair destinations }
 
-    lemma1 =
+    lem1 =
       begin
         map TxOut.address (PartialTx.outputs partialTx)
       ≡⟨⟩
@@ -388,11 +353,8 @@ prop-createPayment-not-known s destinations tx created addr known ¬dest =
         map (λ x → fst x) destinations
       ∎
     
-    ¬partial : ¬ (addr ∈ map TxOut.address (PartialTx.outputs partialTx))
-    ¬partial p rewrite lemma1 = ¬dest p
-
-    ¬change : ¬ (isChange new addr)
-    ¬change = lemma-address-not-known s addr known
+    lem2 : ¬(addr ∈ map TxOut.address (PartialTx.outputs partialTx))
+    lem2 p rewrite lem1 = ¬dest p
 
     changeOrPartial
       : addr ∈ map TxOut.address (Tx.outputs tx)
@@ -400,6 +362,6 @@ prop-createPayment-not-known s destinations tx created addr known ¬dest =
         ⋁ addr ∈ map TxOut.address (PartialTx.outputs partialTx)
     changeOrPartial =
       prop-balanceTransaction-addresses
-        (utxo s) partialTx (newAddress s) tt tx created addr
+        (utxo s) partialTx (newChangeAddress s) tt tx created addr
 
  
