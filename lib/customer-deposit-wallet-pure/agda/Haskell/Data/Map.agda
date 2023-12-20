@@ -66,7 +66,7 @@ module
       → (elem key ∘ L.map fst ∘ toAscList) m ≡ True
 
     prop-lookup-toAscList-Nothing
-      : ∀ (key : k) (x : a) (m : Map k a)
+      : ∀ (key : k) (m : Map k a)
       → lookup key m ≡ Nothing
       → (elem key ∘ L.map fst ∘ toAscList) m ≡ False
 

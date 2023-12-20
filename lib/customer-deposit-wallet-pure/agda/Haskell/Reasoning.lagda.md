@@ -81,18 +81,8 @@ open import Data.Product public using () renaming
   ( _×_ to _⋀_
   ; proj₁ to projl
   ; proj₂ to projr
-  ; _,′_ to _`and`_
+  ; _,_ to _`and`_
   )
-
-open import Data.Product public
-  using (∃; ∃-syntax)
-
-_`witness`_
-  : {A : Set} {B : A → Set}
-  → (x : A) → (y : B x) → ∃ B
-_`witness`_ = Data.Product._,_
-
-infixr 4 _`witness`_
 
 open import Haskell.Prim public using (⊥; magic)
 
@@ -100,6 +90,21 @@ infix 3 ¬_
 ¬_ : Set → Set
 ¬ A = A → ⊥
 ```
+
+Existential quantifications comes with a pattern synonym `witness`
+that can be used extract a witness of the property.
+
+```agda
+open import Data.Product public
+  using (∃; ∃-syntax)
+
+pattern _`witness`_ x y = Data.Product._,_ x y
+infixr 4 _`witness`_
+```
+
+    _`witness`_
+    : {A : Set} {B : A → Set}
+    → (x : A) → (y : B x) → ∃ B
 
 For example, here is the statement that the first case of a logical *or* must hold if the second case leads to a contradiction, and its proof:
 
