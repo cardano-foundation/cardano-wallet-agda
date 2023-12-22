@@ -12,6 +12,10 @@ module Haskell.Data.Map
 open import Haskell.Prelude hiding (lookup; null; map; filter)
 import Haskell.Prelude as L using (map)
 
+open import Haskell.Data.Maybe using
+    ( isJust
+    )
+
 import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
@@ -99,6 +103,9 @@ module
 
   map : ∀ {b : Set} → (a → b) → Map k a → Map k b
   map = fmap
+
+  member : k → Map k a → Bool
+  member key = isJust ∘ lookup key
 
   singleton : k → a → Map k a
   singleton = λ k x → insert k x empty
