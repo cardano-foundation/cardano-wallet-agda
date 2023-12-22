@@ -29,8 +29,11 @@ null = Map.null
 balance : UTxO → Value
 balance = foldMap TxOut.value
 
+-- | Left-biased union.
+union : UTxO → UTxO → UTxO
+union = Map.unionWith (λ x y → x)
+
 postulate
   excluding : UTxO → List TxIn → UTxO
-  union : UTxO → UTxO → UTxO
 
   filterByAddress : (Address → Bool) → UTxO → UTxO
