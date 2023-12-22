@@ -26,8 +26,10 @@ UTxO = Map.Map TxIn TxOut
 null : UTxO → Bool
 null = Map.null
 
+balance : UTxO → Value
+balance = foldMap TxOut.value
+
 postulate
-  balance : UTxO → Value
   excluding : UTxO → List TxIn → UTxO
   union : UTxO → UTxO → UTxO
 

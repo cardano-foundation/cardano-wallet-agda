@@ -29,7 +29,7 @@ postulate
 module
     OperationsAndProperties
       {k a : Set}
-      {{iOrd : Ord k}}
+      {{_ : Ord k}}
   where
   postulate
     lookup : k → Map k a → Maybe a
@@ -92,4 +92,13 @@ module
       (if (key == keyi) then Just x else Nothing)
     ∎
 
+  foldMap' : ∀ {{_ : Monoid b}} → (a → b) → Map k a → b
+  foldMap' f = foldMap f ∘ L.map snd ∘ toAscList
+
 open OperationsAndProperties public
+
+instance
+  iMapFoldable : ∀ {k : Set} {{_ : Ord k}} → Foldable (Map k)
+  iMapFoldable =
+    record {DefaultFoldable (record {foldMap = foldMap'})}
+
