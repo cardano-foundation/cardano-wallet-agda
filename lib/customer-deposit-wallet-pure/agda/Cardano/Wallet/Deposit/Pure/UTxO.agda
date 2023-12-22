@@ -37,5 +37,5 @@ union = Map.unionWith (λ x y → x)
 excluding : UTxO → Set.ℙ TxIn → UTxO
 excluding = Map.withoutKeys
 
-postulate
-  filterByAddress : (Address → Bool) → UTxO → UTxO
+filterByAddress : (Address → Bool) → UTxO → UTxO
+filterByAddress p = Map.filter (p ∘ TxOut.address)

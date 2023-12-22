@@ -9,7 +9,7 @@ module Haskell.Data.Map
     -}
     where
 
-open import Haskell.Prelude hiding (lookup; null; map)
+open import Haskell.Prelude hiding (lookup; null; map; filter)
 import Haskell.Prelude as L using (map)
 
 import Haskell.Data.Set as Set
@@ -105,6 +105,9 @@ module
 
   withoutKeys : Map k a → Set.ℙ k → Map k a
   withoutKeys m s = filterWithKey (λ k _ → not (Set.member k s)) m
+
+  filter : (a → Bool) → Map k a → Map k a
+  filter p = filterWithKey (λ _ x → p x)
 
   prop-lookup-singleton
     : ∀ (key keyi : k) (x : a)
