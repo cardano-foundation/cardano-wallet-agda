@@ -1,10 +1,22 @@
 {-# OPTIONS --erasure #-}
 
--- Formalization of Data.Map
-module Haskell.Data.Map where
+module Haskell.Data.Map
+    {-
+    ; Map
+      ; lookup
+      ; null
+      ; insert
+    -}
+    where
 
 open import Haskell.Prelude hiding (lookup; null; map)
 import Haskell.Prelude as L using (map)
+
+import Haskell.Data.Set as Set
+
+{-----------------------------------------------------------------------------
+    Helpers
+------------------------------------------------------------------------------}
 
 -- These lemmas are obvious substitutions,
 -- but substitution in a subterm is sometimes cumbersome
@@ -21,7 +33,9 @@ lemma-if-False
   → (if (x == x') then t else f) ≡ f
 lemma-if-False _ _ eq1 rewrite eq1 = refl
 
--- Data.Map
+{-----------------------------------------------------------------------------
+    Data.Map
+------------------------------------------------------------------------------}
 
 postulate
   Map : ∀ (k : Set) {{iOrd : Ord k}} → Set → Set
@@ -32,16 +46,18 @@ module
       {{_ : Ord k}}
   where
   postulate
-    lookup : k → Map k a → Maybe a
+    lookup    : k → Map k a → Maybe a
     null      : Map k a → Bool
+    toAscList : Map k a → List (k × a)
 
     empty     : Map k a
     insert    : k → a → Map k a → Map k a
     delete    : k → Map k a → Map k a
-    toAscList : Map k a → List (k × a)
     fromList  : List (k × a) → Map k a
     fromListWith : (a → a → a) → List (k × a) → Map k a
-    unionWith    : (a → a → a) → Map k a → Map k a → Map k a
+
+    unionWith     : (a → a → a) → Map k a → Map k a → Map k a
+    filterWithKey : (k → a → Bool) → Map k a → Map k a
 
     instance
       iMapFunctor : Functor (Map k)
@@ -70,12 +86,25 @@ module
       → lookup key m ≡ Nothing
       → (elem key ∘ L.map fst ∘ toAscList) m ≡ False
 
+    prop-lookup-filterWithKey-Just
+      : ∀ (key : k) (x : a) (m : Map k a) (p : k → a → Bool)
+      → lookup key m ≡ Just x
+      → lookup key (filterWithKey p m)
+        ≡ (if p key x then Just x else Nothing)
+    
+    prop-lookup-filterWithKey-Nothing
+      : ∀ (key : k) (m : Map k a) (p : k → a → Bool)
+      → lookup key m ≡ Nothing
+      → lookup key (filterWithKey p m) ≡ Nothing
 
   map : ∀ {b : Set} → (a → b) → Map k a → Map k b
   map = fmap
 
   singleton : k → a → Map k a
   singleton = λ k x → insert k x empty
+
+  withoutKeys : Map k a → Set.ℙ k → Map k a
+  withoutKeys m s = filterWithKey (λ k _ → not (Set.member k s)) m
 
   prop-lookup-singleton
     : ∀ (key keyi : k) (x : a)

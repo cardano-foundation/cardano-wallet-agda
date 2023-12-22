@@ -16,6 +16,7 @@ open import Cardano.Wallet.Deposit.Read using
     )
 
 import Haskell.Data.Map as Map
+import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
     UTxO
@@ -33,7 +34,8 @@ balance = foldMap TxOut.value
 union : UTxO → UTxO → UTxO
 union = Map.unionWith (λ x y → x)
 
-postulate
-  excluding : UTxO → List TxIn → UTxO
+excluding : UTxO → Set.ℙ TxIn → UTxO
+excluding = Map.withoutKeys
 
+postulate
   filterByAddress : (Address → Bool) → UTxO → UTxO
