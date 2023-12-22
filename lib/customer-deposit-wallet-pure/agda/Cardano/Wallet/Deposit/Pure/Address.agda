@@ -30,6 +30,14 @@ open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
     ; isChange
     )
+open import Haskell.Crypto.Hash using
+    ( Digest
+      ; encodeDigest
+      ; prop-encodeDigest-injective
+    ; HashAlgorithm
+    ; iTrivialHashAlgorithm
+    )
+open HashAlgorithm
 open import Haskell.Data.List.Prop using
     ( _∈_ )
 open import Haskell.Data.Maybe using
@@ -46,7 +54,7 @@ import Haskell.Data.Map as Map
 Customer = Nat
 
 deriveAddress : Nat → Address
-deriveAddress ix = suc ix
+deriveAddress ix = encodeDigest (hash iTrivialHashAlgorithm (ix ∷ []))
 
 deriveCustomerAddress : Customer → Address
 deriveCustomerAddress c = deriveAddress (suc c)
@@ -57,7 +65,10 @@ deriveCustomerAddress c = deriveAddress (suc c)
   → deriveAddress x ≡ deriveAddress y
   → x ≡ y
 --
-lemma-derive-injective refl = refl
+lemma-derive-injective =
+    ∷-injective-left
+    ∘ prop-hash-injective iTrivialHashAlgorithm _ _
+    ∘ prop-encodeDigest-injective _ _
 
 --
 @0 lemma-derive-notCustomer
