@@ -58,6 +58,14 @@ filterByAddress p = Map.filter (p ∘ TxOut.address)
     Properties
 ------------------------------------------------------------------------------}
 --
+@0 prop-excluding-empty
+  : ∀ (key : TxIn) (u : UTxO)
+  → Map.lookup key (excluding u Set.empty)
+    ≡ Map.lookup key u
+--
+prop-excluding-empty key u = Map.prop-withoutKeys-empty key u
+
+--
 prop-filterByAddress-filters
     : ∀ (p : Address → Bool)
         (utxo : UTxO) (txin : TxIn) (txout : TxOut)
