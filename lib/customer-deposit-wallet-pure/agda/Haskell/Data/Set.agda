@@ -46,6 +46,16 @@ module
     difference : ℙ a → ℙ a → ℙ a
     filter     : (a → Bool) → ℙ a → ℙ a
 
+    prop-member-null
+      : ∀ (s : ℙ a)
+          (_ : ∀ (x : a) → member x s ≡ False)
+      → null s ≡ True
+
+    prop-null-empty
+      : ∀ (s : ℙ a)
+      → null s ≡ True
+      → s ≡ empty
+
     prop-member-empty
       : ∀ (x : a)
       → member x empty ≡ False

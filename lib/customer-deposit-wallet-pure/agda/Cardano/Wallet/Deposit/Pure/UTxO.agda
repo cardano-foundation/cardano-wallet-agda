@@ -27,6 +27,9 @@ UTxO = Map.Map TxIn TxOut
 null : UTxO → Bool
 null = Map.null
 
+empty : UTxO
+empty = Map.empty
+
 balance : UTxO → Value
 balance = foldMap TxOut.value
 

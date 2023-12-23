@@ -67,6 +67,16 @@ module
     instance
       iMapFunctor : Functor (Map k)
 
+    prop-member-null
+      : ∀ (m : Map k a)
+          (_ : ∀ (key : k) → lookup key m ≡ Nothing)
+      → null m ≡ True
+
+    prop-null-empty
+      : ∀ (m : Map k a)
+      → null m ≡ True
+      → m ≡ empty
+
     prop-lookup-empty
       : ∀ (key : k)
       → lookup key empty ≡ Nothing
