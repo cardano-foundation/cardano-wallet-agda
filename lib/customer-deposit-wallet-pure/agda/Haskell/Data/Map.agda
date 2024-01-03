@@ -145,3 +145,69 @@ instance
   iMapFoldable =
     record {DefaultFoldable (record {foldMap = foldMap'})}
 
+{-----------------------------------------------------------------------------
+    Test proofs
+------------------------------------------------------------------------------}
+
+filterMaybe
+  : ∀ {a : Set} → (a → Bool) → Maybe a → Maybe a
+filterMaybe p Nothing = Nothing
+filterMaybe p (Just x) = if p x then Just x else Nothing
+
+@0 prop-lookup-filter
+  : ∀ {k a} {{_ : Ord k}}
+      (key : k) (p : a → Bool) (m : Map k a) 
+  → lookup key (filter p m)
+    ≡ filterMaybe p (lookup key m)
+prop-lookup-filter key p m = case lookup key m of λ where
+  (Just x) {{eq}} →
+    begin
+      lookup key (filter p m)
+    ≡⟨ prop-lookup-filterWithKey-Just key x m (λ _ x → p x) eq ⟩
+      (if p x then Just x else Nothing)
+    ≡⟨⟩
+      filterMaybe p (Just x)
+    ≡⟨ cong (filterMaybe p) (sym eq) ⟩
+      filterMaybe p (lookup key m)
+    ∎
+  Nothing {{eq}} →
+    begin
+      lookup key (filter p m)
+    ≡⟨ prop-lookup-filterWithKey-Nothing key m (λ _ x → p x) eq ⟩
+      Nothing
+    ≡⟨⟩
+      filterMaybe p Nothing
+    ≡⟨ cong (filterMaybe p) (sym eq) ⟩
+      filterMaybe p (lookup key m)
+    ∎
+
+--
+@0 prop-withoutKeys-empty
+  : ∀ {k a} {{_ : Ord k}}
+      (key : k) (m : Map k a)
+  → lookup key (withoutKeys m Set.empty)
+    ≡ lookup key m
+--
+prop-withoutKeys-empty {k} {a} key m =
+  case (lookup key m) of λ where
+    (Just x) {{eq}} →
+      begin
+        lookup key (withoutKeys m Set.empty)
+      ≡⟨ prop-lookup-filterWithKey-Just key x m p eq ⟩
+        (if p key x then Just x else Nothing)
+      ≡⟨ cong (λ b → if not b then Just x else Nothing) (Set.prop-member-empty key) ⟩
+        (if True then Just x else Nothing)
+      ≡⟨ sym eq ⟩
+        lookup key m
+      ∎
+    Nothing {{eq}} →
+      begin
+        lookup key (withoutKeys m Set.empty)
+      ≡⟨ prop-lookup-filterWithKey-Nothing key m p eq ⟩
+        Nothing
+      ≡⟨ sym eq ⟩
+        lookup key m
+      ∎
+  where
+    p : k → a → Bool
+    p = λ k _ → not (Set.member k Set.empty)
