@@ -6,7 +6,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO
     -}
     where
 
-open import Haskell.Prelude hiding (null)
+open import Haskell.Prelude hiding (null; f)
 
 open import Cardano.Wallet.Deposit.Read using
     ( Address
@@ -57,6 +57,29 @@ filterByAddress p = Map.filter (p ∘ TxOut.address)
 {-----------------------------------------------------------------------------
     Properties
 ------------------------------------------------------------------------------}
+--
+prop-union-empty
+  : ∀ (key : TxIn) (u : UTxO)
+  → Map.lookup key (union u empty)
+    ≡ Map.lookup key u
+--
+prop-union-empty key u =
+    begin
+      Map.lookup key (union u empty)
+    ≡⟨ Map.prop-lookup-unionWith key u empty f ⟩
+      Map.unionWithMaybe f (Map.lookup key u) (Map.lookup key empty)
+    ≡⟨ cong (Map.unionWithMaybe f (Map.lookup key u)) (Map.prop-lookup-empty key)⟩
+      Map.unionWithMaybe f (Map.lookup key u) Nothing
+    ≡⟨ lem1 (Map.lookup key u) ⟩
+      Map.lookup key u
+    ∎
+  where
+    f = (λ x y → x)
+
+    lem1 : (ma : Maybe TxOut) → Map.unionWithMaybe f ma Nothing ≡ ma
+    lem1 (Just x) = refl
+    lem1 Nothing = refl
+
 --
 @0 prop-excluding-empty
   : ∀ (key : TxIn) (u : UTxO)
