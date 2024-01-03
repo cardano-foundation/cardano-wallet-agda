@@ -39,6 +39,15 @@ lemma-if-False
 lemma-if-False _ _ eq1 rewrite eq1 = refl
 
 {-----------------------------------------------------------------------------
+    Data.Maybe
+------------------------------------------------------------------------------}
+
+unionWithMaybe : (f : a → a → a) → Maybe a → Maybe a → Maybe a
+unionWithMaybe f Nothing my = my
+unionWithMaybe f (Just x) Nothing = Just x
+unionWithMaybe f (Just x) (Just y) = Just (f x y)
+
+{-----------------------------------------------------------------------------
     Data.Map
 ------------------------------------------------------------------------------}
 
@@ -100,6 +109,11 @@ module
       : ∀ (key : k) (m : Map k a)
       → lookup key m ≡ Nothing
       → (elem key ∘ L.map fst ∘ toAscList) m ≡ False
+
+    prop-lookup-unionWith
+      : ∀ (key : k) (m n : Map k a) (f : a → a → a)
+      → lookup key (unionWith f m n)
+        ≡ unionWithMaybe f (lookup key m) (lookup key n)
 
     prop-lookup-filterWithKey-Just
       : ∀ (key : k) (x : a) (m : Map k a) (p : k → a → Bool)
