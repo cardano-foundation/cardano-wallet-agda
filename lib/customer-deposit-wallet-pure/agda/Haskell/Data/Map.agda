@@ -16,6 +16,7 @@ open import Haskell.Data.Maybe using
     ( isJust
     )
 
+import Haskell.Prelude as List using (map)
 import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
@@ -106,6 +107,9 @@ module
 
   member : k → Map k a → Bool
   member key = isJust ∘ lookup key
+
+  keysSet : Map k a → Set.ℙ k
+  keysSet = Set.fromList ∘ List.map fst ∘ toAscList
 
   singleton : k → a → Map k a
   singleton = λ k x → insert k x empty
