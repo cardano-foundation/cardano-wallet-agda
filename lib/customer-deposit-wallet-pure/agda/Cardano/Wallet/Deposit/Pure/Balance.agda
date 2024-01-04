@@ -18,6 +18,7 @@ import Cardano.Wallet.Deposit.Pure.DeltaUTxO as DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO as UTxO
 import Cardano.Wallet.Deposit.Read as Read
 import Haskell.Data.Map as Map
+import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
     UTxO utilities
@@ -27,7 +28,7 @@ spendTxD : Read.Tx -> UTxO -> (DeltaUTxO × UTxO)
 spendTxD tx u =
     DeltaUTxO.excludingD u inputsToExclude
   where
-    inputsToExclude = Read.Tx.inputs tx
+    inputsToExclude = Set.fromList (Read.Tx.inputs tx)
 
 -- | Convert the transaction outputs into a 'UTxO' set.
 utxoFromTxOutputs : Read.Tx → UTxO
