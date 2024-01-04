@@ -35,7 +35,8 @@ open import Haskell.Crypto.Hash using
       ; encodeDigest
       ; prop-encodeDigest-injective
     ; HashAlgorithm
-    ; iTrivialHashAlgorithm
+    ; TrivialHash
+      ; iTrivialHashAlgorithm
     )
 open HashAlgorithm
 open import Haskell.Data.List.Prop using
@@ -54,10 +55,17 @@ import Haskell.Data.Map as Map
 Customer = Nat
 
 deriveAddress : Nat → Address
-deriveAddress ix = encodeDigest (hash iTrivialHashAlgorithm (ix ∷ []))
+deriveAddress ix = encodeDigest digest
+  where
+    digest : Digest TrivialHash
+    digest = hash iTrivialHashAlgorithm (ix ∷ [])
 
 deriveCustomerAddress : Customer → Address
 deriveCustomerAddress c = deriveAddress (suc c)
+
+{-# COMPILE AGDA2HS Customer #-}
+{-# COMPILE AGDA2HS deriveAddress #-}
+{-# COMPILE AGDA2HS deriveCustomerAddress #-}
 
 --
 @0 lemma-derive-injective
@@ -85,14 +93,15 @@ lemma-derive-notCustomer c eq = bang (lemma-derive-injective eq)
 ------------------------------------------------------------------------------}
 
 record AddressState : Set where
+  constructor AddressStateC
   field
     addresses : Map.Map Address Customer
 --    customers : Map.Map Customer Address
 
     change    : Address
 
-  isCustomerAddress : Address → Bool
-  isCustomerAddress = λ addr → isJust $ Map.lookup addr addresses
+  @0 isCustomerAddress₁ : Address → Bool
+  isCustomerAddress₁ = λ addr → isJust $ Map.lookup addr addresses
 
   field
     @0 invariant-change
@@ -100,10 +109,16 @@ record AddressState : Set where
 
     @0 invariant-customer
       : ∀ (addr : Address)
-      → isCustomerAddress addr ≡ True
+      → isCustomerAddress₁ addr ≡ True
       → ∃ (λ ix → addr ≡ deriveCustomerAddress ix)
 
-open AddressState
+open AddressState public
+
+isCustomerAddress : AddressState → Address → Bool
+isCustomerAddress s = λ addr → isJust $ Map.lookup addr (addresses s)
+
+{-# COMPILE AGDA2HS AddressState #-}
+{-# COMPILE AGDA2HS isCustomerAddress #-}
 
 {-----------------------------------------------------------------------------
     Observations, basic
@@ -116,6 +131,9 @@ isChangeAddress = λ s addr → change s == addr
 
 isOurs : AddressState → Address → Bool
 isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
+
+{-# COMPILE AGDA2HS isChangeAddress #-}
+{-# COMPILE AGDA2HS isOurs #-}
 
 suc-injective : ∀ {x y : Nat} → suc x ≡ suc y → x ≡ y
 suc-injective refl = refl
@@ -195,6 +213,10 @@ knownCustomerAddress address =
 knownCustomerAddress' : Address → AddressState → Bool
 knownCustomerAddress' address =
     elem address ∘ map fst ∘ Map.toAscList ∘ addresses
+
+{-# COMPILE AGDA2HS swap #-}
+{-# COMPILE AGDA2HS listCustomers #-}
+{-# COMPILE AGDA2HS knownCustomerAddress #-}
 
 --
 -- alternate definition and original definition coincide
@@ -306,6 +328,8 @@ createAddress c s0 = ( addr , s1 )
       ; invariant-customer = lem2
       }
 
+{-# COMPILE AGDA2HS createAddress #-}
+
 --
 prop-create-derive
   : ∀ (c : Customer)
@@ -360,6 +384,8 @@ prop-create-known c s0 =
 
 newChangeAddress : AddressState → ChangeAddressGen ⊤
 newChangeAddress s = λ _ → (change s , tt)
+
+{-# COMPILE AGDA2HS newChangeAddress #-}
 
 --
 lemma-isChange-isChangeAddress

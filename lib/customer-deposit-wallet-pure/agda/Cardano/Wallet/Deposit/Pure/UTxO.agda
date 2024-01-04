@@ -54,6 +54,16 @@ excludingS s utxo = Set.filter (not ∘ (λ txin → Map.member txin utxo)) s
 filterByAddress : (Address → Bool) → UTxO → UTxO
 filterByAddress p = Map.filter (p ∘ TxOut.address)
 
+{-# COMPILE AGDA2HS UTxO #-}
+{-# COMPILE AGDA2HS null #-}
+{-# COMPILE AGDA2HS empty #-}
+{-# COMPILE AGDA2HS dom #-}
+{-# COMPILE AGDA2HS balance #-}
+{-# COMPILE AGDA2HS union #-}
+{-# COMPILE AGDA2HS excluding #-}
+{-# COMPILE AGDA2HS excludingS #-}
+{-# COMPILE AGDA2HS filterByAddress #-}
+
 {-----------------------------------------------------------------------------
     Properties
 ------------------------------------------------------------------------------}

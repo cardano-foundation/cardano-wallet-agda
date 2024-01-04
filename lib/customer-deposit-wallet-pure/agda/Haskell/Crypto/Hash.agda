@@ -23,18 +23,23 @@ open import Haskell.Data.ByteString using
 ------------------------------------------------------------------------------}
 
 data Digest (alg : Set) : Set where
-  digest : Nat → Digest alg
+  DigestC : Nat → Digest alg
 
 -- | Encode a 'Digest' as a natural number.
 encodeDigest : ∀ {alg} → Digest alg → Nat
-encodeDigest (digest n) = n
+encodeDigest (DigestC n) = n
 
+{-# COMPILE AGDA2HS Digest #-}
+{-# COMPILE AGDA2HS encodeDigest #-}
+
+--
 prop-encodeDigest-injective
   : ∀ {alg}
       (x y : Digest alg)
   → encodeDigest x ≡ encodeDigest y
   → x ≡ y
-prop-encodeDigest-injective (digest a) (digest b) refl = refl
+--
+prop-encodeDigest-injective (DigestC a) (DigestC b) refl = refl
 
 record HashAlgorithm (alg : Set) : Set where
   field
@@ -46,7 +51,9 @@ record HashAlgorithm (alg : Set) : Set where
       → hash x ≡ hash y
       → x ≡ y
 
-open HashAlgorithm
+open HashAlgorithm ⦃ ... ⦄ public
+
+{-# COMPILE AGDA2HS HashAlgorithm class #-}
 
 {- Note [HashInjective]
 
@@ -91,8 +98,12 @@ abstract
   instance
     iTrivialHashAlgorithm : HashAlgorithm TrivialHash
     iTrivialHashAlgorithm = record
-        { hash = λ _ → digest 0 -- TODO: Ouch.
+        { hash = λ _ → DigestC 0 -- TODO: Ouch.
         ; prop-hash-injective = inj
         }
       where
         postulate inj : _
+
+
+{-# COMPILE AGDA2HS TrivialHash #-}
+{-# COMPILE AGDA2HS iTrivialHashAlgorithm #-}

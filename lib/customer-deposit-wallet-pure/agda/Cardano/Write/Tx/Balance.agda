@@ -38,11 +38,17 @@ import Haskell.Data.Map as Map
 ------------------------------------------------------------------------------}
 
 record PartialTx : Set where
+  constructor PartialTxC
   field
     outputs : List TxOut
 
+open PartialTx public
+
 totalOut : PartialTx → Value
 totalOut = mconcat ∘ map TxOut.value ∘ PartialTx.outputs
+
+{-# COMPILE AGDA2HS PartialTx #-}
+{-# COMPILE AGDA2HS totalOut #-}
 
 {-----------------------------------------------------------------------------
     Change addresses
@@ -53,6 +59,8 @@ ChangeAddressGen c = c → (Address × c)
 
 isChange : ChangeAddressGen c → Address → Set
 isChange = λ gen addr → ∃ (λ c → fst (gen c) ≡ addr)
+
+{-# COMPILE AGDA2HS ChangeAddressGen #-}
 
 {-----------------------------------------------------------------------------
     Coin selection
@@ -70,6 +78,9 @@ coinSelectionGreedy v ((txin , txout) ∷ xs) =
     in  if exceeds v dv
             then secondCons txin $ coinSelectionGreedy (minus v dv) xs
             else (minus dv v , [])
+
+{-# COMPILE AGDA2HS secondCons #-}
+{-# COMPILE AGDA2HS coinSelectionGreedy #-}
 
 {-----------------------------------------------------------------------------
     Balance transaction
@@ -99,6 +110,8 @@ balanceTransaction utxo newAddress c0 partialTx =
           }
   where
     target = totalOut partialTx
+
+{-# COMPILE AGDA2HS balanceTransaction #-}
 
 unequal : ∀ {A : Set} (x : A) → Nothing ≡ Just x → ⊥
 unequal x ()

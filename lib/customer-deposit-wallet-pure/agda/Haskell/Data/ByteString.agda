@@ -14,3 +14,6 @@ open import Haskell.Prelude hiding (lookup; null; map)
 
 Word8 = Nat
 ByteString = List Word8
+
+{-# COMPILE AGDA2HS Word8 #-}
+{-# COMPILE AGDA2HS ByteString #-}

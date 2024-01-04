@@ -17,14 +17,13 @@ extra-doc-files:
 extra-source-files:
   generate-haskell.sh
   customer-deposit-wallet-pure.agda-lib
-  src/agda/**/*.agda
+  agda/**/*.agda
 
 
 common language
   default-language:
     Haskell2010
   default-extensions:
-    NoImplicitPrelude
     OverloadedStrings
 
 common opts-lib
@@ -48,9 +47,8 @@ flag release
 library
   import:          language, opts-lib
   hs-source-dirs:
-    src/haskell
+    haskell
   build-depends:
-    , async
     , base >=4.14.3.0
     , bytestring
     , containers
@@ -59,8 +57,15 @@ library
     , time
   exposed-modules:
     Cardano.Wallet.Deposit.Pure
+    Cardano.Wallet.Deposit.Pure.Address
     Cardano.Wallet.Deposit.Pure.Balance
+    Cardano.Wallet.Deposit.Pure.DeltaUTxO
     Cardano.Wallet.Deposit.Pure.UTxO
-    Cardano.Wallet.Deposit.Pure.UTxOHistory
     Cardano.Wallet.Deposit.Read
-    Cardano.Wallet.Deposit.Write
+    Cardano.Write.Tx.Balance
+  other-modules:
+    Haskell.Data.ByteString
+    Haskell.Data.Map
+    Haskell.Data.Maybe
+    Haskell.Data.Set
+    Haskell.Crypto.Hash

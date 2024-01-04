@@ -38,6 +38,9 @@ utxoFromTxOutputs tx = Map.fromList $ zip txins txouts
     txins = map (λ j → (Tx.txid tx , j)) $ enumFromTo 0 (n - 1)
     txouts = Tx.outputs tx
 
+{-# COMPILE AGDA2HS spendTxD #-}
+{-# COMPILE AGDA2HS utxoFromTxOutputs #-}
+
 {-----------------------------------------------------------------------------
     Applying Blocks
 ------------------------------------------------------------------------------}
@@ -68,4 +71,7 @@ applyTx isOurs tx u0 =
     in  if isUnchangedUTxO
           then (mempty , u0)
           else (du , u)
+
+{-# COMPILE AGDA2HS IsOurs #-}
+{-# COMPILE AGDA2HS applyTx #-}
 

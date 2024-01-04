@@ -1,6 +1,12 @@
 #!/bin/sh
+ROOT=Cardano/Wallet/Deposit/Pure.agda 
 agda2hs \
+    --local-interfaces \
     --no-default-libraries \
-    -o ./src/haskell/ \
-    ./src/agda/Language/FineTypes.agda
-# agda2hs -v agda2hs.compile:7 ./src/agda/Language/FineTypes.agda -o ./src/haskell/
+    --config agda2hs-rewrites.yaml \
+    -o ./haskell/ \
+    ./agda/${ROOT}
+
+# agda \
+#     --no-default-libraries \
+#     ./agda/${ROOT}
