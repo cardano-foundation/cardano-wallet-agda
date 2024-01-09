@@ -1,0 +1,12 @@
+prelude:
+  implicit: true
+
+rewrites:
+  - from: "Haskell.Data.Set.ℙ"
+    to: "Set"
+    importing: "Data.Set"
+  - from: "Agda.Builtin.Nat.Nat.suc"
+    to: "succ"
+  # - from: "Haskell.Data.ByteString.ByteString"
+  #   to: "ByteString"
+  #   importing: "Data.ByteString"

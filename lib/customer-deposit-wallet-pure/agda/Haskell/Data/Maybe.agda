@@ -16,3 +16,7 @@ catMaybes : ∀ {a : Set} → List (Maybe a) → List a
 catMaybes [] = []
 catMaybes (Nothing ∷ xs) = catMaybes xs
 catMaybes (Just x ∷ xs) = x ∷ catMaybes xs
+
+{-# COMPILE AGDA2HS isNothing #-}
+{-# COMPILE AGDA2HS isJust #-}
+{-# COMPILE AGDA2HS catMaybes #-}

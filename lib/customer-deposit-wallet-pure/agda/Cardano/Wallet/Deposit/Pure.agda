@@ -8,6 +8,7 @@ module Cardano.Wallet.Deposit.Pure
       ; TxSummary
     ; WalletState
       ; listCustomers
+      ; isOurs
       ; knownCustomerAddress
 
       ; createAddress
@@ -25,6 +26,20 @@ module Cardano.Wallet.Deposit.Pure
 
 open import Haskell.Prelude
 open import Haskell.Reasoning
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Deposit.Pure.Address
+    ( Customer
+    , AddressState
+    )
+import Cardano.Wallet.Deposit.Pure.UTxO
+    ( UTxO
+    )
+import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
+import qualified Cardano.Wallet.Deposit.Pure.Balance as Balance
+import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO
+#-}
 
 open import Cardano.Wallet.Deposit.Pure.Address using
     ( Customer
@@ -48,6 +63,7 @@ open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
     ; isChange
     ; PartialTx
+      ; PartialTxC
     ; balanceTransaction
     ; prop-balanceTransaction-addresses
     )
@@ -75,10 +91,13 @@ record ValueTransfer : Set where
     spent    : Value
     received : Value
 
-open ValueTransfer
+open ValueTransfer public
 
 TxSummary : Set
 TxSummary = Slot × TxId × ValueTransfer
+
+{-# COMPILE AGDA2HS ValueTransfer #-}
+{-# COMPILE AGDA2HS TxSummary #-}
 
 {-----------------------------------------------------------------------------
     Type definition
@@ -91,7 +110,9 @@ record WalletState : Set where
     utxo        : UTxO
     txSummaries : Map.Map Customer (List TxSummary)
 
-open WalletState
+open WalletState public
+
+{-# COMPILE AGDA2HS WalletState #-}
 
 {-----------------------------------------------------------------------------
     Mapping between Customers and Address
@@ -139,16 +160,23 @@ knownCustomerAddress address =
 prop-create-known c s0 =
   Addr.prop-create-known c (addresses s0)
 
+{-# COMPILE AGDA2HS listCustomers #-}
+{-# COMPILE AGDA2HS createAddress #-}
+{-# COMPILE AGDA2HS isOurs #-}
+{-# COMPILE AGDA2HS knownCustomerAddress #-}
+
 {-----------------------------------------------------------------------------
     Address derivation
 ------------------------------------------------------------------------------}
 
 -- Specification
+--
 prop-create-derive
   : ∀ (c : Customer)
       (s0 : WalletState)
   → let (address , _) = createAddress c s0
     in  deriveCustomerAddress c ≡ address
+--
 prop-create-derive c s0 = Addr.prop-create-derive c (addresses s0)
  
 {-----------------------------------------------------------------------------
@@ -167,6 +195,8 @@ newChangeAddress = Addr.newChangeAddress ∘ addresses
 --
 prop-changeAddress-not-Customer s addr =
   Addr.prop-changeAddress-not-Customer (addresses s) addr
+
+{-# COMPILE AGDA2HS newChangeAddress #-}
 
 {-----------------------------------------------------------------------------
     Tracking incoming funds
@@ -228,6 +258,8 @@ getAddressSummary address =
 getCustomerHistory : WalletState → Customer → List TxSummary
 getCustomerHistory s c = []
 
+{-# COMPILE AGDA2HS getCustomerHistory #-}
+
 {-
 prop_getAddressHistory-summary
   : ∀ (s : WalletState)
@@ -264,9 +296,12 @@ applyTx tx s0 = s1
     s1 : WalletState
     s1 = record
       { addresses = addresses s0
-      ; utxo = snd $ Balance.applyTx (isOurs s0) tx (utxo s0)
+      ; utxo = snd (Balance.applyTx (isOurs s0) tx (utxo s0))
       ; txSummaries = txSummaries s0
       }
+
+{-# COMPILE AGDA2HS availableBalance #-}
+{-# COMPILE AGDA2HS applyTx #-}
 
 {-----------------------------------------------------------------------------
     Creating transactions
@@ -283,10 +318,13 @@ createPayment
 createPayment destinations s =
     balanceTransaction (utxo s) (newChangeAddress s) tt partialTx
   where
-    partialTx = record { outputs = map txOutFromPair destinations }
+    partialTx = PartialTxC (map txOutFromPair destinations)
 
 maxFee : Value
 maxFee = mempty
+
+{-# COMPILE AGDA2HS txOutFromPair #-}
+{-# COMPILE AGDA2HS createPayment #-}
 
 {-----------------------------------------------------------------------------
     Creating transactions

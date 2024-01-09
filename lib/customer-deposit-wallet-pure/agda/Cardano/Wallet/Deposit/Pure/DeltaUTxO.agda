@@ -37,7 +37,7 @@ record DeltaUTxO : Set where
     excluded : Set.ℙ TxIn
     received : UTxO
 
-open DeltaUTxO
+open DeltaUTxO public
 
 null : DeltaUTxO → Bool
 null du = Set.null (excluded du) && UTxO.null (received du)
@@ -85,7 +85,18 @@ instance
 
 instance
   iMonoidDeltaUTxO : Monoid DeltaUTxO
-  iMonoidDeltaUTxO = record {DefaultMonoid (record {mempty = empty})}
+  iMonoidDeltaUTxO =
+    record {DefaultMonoid (λ where .DefaultMonoid.mempty → empty)}
+
+{-# COMPILE AGDA2HS DeltaUTxO #-}
+{-# COMPILE AGDA2HS null #-}
+{-# COMPILE AGDA2HS empty #-}
+{-# COMPILE AGDA2HS apply #-}
+{-# COMPILE AGDA2HS excludingD #-}
+{-# COMPILE AGDA2HS receiveD #-}
+{-# COMPILE AGDA2HS appendDeltaUTxO #-}
+{-# COMPILE AGDA2HS iSemigroupDeltaUTxO #-}
+{-# COMPILE AGDA2HS iMonoidDeltaUTxO #-}
 
 {-----------------------------------------------------------------------------
     Properties

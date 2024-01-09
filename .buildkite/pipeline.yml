@@ -1,0 +1,31 @@
+agents:
+  queue: "cardano-wallet"
+
+env:
+  LC_ALL: "C.UTF-8"
+  NIX_PATH: "channel:nixos-21.11"
+
+  # Per-host variables - shared across containers on host
+  macos: "x86_64-darwin"
+  linux: "x86_64-linux"
+  nix: "nix develop --accept-flake-config --allow-import-from-derivation"
+
+steps:
+
+  - label: 'Check nix develop (linux)'
+    key: linux-nix
+    commands: |
+      ${nix} --command bash -c "echo +++ nix develop"
+    agents:
+      system: ${linux}
+    env:
+      TMPDIR: "/tmp"
+
+  - label: "Build agda2hs"
+    depends_on: linux-nix
+    command: |
+      ${nix} --command bash -c 'just haskell && just build0'
+    agents:
+      system: ${linux}
+    env:
+      TMPDIR: "/tmp"
