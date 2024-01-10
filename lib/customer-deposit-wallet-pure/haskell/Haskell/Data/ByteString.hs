@@ -1,8 +1,5 @@
-module Haskell.Data.ByteString where
+module Haskell.Data.ByteString
+    ( module Data.ByteString
+    ) where
 
-import Numeric.Natural (Natural)
-
-type Word8 = Natural
-
-type ByteString = [Word8]
-
+import Data.ByteString
