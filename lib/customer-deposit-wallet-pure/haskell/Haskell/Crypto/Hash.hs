@@ -1,12 +1,11 @@
 module Haskell.Crypto.Hash where
 
 import Haskell.Data.ByteString (ByteString)
-import Numeric.Natural (Natural)
 
-data Digest alg = DigestC Natural
+data Digest alg = DigestC ByteString
 
-encodeDigest :: Digest alg -> Natural
-encodeDigest (DigestC n) = n
+encodeDigest :: Digest alg -> ByteString
+encodeDigest (DigestC d) = d
 
 class HashAlgorithm alg where
     hash :: ByteString -> Digest alg
@@ -14,5 +13,5 @@ class HashAlgorithm alg where
 data TrivialHash = TrivialHashC
 
 instance HashAlgorithm TrivialHash where
-    hash = \ _ -> DigestC 0
+    hash = DigestC
 

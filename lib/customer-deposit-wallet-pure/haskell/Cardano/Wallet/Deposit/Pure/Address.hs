@@ -2,21 +2,32 @@ module Cardano.Wallet.Deposit.Pure.Address where
 
 import Cardano.Wallet.Deposit.Read (Address)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
+import Data.Word (Word8)
 import Haskell.Crypto.Hash (Digest, HashAlgorithm(hash), TrivialHash, encodeDigest)
+import qualified Haskell.Data.ByteString as BS (ByteString, pack)
 import qualified Haskell.Data.Map as Map (Map, insert, lookup, toAscList)
 import Haskell.Data.Maybe (isJust)
-import Numeric.Natural (Natural)
 
-type Customer = Natural
+type Customer = Word8
 
-deriveAddress :: Natural -> Address
-deriveAddress ix = encodeDigest digest
+hashFromList :: [Word8] -> BS.ByteString
+hashFromList xs = encodeDigest digest
   where
     digest :: Digest TrivialHash
-    digest = hash [ix]
+    digest = hash (BS.pack xs)
+
+data DerivationPath = DerivationCustomer Customer
+                    | DerivationChange
+
+listFromDerivationPath :: DerivationPath -> [Word8]
+listFromDerivationPath DerivationChange = [0]
+listFromDerivationPath (DerivationCustomer c) = [1, c]
+
+deriveAddress :: DerivationPath -> Address
+deriveAddress = hashFromList . listFromDerivationPath
 
 deriveCustomerAddress :: Customer -> Address
-deriveCustomerAddress c = deriveAddress (succ c)
+deriveCustomerAddress c = deriveAddress (DerivationCustomer c)
 
 data AddressState = AddressStateC{addresses ::
                                   Map.Map Address Customer,
@@ -49,7 +60,7 @@ createAddress c s0 = (addr, s1)
   where
     addr :: Address
     addr = deriveCustomerAddress c
-    addresses1 :: Map.Map Natural Natural
+    addresses1 :: Map.Map BS.ByteString Word8
     addresses1 = Map.insert addr c (addresses s0)
     s1 :: AddressState
     s1 = AddressStateC addresses1 (change s0)

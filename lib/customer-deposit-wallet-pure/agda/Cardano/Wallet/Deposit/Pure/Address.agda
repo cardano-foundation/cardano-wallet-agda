@@ -45,47 +45,86 @@ open import Haskell.Data.Maybe using
     ( isJust
     ; catMaybes
     )
+open import Haskell.Data.Word using
+    ( Word8
+    ; word8FromNat
+    )
+open import Haskell.Data.Word public using
+    ( iOrdWord8
+    )
 
+import Haskell.Data.ByteString as BS
 import Haskell.Data.Map as Map
 
 {-----------------------------------------------------------------------------
     Assumptions
 ------------------------------------------------------------------------------}
 
-Customer = Nat
-
-deriveAddress : Nat → Address
-deriveAddress ix = encodeDigest digest
-  where
-    digest : Digest TrivialHash
-    digest = hash iTrivialHashAlgorithm (ix ∷ [])
-
-deriveCustomerAddress : Customer → Address
-deriveCustomerAddress c = deriveAddress (suc c)
+Customer = Word8
 
 {-# COMPILE AGDA2HS Customer #-}
+
+hashFromList : List Word8 → BS.ByteString
+hashFromList xs = encodeDigest digest
+  where
+    digest : Digest TrivialHash
+    digest = hash iTrivialHashAlgorithm (BS.pack xs)
+
+{-# COMPILE AGDA2HS hashFromList #-}
+
+data DerivationPath : Set where
+  DerivationCustomer : Customer → DerivationPath
+  DerivationChange   : DerivationPath
+
+{-# COMPILE AGDA2HS DerivationPath #-}
+
+listFromDerivationPath : DerivationPath → List Word8
+listFromDerivationPath DerivationChange = 0 ∷ []
+listFromDerivationPath (DerivationCustomer c) = 1 ∷ c ∷ []
+
+{-# COMPILE AGDA2HS listFromDerivationPath #-}
+
+deriveAddress : DerivationPath → Address
+deriveAddress = hashFromList ∘ listFromDerivationPath
+
 {-# COMPILE AGDA2HS deriveAddress #-}
+
+deriveCustomerAddress : Customer → Address
+deriveCustomerAddress c = deriveAddress (DerivationCustomer c)
+
 {-# COMPILE AGDA2HS deriveCustomerAddress #-}
 
 --
+@0 lemma-listFromDerivationPath-injective
+  : ∀ {x y : DerivationPath}
+  → listFromDerivationPath x ≡ listFromDerivationPath y
+  → x ≡ y
+--
+lemma-listFromDerivationPath-injective {DerivationCustomer x} {DerivationCustomer y} refl =
+  refl
+lemma-listFromDerivationPath-injective {DerivationChange} {DerivationChange} refl =
+  refl
+
+--
 @0 lemma-derive-injective
-  : ∀ {x y : Nat}
+  : ∀ {x y : DerivationPath}
   → deriveAddress x ≡ deriveAddress y
   → x ≡ y
 --
 lemma-derive-injective =
-    ∷-injective-left
-    ∘ prop-hash-injective iTrivialHashAlgorithm _ _
-    ∘ prop-encodeDigest-injective _ _
+  lemma-listFromDerivationPath-injective
+  ∘ BS.prop-pack-injective _ _
+  ∘ prop-hash-injective iTrivialHashAlgorithm _ _
+  ∘ prop-encodeDigest-injective _ _
 
 --
 @0 lemma-derive-notCustomer
   : ∀ (c : Customer)
-  → ¬(deriveAddress 0 ≡ deriveCustomerAddress c)
+  → ¬(deriveAddress DerivationChange ≡ deriveCustomerAddress c)
 --
 lemma-derive-notCustomer c eq = bang (lemma-derive-injective eq)
   where
-    bang : 0 ≡ suc c → ⊥
+    bang : DerivationChange ≡ DerivationCustomer c → ⊥
     bang ()
 
 {-----------------------------------------------------------------------------
@@ -105,7 +144,7 @@ record AddressState : Set where
 
   field
     @0 invariant-change
-      : change ≡ deriveAddress 0
+      : change ≡ deriveAddress DerivationChange
 
     @0 invariant-customer
       : ∀ (addr : Address)
@@ -149,7 +188,7 @@ lemma-change-not-known s =
         let (ix `witness` eq) =
               invariant-customer s (change s) (cong isJust eq)
 
-            lem1 : deriveAddress 0 ≡ deriveCustomerAddress ix
+            lem1 : deriveAddress DerivationChange ≡ deriveCustomerAddress ix
             lem1 = trans (sym (invariant-change s)) eq
         in  magic (lemma-derive-notCustomer ix lem1)
     ; Nothing {{eq}} → eq
@@ -421,4 +460,4 @@ prop-changeAddress-not-Customer s addr eq-known eq-change =
 
     bang : False ≡ True → ⊥
     bang ()
- 
+  

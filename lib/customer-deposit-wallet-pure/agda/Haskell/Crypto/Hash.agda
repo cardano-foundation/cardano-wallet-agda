@@ -16,6 +16,7 @@ open import Haskell.Reasoning
 
 open import Haskell.Data.ByteString using
     ( ByteString
+    ; pack
     )
 
 {-----------------------------------------------------------------------------
@@ -23,11 +24,11 @@ open import Haskell.Data.ByteString using
 ------------------------------------------------------------------------------}
 
 data Digest (alg : Set) : Set where
-  DigestC : Nat → Digest alg
+  DigestC : ByteString → Digest alg
 
 -- | Encode a 'Digest' as a natural number.
-encodeDigest : ∀ {alg} → Digest alg → Nat
-encodeDigest (DigestC n) = n
+encodeDigest : ∀ {alg} → Digest alg → ByteString
+encodeDigest (DigestC d) = d
 
 {-# COMPILE AGDA2HS Digest #-}
 {-# COMPILE AGDA2HS encodeDigest #-}
@@ -98,12 +99,9 @@ abstract
   instance
     iTrivialHashAlgorithm : HashAlgorithm TrivialHash
     iTrivialHashAlgorithm = record
-        { hash = λ _ → DigestC 0 -- TODO: Ouch.
-        ; prop-hash-injective = inj
+        { hash = DigestC
+        ; prop-hash-injective = λ x y → λ { refl → refl }
         }
-      where
-        postulate inj : _
-
 
 {-# COMPILE AGDA2HS TrivialHash #-}
 {-# COMPILE AGDA2HS iTrivialHashAlgorithm #-}

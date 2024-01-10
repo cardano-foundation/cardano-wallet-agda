@@ -2,10 +2,22 @@
 module Cardano.Wallet.Deposit.Read where
 
 open import Haskell.Prelude
+
+import Haskell.Data.ByteString as BS
 import Haskell.Data.Map as Map
 
-Addr = Nat
+Addr = BS.ByteString
 Address = Addr
+
+instance
+  iEqAddress : Eq Address
+  iEqAddress = BS.iEqByteString
+
+  iOrdAddress : Ord Address
+  iOrdAddress = BS.iOrdByteString
+
+  iLawfulEqAddress : IsLawfulEq Address
+  iLawfulEqAddress = BS.iLawfulEqByteString
 
 Slot = Nat
 
