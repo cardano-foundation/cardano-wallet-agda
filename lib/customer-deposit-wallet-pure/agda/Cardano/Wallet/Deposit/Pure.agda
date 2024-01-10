@@ -256,7 +256,7 @@ getAddressSummary address =
 
 -- Specification
 getCustomerHistory : WalletState → Customer → List TxSummary
-getCustomerHistory s c = []
+getCustomerHistory s c = concat (Map.lookup c (txSummaries s))
 
 {-# COMPILE AGDA2HS getCustomerHistory #-}
 
