@@ -261,6 +261,46 @@ getCustomerHistory s c = concat (Map.lookup c (txSummaries s))
 {-# COMPILE AGDA2HS getCustomerHistory #-}
 
 {-
+--
+prop-txout-only-isOurs
+  : ∀ (address : Address)
+      (s : WalletState)
+      (tx : Tx)
+  → Map.member address (summarizeOutputs s tx) ≡ True
+  → isOurs s address ≡ True
+--
+prop-txout-only-isOurs address s tx eq = {!   !}
+  where
+    lem1 : _
+    lem1 =
+      begin
+        Map.member address (summarizeOutputs s tx)
+      ≡⟨⟩
+        elem address ((map fst ∘ map pairFromTxOut ∘ relevantOutputs s) tx)
+      ≡⟨⟩
+        elem address ((map TxOut.address ∘ relevantOutputs s) tx)
+      ≡⟨⟩
+        elem address ((map TxOut.address ∘ relevantOutputs s) tx)
+      ∎
+
+    lem2 : elem y ∘ map f xs ≡ ∃ (λ x → (y ≡ f x && elem x xs ≡ True))
+    lem2 = ?
+
+    lem2 : (elem x ∘ filter p) xs ≡ p x && elem x xs
+    lem2 = ?
+
+--
+prop-track-only-isOurs
+  : ∀ (address : Address)
+      (s : WalletState)
+      (tx : Tx)
+  → Map.member address (summarizeTx s tx) ≡ True
+  → isOurs s address ≡ True
+--
+prop-track-only-isOurs address s tx eq = {!   !}
+-}
+
+{-
 prop_getAddressHistory-summary
   : ∀ (s : WalletState)
       (c : Customer)
@@ -271,13 +311,6 @@ prop_getAddressHistory-summary
     ≡ (getAddressSummary address (summarize s tx))
         ++ getCustomerHistory s c
 
-
-prop_tx-known-address
-  : ∀ (address : Address)
-      (s : WalletState)
-      (tx : Tx)
-  → (knownCustomerAddress address s ≡ True)
-  ⟷ (address ∈ map fst (summarize s tx))
 -}
 
 
