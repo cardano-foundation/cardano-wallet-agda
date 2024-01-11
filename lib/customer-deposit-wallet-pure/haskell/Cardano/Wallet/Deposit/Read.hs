@@ -50,8 +50,21 @@ type Sig = ()
 data BHeader = BHeader{blockHeaderBody :: BHBody,
                        blockHeaderSignature :: Sig}
 
+bhHash :: BHeader -> HashHeader
+bhHash _ = ()
+
 dummyBHeader :: BHeader
 dummyBHeader = BHeader dummyBHBody ()
 
 data Block = Block{blockHeader :: BHeader, transactions :: [Tx]}
+
+data ChainPoint = GenesisPoint
+                | BlockPoint Slot HashHeader
+
+chainPointFromBlock :: Block -> ChainPoint
+chainPointFromBlock block
+  = BlockPoint (slot (blockHeaderBody bh)) (bhHash bh)
+  where
+    bh :: BHeader
+    bh = blockHeader block
 
