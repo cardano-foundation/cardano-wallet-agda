@@ -140,6 +140,14 @@ record BHeader : Set where
     blockHeaderSignature : Sig
 open BHeader public
 
+bhHash : BHeader → HashHeader
+bhHash _ = tt
+
+{-# COMPILE AGDA2HS bhHash #-}
+
+-- postulate
+-- bHeaderSize : BHeader → Nat
+
 {-# COMPILE AGDA2HS BHeader #-}
 
 dummyBHeader : BHeader
@@ -157,3 +165,12 @@ record Block : Set where
 open Block public
 
 {-# COMPILE AGDA2HS Block #-}
+
+{-----------------------------------------------------------------------------
+    ChainPoint
+------------------------------------------------------------------------------}
+data ChainPoint : Set where
+  GenesisPoint : ChainPoint
+  BlockPoint   : Slot → HashHeader → ChainPoint
+
+{-# COMPILE AGDA2HS ChainPoint #-}
