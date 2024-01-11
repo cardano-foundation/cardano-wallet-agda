@@ -11,6 +11,9 @@
     iohkNix.url = "github:input-output-hk/iohk-nix";
     iohkNix.inputs.nixpkgs.follows = "nixpkgs";
 
+    CHaP.url = "github:intersectmbo/cardano-haskell-packages?ref=repo";
+    CHaP.flake = false;
+
     flake-utils.url = "github:hamishmack/flake-utils/hkm/nested-hydraJobs";
 
     agda-tools.url = "github:HeinrichApfelmus/agda-notes?dir=nix/agda-hs-tools";
@@ -37,20 +40,24 @@
           inherit (inputs.haskellNix) config;
         };
 
+        indexState = "2024-03-15T17:07:52Z";
+
         # ... and construct a flake from the cabal.project file.
         # We use cabalProject' to ensure we don't build the plan for
         # all systems.
         flake = (nixpkgs.haskell-nix.cabalProject' rec {
           src = ./.;
           name = "customer-deposit-wallet-pure";
-          compiler-nix-name = "ghc963";
+          compiler-nix-name = "ghc964";
+
+          inputMap = { "https://chap.intersectmbo.org/" = inputs.CHaP; };
 
           # tools we want in our shell
           shell.tools = {
-            cabal = "3.10.2.0";
-            ghcid = "0.8.9";
-            haskell-language-server = "latest";
-            hlint = "3.6.1";
+            cabal = {
+              version = "3.10.2.1";
+              index-state = indexState;
+            };
             fourmolu = "0.14.1.0";
           };
           shell.withHoogle = true;
@@ -58,6 +65,8 @@
           shell.buildInputs = [
             nixpkgs.just
             nixpkgs.gitAndTools.git
+            nixpkgs.haskellPackages.ghcid
+            nixpkgs.haskellPackages.hlint
 
             inputs.agda-tools.packages.${system}.agda
             inputs.agda-tools.packages.${system}.agda2hs
