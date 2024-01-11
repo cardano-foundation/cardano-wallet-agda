@@ -1,8 +1,9 @@
 module Cardano.Wallet.Deposit.Read where
 
+import qualified Haskell.Data.ByteString as BS (ByteString)
 import Numeric.Natural (Natural)
 
-type Addr = Natural
+type Addr = BS.ByteString
 
 type Address = Addr
 
