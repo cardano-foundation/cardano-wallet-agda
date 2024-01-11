@@ -7,9 +7,9 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO (filterByAddress, null
 import Cardano.Wallet.Deposit.Read (Tx(inputs, outputs, txid))
 import qualified Cardano.Wallet.Deposit.Read as Read (Addr, TxIn, TxOut)
 import Data.Set (Set)
+import qualified Haskell.Data.ByteString (ByteString)
 import qualified Haskell.Data.Map as Map (fromList)
 import qualified Haskell.Data.Set as Set (fromList)
-import Numeric.Natural (Natural)
 
 spendTxD :: Tx -> UTxO -> (DeltaUTxO, UTxO)
 spendTxD tx u
@@ -24,7 +24,7 @@ utxoFromTxOutputs tx = Map.fromList $ zip txins txouts
   where
     n :: Int
     n = length (outputs tx)
-    txins :: [(Natural, Int)]
+    txins :: [(Haskell.Data.ByteString.ByteString, Int)]
     txins = map (\ j -> (txid tx, j)) $ [0 .. n - 1]
     txouts :: [Read.TxOut]
     txouts = outputs tx
