@@ -174,3 +174,11 @@ data ChainPoint : Set where
   BlockPoint   : Slot → HashHeader → ChainPoint
 
 {-# COMPILE AGDA2HS ChainPoint #-}
+
+chainPointFromBlock : Block → ChainPoint
+chainPointFromBlock block =
+    BlockPoint (slot (blockHeaderBody bh)) (bhHash bh)
+  where
+    bh = blockHeader block
+
+{-# COMPILE AGDA2HS chainPointFromBlock #-}

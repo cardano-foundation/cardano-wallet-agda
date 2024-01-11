@@ -51,6 +51,9 @@ open import Cardano.Wallet.Deposit.Pure.UTxO using
     )
 open import Cardano.Wallet.Deposit.Read using
     ( Address
+    ; Block
+    ; ChainPoint
+      ; chainPointFromBlock
     ; Slot
     ; Tx
     ; TxId
@@ -110,6 +113,10 @@ record WalletState : Set where
     utxo        : UTxO
     txSummaries : Map.Map Customer (List TxSummary)
 
+    -- The 'localTip' is the point on the blockchain up to (and including)
+    -- which the 'WalletState' has incorporated the necessary information.
+    localTip    : ChainPoint
+
 open WalletState public
 
 {-# COMPILE AGDA2HS WalletState #-}
@@ -138,6 +145,7 @@ createAddress c s0 = ( addr , s1 )
       { addresses = a1
       ; utxo = utxo s0
       ; txSummaries = txSummaries s0
+      ; localTip = localTip s0
       }
 
 isOurs : WalletState → Address → Bool
@@ -322,6 +330,8 @@ prop_getAddressHistory-summary
 availableBalance : WalletState → Value
 availableBalance = UTxO.balance ∘ utxo
 
+{-# COMPILE AGDA2HS availableBalance #-}
+
 -- Specification
 applyTx : Tx → WalletState → WalletState
 applyTx tx s0 = s1
@@ -331,10 +341,19 @@ applyTx tx s0 = s1
       { addresses = addresses s0
       ; utxo = snd (Balance.applyTx (isOurs s0) tx (utxo s0))
       ; txSummaries = txSummaries s0
+      ; localTip = localTip s0
       }
 
-{-# COMPILE AGDA2HS availableBalance #-}
 {-# COMPILE AGDA2HS applyTx #-}
+
+-- | Roll the 'WalletState' forward by one block.
+rollForwardOne : Block → WalletState → WalletState
+rollForwardOne block s0 =
+    record s1 { localTip = chainPointFromBlock block }
+  where
+    s1 = foldl (λ s tx → applyTx tx s) s0 (Block.transactions block)
+
+{-# COMPILE AGDA2HS rollForwardOne #-}
 
 {-----------------------------------------------------------------------------
     Creating transactions

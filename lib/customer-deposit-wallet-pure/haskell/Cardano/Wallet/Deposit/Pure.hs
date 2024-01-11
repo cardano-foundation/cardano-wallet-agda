@@ -1,6 +1,6 @@
 module Cardano.Wallet.Deposit.Pure where
 
-import Cardano.Wallet.Deposit.Read (Address, Slot, Tx, TxId, TxOut(TxOutC), Value)
+import Cardano.Wallet.Deposit.Read (Address, Block(transactions), ChainPoint, Slot, Tx, TxId, TxOut(TxOutC), Value, chainPointFromBlock)
 import Cardano.Write.Tx.Balance (ChangeAddressGen, PartialTx(PartialTxC), balanceTransaction)
 import qualified Haskell.Data.Map as Map (Map, lookup)
 
@@ -22,7 +22,8 @@ data ValueTransfer = ValueTransfer{spent :: Value,
 type TxSummary = (Slot, TxId, ValueTransfer)
 
 data WalletState = WalletState{addresses :: AddressState,
-                               utxo :: UTxO, txSummaries :: Map.Map Customer [TxSummary]}
+                               utxo :: UTxO, txSummaries :: Map.Map Customer [TxSummary],
+                               localTip :: ChainPoint}
 
 listCustomers :: WalletState -> [(Customer, Address)]
 listCustomers = Addr.listCustomers . \ r -> addresses r
@@ -37,7 +38,7 @@ createAddress c s0 = (addr, s1)
     addr :: Address
     addr = fst pair
     s1 :: WalletState
-    s1 = WalletState a1 (utxo s0) (txSummaries s0)
+    s1 = WalletState a1 (utxo s0) (txSummaries s0) (localTip s0)
 
 isOurs :: WalletState -> Address -> Bool
 isOurs s = Addr.isOurs (addresses s)
@@ -63,6 +64,15 @@ applyTx tx s0 = s1
       = WalletState (addresses s0)
           (snd (Balance.applyTx (isOurs s0) tx (utxo s0)))
           (txSummaries s0)
+          (localTip s0)
+
+rollForwardOne :: Block -> WalletState -> WalletState
+rollForwardOne block s0
+  = WalletState (addresses s1) (utxo s1) (txSummaries s1)
+      (chainPointFromBlock block)
+  where
+    s1 :: WalletState
+    s1 = foldl (\ s tx -> applyTx tx s) s0 (transactions block)
 
 txOutFromPair :: (Address, Value) -> TxOut
 txOutFromPair (x, y) = TxOutC x y
