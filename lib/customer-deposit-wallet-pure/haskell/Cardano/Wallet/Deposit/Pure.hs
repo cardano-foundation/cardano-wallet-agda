@@ -2,7 +2,7 @@ module Cardano.Wallet.Deposit.Pure where
 
 import Cardano.Wallet.Deposit.Read (Address, Slot, Tx, TxId, TxOut(TxOutC), Value)
 import Cardano.Write.Tx.Balance (ChangeAddressGen, PartialTx(PartialTxC), balanceTransaction)
-import qualified Haskell.Data.Map as Map (Map)
+import qualified Haskell.Data.Map as Map (Map, lookup)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.Address
@@ -50,7 +50,7 @@ newChangeAddress :: WalletState -> ChangeAddressGen ()
 newChangeAddress = Addr.newChangeAddress . \ r -> addresses r
 
 getCustomerHistory :: WalletState -> Customer -> [TxSummary]
-getCustomerHistory s c = []
+getCustomerHistory s c = concat (Map.lookup c (txSummaries s))
 
 availableBalance :: WalletState -> Value
 availableBalance = UTxO.balance . \ r -> utxo r
