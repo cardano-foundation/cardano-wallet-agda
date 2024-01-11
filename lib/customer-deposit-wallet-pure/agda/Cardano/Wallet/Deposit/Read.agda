@@ -6,6 +6,10 @@ open import Haskell.Prelude
 import Haskell.Data.ByteString as BS
 import Haskell.Data.Map as Map
 
+{-----------------------------------------------------------------------------
+    Address
+------------------------------------------------------------------------------}
+
 Addr = BS.ByteString
 Address = Addr
 
@@ -19,11 +23,8 @@ instance
   iLawfulEqAddress : IsLawfulEq Address
   iLawfulEqAddress = BS.iLawfulEqByteString
 
-Slot = Nat
-
 {-# COMPILE AGDA2HS Addr #-}
 {-# COMPILE AGDA2HS Address #-}
-{-# COMPILE AGDA2HS Slot #-}
 
 {-----------------------------------------------------------------------------
     Value
@@ -82,3 +83,66 @@ open Tx public
 {-# COMPILE AGDA2HS TxIn #-}
 {-# COMPILE AGDA2HS TxOut #-}
 {-# COMPILE AGDA2HS Tx #-}
+
+{-----------------------------------------------------------------------------
+    Blocks
+------------------------------------------------------------------------------}
+BlockNo = Nat
+Slot = Nat
+
+{-# COMPILE AGDA2HS BlockNo #-}
+{-# COMPILE AGDA2HS Slot #-}
+
+HashHeader = ⊤
+HashBBody = ⊤
+
+{-# COMPILE AGDA2HS HashHeader #-}
+{-# COMPILE AGDA2HS HashBBody #-}
+
+record BHBody : Set where
+  field
+    prev    : Maybe HashHeader
+    blockno : BlockNo
+    slot    : Slot
+    bhash   : HashBBody
+open BHBody public
+
+{-# COMPILE AGDA2HS BHBody #-}
+
+dummyBHBody : BHBody
+dummyBHBody = record
+  { prev = Nothing
+  ; blockno = 128
+  ; slot = 42
+  ; bhash = tt
+  }
+
+{-# COMPILE AGDA2HS dummyBHBody #-}
+
+Sig = ⊤
+
+{-# COMPILE AGDA2HS Sig #-}
+
+record BHeader : Set where
+  field
+    blockHeaderBody      : BHBody
+    blockHeaderSignature : Sig
+open BHeader public
+
+{-# COMPILE AGDA2HS BHeader #-}
+
+dummyBHeader : BHeader
+dummyBHeader = record
+  { blockHeaderBody = dummyBHBody
+  ; blockHeaderSignature = tt
+  }
+
+{-# COMPILE AGDA2HS dummyBHeader #-}
+
+record Block : Set where
+  field
+    blockHeader  : BHeader
+    transactions : List Tx
+open Block public
+
+{-# COMPILE AGDA2HS Block #-}
