@@ -56,7 +56,18 @@ minus (MkValue a) (MkValue b) = MkValue (a - b)
     Transactions
 ------------------------------------------------------------------------------}
 
-TxId = Nat
+TxId = BS.ByteString
+
+instance
+  iEqTxId : Eq TxId
+  iEqTxId = BS.iEqByteString
+
+  iOrdTxId : Ord TxId
+  iOrdTxId = BS.iOrdByteString
+
+  iLawfulEqTxId : IsLawfulEq TxId
+  iLawfulEqTxId = BS.iLawfulEqByteString
+
 Ix = Int
 
 TxIn = TxId × Ix

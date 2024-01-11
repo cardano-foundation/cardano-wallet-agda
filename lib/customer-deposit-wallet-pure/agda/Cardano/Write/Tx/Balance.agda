@@ -31,6 +31,7 @@ open import Haskell.Data.List.Prop using ( _∈_ )
 open import Haskell.Data.Maybe using ( isJust )
 
 import Cardano.Wallet.Deposit.Pure.UTxO as UTxO
+import Haskell.Data.ByteString as BS
 import Haskell.Data.Map as Map
 
 {-----------------------------------------------------------------------------
@@ -104,7 +105,7 @@ balanceTransaction utxo newAddress c0 partialTx =
     if exceeds target (UTxO.balance utxo)
         then Nothing
         else Just $ record
-          { txid = 0
+          { txid = BS.empty
           ; outputs = changeOutput ∷ PartialTx.outputs partialTx
           ; inputs = ins
           }
