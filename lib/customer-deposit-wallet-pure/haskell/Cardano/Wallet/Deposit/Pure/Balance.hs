@@ -4,7 +4,7 @@ import Cardano.Wallet.Deposit.Pure.DeltaUTxO (DeltaUTxO)
 import qualified Cardano.Wallet.Deposit.Pure.DeltaUTxO (excludingD, null, receiveD)
 import Cardano.Wallet.Deposit.Pure.UTxO (UTxO)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO (filterByAddress, null)
-import Cardano.Wallet.Deposit.Read (Tx(inputs, outputs, txid))
+import Cardano.Wallet.Deposit.Read (Tx(txbody, txid), TxBody(inputs, outputs))
 import qualified Cardano.Wallet.Deposit.Read as Read (Addr, TxIn, TxOut)
 import Data.Set (Set)
 import qualified Haskell.Data.ByteString (ByteString)
@@ -17,17 +17,17 @@ spendTxD tx u
       inputsToExclude
   where
     inputsToExclude :: Set Read.TxIn
-    inputsToExclude = Set.fromList (inputs tx)
+    inputsToExclude = Set.fromList (inputs (txbody tx))
 
 utxoFromTxOutputs :: Tx -> UTxO
 utxoFromTxOutputs tx = Map.fromList $ zip txins txouts
   where
     n :: Int
-    n = length (outputs tx)
+    n = length (outputs (txbody tx))
     txins :: [(Haskell.Data.ByteString.ByteString, Int)]
     txins = map (\ j -> (txid tx, j)) $ [0 .. n - 1]
     txouts :: [Read.TxOut]
-    txouts = outputs tx
+    txouts = outputs (txbody tx)
 
 type IsOurs addr = addr -> Bool
 

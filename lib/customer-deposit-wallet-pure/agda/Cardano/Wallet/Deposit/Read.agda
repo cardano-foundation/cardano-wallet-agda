@@ -80,12 +80,19 @@ record TxOut : Set where
 
 open TxOut public
 
+record TxBody : Set where
+  constructor TxBodyC
+  field
+    inputs  : List TxIn
+    outputs : List TxOut
+
+open TxBody public
+
 record Tx : Set where
   constructor TxC
   field
-    txid    : TxId
-    inputs  : List TxIn
-    outputs : List TxOut
+    txid   : TxId
+    txbody : TxBody
 
 open Tx public
 
@@ -93,6 +100,7 @@ open Tx public
 {-# COMPILE AGDA2HS Ix #-}
 {-# COMPILE AGDA2HS TxIn #-}
 {-# COMPILE AGDA2HS TxOut #-}
+{-# COMPILE AGDA2HS TxBody #-}
 {-# COMPILE AGDA2HS Tx #-}
 
 {-----------------------------------------------------------------------------

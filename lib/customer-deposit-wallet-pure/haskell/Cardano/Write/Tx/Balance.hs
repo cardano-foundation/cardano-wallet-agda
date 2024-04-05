@@ -2,8 +2,7 @@ module Cardano.Write.Tx.Balance where
 
 import Cardano.Wallet.Deposit.Pure.UTxO (UTxO)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO (balance)
-import Cardano.Wallet.Deposit.Read (Address, Tx(TxC), TxIn, TxOut(TxOutC, value), Value, exceeds, minus)
-import qualified Haskell.Data.ByteString as BS (empty)
+import Cardano.Wallet.Deposit.Read (Address, TxBody(TxBodyC), TxIn, TxOut(TxOutC, value), Value, exceeds, minus)
 import qualified Haskell.Data.Map as Map (toAscList)
 
 data PartialTx = PartialTxC{outputs :: [TxOut]}
@@ -24,12 +23,11 @@ coinSelectionGreedy v ((txin, txout) : xs)
       else (minus (value txout) v, [])
 
 balanceTransaction ::
-                   UTxO -> ChangeAddressGen c -> c -> PartialTx -> Maybe Tx
+                   UTxO -> ChangeAddressGen c -> c -> PartialTx -> Maybe TxBody
 balanceTransaction utxo newAddress c0 partialTx
   = if exceeds target (UTxO.balance utxo) then Nothing else
       Just $
-        TxC BS.empty
-          (snd (coinSelectionGreedy target (Map.toAscList utxo)))
+        TxBodyC (snd (coinSelectionGreedy target (Map.toAscList utxo)))
           (TxOutC (fst (newAddress c0))
              (fst (coinSelectionGreedy target (Map.toAscList utxo)))
              : outputs partialTx)
