@@ -56,6 +56,7 @@ open import Cardano.Wallet.Deposit.Read using
       ; chainPointFromBlock
     ; Slot
     ; Tx
+    ; TxBody
     ; TxId
     ; TxIn
     ; TxOut
@@ -229,11 +230,11 @@ lookupTxIn : WalletState → TxIn → Maybe TxOut
 lookupTxIn s txin = Map.lookup txin (utxo s)
 
 relevantOutputs : WalletState → Tx → List TxOut
-relevantOutputs s = filter (isOurTxOut s) ∘ Tx.outputs
+relevantOutputs s = filter (isOurTxOut s) ∘ TxBody.outputs ∘ Tx.txbody
 
 relevantInputs : WalletState → Tx → List TxOut
 relevantInputs s =
-    catMaybes ∘ map (lookupTxIn s) ∘ Tx.inputs
+    catMaybes ∘ map (lookupTxIn s) ∘ TxBody.inputs ∘ Tx.txbody
 
 pairFromTxOut : TxOut → (Address × Value)
 pairFromTxOut = λ txout → (TxOut.address txout , TxOut.value txout)
@@ -366,7 +367,7 @@ txOutFromPair (x , y) = record { address = x ; value = y }
 createPayment
     : List (Address × Value)
     → WalletState
-    → Maybe Tx
+    → Maybe TxBody
 createPayment destinations s =
     balanceTransaction (utxo s) (newChangeAddress s) tt partialTx
   where
@@ -415,12 +416,12 @@ lemma-neg-impl = λ f ¬b a → ¬b (f a)
 @0 prop-createPayment-not-known
   : ∀ (s : WalletState)
       (destinations : List (Address × Value))
-      (tx : Tx)
+      (tx : TxBody)
   → createPayment destinations s ≡ Just tx
   → ∀ (address : Address)
     → knownCustomerAddress address s ≡ True
     → ¬ (address ∈ map fst destinations)
-    → ¬ (address ∈ map TxOut.address (Tx.outputs tx))
+    → ¬ (address ∈ map TxOut.address (TxBody.outputs tx))
 --
 prop-createPayment-not-known s destinations tx created addr known ¬dest =
     lemma-neg-impl
@@ -447,7 +448,7 @@ prop-createPayment-not-known s destinations tx created addr known ¬dest =
     lem2 p rewrite lem1 = ¬dest p
 
     changeOrPartial
-      : addr ∈ map TxOut.address (Tx.outputs tx)
+      : addr ∈ map TxOut.address (TxBody.outputs tx)
       → isChange new addr
         ⋁ addr ∈ map TxOut.address (PartialTx.outputs partialTx)
     changeOrPartial =

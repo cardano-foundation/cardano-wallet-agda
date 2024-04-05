@@ -12,6 +12,7 @@ open import Cardano.Wallet.Deposit.Pure.DeltaUTxO using
     )
 open import Cardano.Wallet.Deposit.Read using
     ( Tx
+    ; TxBody
     )
 
 import Cardano.Wallet.Deposit.Pure.DeltaUTxO as DeltaUTxO
@@ -28,15 +29,15 @@ spendTxD : Read.Tx -> UTxO -> (DeltaUTxO × UTxO)
 spendTxD tx u =
     DeltaUTxO.excludingD u inputsToExclude
   where
-    inputsToExclude = Set.fromList (Read.Tx.inputs tx)
+    inputsToExclude = Set.fromList (TxBody.inputs (Tx.txbody tx))
 
 -- | Convert the transaction outputs into a 'UTxO' set.
 utxoFromTxOutputs : Read.Tx → UTxO
 utxoFromTxOutputs tx = Map.fromList $ zip txins txouts
   where
-    n = length (Tx.outputs tx)
+    n = length (TxBody.outputs (Tx.txbody tx))
     txins = map (λ j → (Tx.txid tx , j)) $ enumFromTo 0 (n - 1)
-    txouts = Tx.outputs tx
+    txouts = TxBody.outputs (Tx.txbody tx)
 
 {-# COMPILE AGDA2HS spendTxD #-}
 {-# COMPILE AGDA2HS utxoFromTxOutputs #-}

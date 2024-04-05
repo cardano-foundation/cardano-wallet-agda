@@ -20,7 +20,7 @@ open import Cardano.Wallet.Deposit.Pure.UTxO using
     )
 open import Cardano.Wallet.Deposit.Read using
     ( Address
-    ; Tx
+    ; TxBody
     ; TxIn
     ; TxOut
     ; Value
@@ -94,7 +94,7 @@ balanceTransaction
     → ChangeAddressGen c
     → c
     → PartialTx
-    → Maybe Tx
+    → Maybe TxBody
 balanceTransaction utxo newAddress c0 partialTx =
     let (changeValue , ins) = coinSelectionGreedy target (Map.toAscList utxo)
         changeOutput = record
@@ -105,8 +105,7 @@ balanceTransaction utxo newAddress c0 partialTx =
     if exceeds target (UTxO.balance utxo)
         then Nothing
         else Just $ record
-          { txid = BS.empty
-          ; outputs = changeOutput ∷ PartialTx.outputs partialTx
+          { outputs = changeOutput ∷ PartialTx.outputs partialTx
           ; inputs = ins
           }
   where
@@ -130,16 +129,16 @@ lemma-balanceTransaction-addresses
       (partialTx : PartialTx)
       (new : ChangeAddressGen c)
       (c0 : c)
-      (tx : Tx)
+      (tx : TxBody)
   → balanceTransaction u new c0 partialTx ≡ Just tx 
-  → map TxOut.address (Tx.outputs tx)
+  → map TxOut.address (TxBody.outputs tx)
     ≡ fst (new c0) ∷ map TxOut.address (PartialTx.outputs partialTx)
 lemma-balanceTransaction-addresses u partialTx new c0 tx balance
   with exceeds (totalOut partialTx) (UTxO.balance u)
 ...  | True = magic (unequal tx balance)
 ...  | False = begin
-          map TxOut.address (Tx.outputs tx)
-        ≡⟨ cong (λ x → map TxOut.address (Tx.outputs x)) (sym (unJust balance)) ⟩
+          map TxOut.address (TxBody.outputs tx)
+        ≡⟨ cong (λ x → map TxOut.address (TxBody.outputs x)) (sym (unJust balance)) ⟩
           fst (new c0) ∷ map TxOut.address (PartialTx.outputs partialTx)
         ∎
 
@@ -172,10 +171,10 @@ prop-balanceTransaction-addresses
       (partialTx : PartialTx)
       (new : ChangeAddressGen c)
       (c0 : c)
-      (tx : Tx)
+      (tx : TxBody)
   → balanceTransaction u new c0 partialTx ≡ Just tx
   → ∀ (addr : Address)
-    → addr ∈ map TxOut.address (Tx.outputs tx)
+    → addr ∈ map TxOut.address (TxBody.outputs tx)
     → isChange new addr
         ⋁ addr ∈ map TxOut.address (PartialTx.outputs partialTx)
 
@@ -186,7 +185,7 @@ prop-balanceTransaction-addresses u partialTx new c0 tx balance addr el
       begin
         True
       ≡⟨ sym el ⟩
-        elem addr (map TxOut.address $ Tx.outputs tx)
+        elem addr (map TxOut.address $ TxBody.outputs tx)
       ≡⟨ cong (elem addr) (lemma-balanceTransaction-addresses u partialTx new c0 tx balance) ⟩
         elem addr (fst (new c0) ∷ map TxOut.address (PartialTx.outputs partialTx))
       ≡⟨⟩
