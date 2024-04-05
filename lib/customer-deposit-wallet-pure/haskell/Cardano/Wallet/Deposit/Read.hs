@@ -29,7 +29,9 @@ type TxIn = (TxId, Ix)
 
 data TxOut = TxOutC{address :: Address, value :: Value}
 
-data Tx = TxC{txid :: TxId, inputs :: [TxIn], outputs :: [TxOut]}
+data TxBody = TxBodyC{inputs :: [TxIn], outputs :: [TxOut]}
+
+data Tx = TxC{txid :: TxId, txbody :: TxBody}
 
 type BlockNo = Natural
 

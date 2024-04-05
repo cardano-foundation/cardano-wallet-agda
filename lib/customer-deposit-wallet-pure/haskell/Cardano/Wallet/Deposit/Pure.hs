@@ -1,6 +1,6 @@
 module Cardano.Wallet.Deposit.Pure where
 
-import Cardano.Wallet.Deposit.Read (Address, Block(transactions), ChainPoint, Slot, Tx, TxId, TxOut(TxOutC), Value, chainPointFromBlock)
+import Cardano.Wallet.Deposit.Read (Address, Block(transactions), ChainPoint, Slot, Tx, TxBody, TxId, TxOut(TxOutC), Value, chainPointFromBlock)
 import Cardano.Write.Tx.Balance (ChangeAddressGen, PartialTx(PartialTxC), balanceTransaction)
 import qualified Haskell.Data.Map as Map (Map, lookup)
 
@@ -77,7 +77,7 @@ rollForwardOne block s0
 txOutFromPair :: (Address, Value) -> TxOut
 txOutFromPair (x, y) = TxOutC x y
 
-createPayment :: [(Address, Value)] -> WalletState -> Maybe Tx
+createPayment :: [(Address, Value)] -> WalletState -> Maybe TxBody
 createPayment destinations s
   = balanceTransaction (utxo s) (newChangeAddress s) () partialTx
   where
