@@ -3,6 +3,14 @@
 module Cardano.Wallet.Deposit.Pure.UTxO
     {-
     ; UTxO
+      ; null
+      ; empty
+      ; dom
+      ; balance
+      ; union
+      ; excluding
+      ; excludingS
+      ; filterByAddress
     -}
     where
 

@@ -1,6 +1,17 @@
 {-# OPTIONS --erasure #-}
 
-module Cardano.Wallet.Deposit.Pure.DeltaUTxO where
+module Cardano.Wallet.Deposit.Pure.DeltaUTxO
+    {-
+    ; DeltaUTxO
+      ; null
+      ; empty
+      ; apply
+      ; excludingD
+      ; receiveD
+      ; instance Semigroup DeltaUTxO
+      ; instance Monoid DeltaUTxO
+    -}
+    where
 
 open import Haskell.Prelude hiding
     ( null
