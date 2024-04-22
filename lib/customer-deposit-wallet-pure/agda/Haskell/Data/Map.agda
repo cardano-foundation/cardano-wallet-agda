@@ -73,6 +73,8 @@ module
     unionWith     : (a → a → a) → Map k a → Map k a → Map k a
     filterWithKey : (k → a → Bool) → Map k a → Map k a
 
+    takeWhileAntitone : (k → Bool) → Map k a → Map k a
+
     instance
       iMapFunctor : Functor (Map k)
 
@@ -125,6 +127,16 @@ module
       : ∀ (key : k) (m : Map k a) (p : k → a → Bool)
       → lookup key m ≡ Nothing
       → lookup key (filterWithKey p m) ≡ Nothing
+
+    prop-lookup-takeWhileAntitone
+      : ∀ (p : k → Bool)
+      → (∀ (key1 key2 : k)
+          → (key1 < key2) ≡ True
+          → (p key1 >= p key2) ≡ True
+        )
+      → ∀ (key : k) (m : Map k a)
+      → lookup key (takeWhileAntitone p m)
+        ≡ lookup key (filterWithKey (λ k _ → p k) m)
 
   map : ∀ {b : Set} → (a → b) → Map k a → Map k b
   map = fmap
