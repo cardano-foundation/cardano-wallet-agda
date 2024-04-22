@@ -1,5 +1,5 @@
 #!/bin/sh
-ROOT=Cardano/Wallet/Deposit/Pure.agda 
+ROOT=Cardano/Wallet/Deposit/Everything.agda 
 agda2hs \
     --local-interfaces \
     --no-default-libraries \
