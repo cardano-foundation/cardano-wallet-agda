@@ -64,6 +64,7 @@ library
     Cardano.Wallet.Deposit.Pure.DeltaUTxO
     Cardano.Wallet.Deposit.Pure.UTxO
     Cardano.Wallet.Deposit.Pure.Timeline
+    Cardano.Wallet.Deposit.Pure.ValueTransfer
     Cardano.Wallet.Deposit.Read
     Cardano.Write.Tx.Balance
   other-modules:
