@@ -36,6 +36,9 @@ import Cardano.Wallet.Deposit.Pure.Address
 import Cardano.Wallet.Deposit.Pure.UTxO
     ( UTxO
     )
+import Cardano.Wallet.Deposit.Pure.TxSummary
+    ( TxSummary
+    )
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
 import qualified Cardano.Wallet.Deposit.Pure.Balance as Balance
 import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO
@@ -53,6 +56,10 @@ open import Cardano.Wallet.Deposit.Pure.ValueTransfer using
     ( ValueTransfer
       ; fromSpent
       ; fromReceived
+    )
+open import Cardano.Wallet.Deposit.Pure.TxSummary using
+    ( TxSummary
+      ; mkTxSummary
     )
 open import Cardano.Wallet.Deposit.Read using
     ( Address
@@ -90,15 +97,6 @@ import Haskell.Data.Map as Map
 
 -- The import of the cong! tactic slows down type checking…
 open import Tactic.Cong using (cong!)
-
-{-----------------------------------------------------------------------------
-    Assumptions
-------------------------------------------------------------------------------}
-
-TxSummary : Set
-TxSummary = Slot × TxId × ValueTransfer
-
-{-# COMPILE AGDA2HS TxSummary #-}
 
 {-----------------------------------------------------------------------------
     Type definition
@@ -238,10 +236,6 @@ summarizeTx s tx =
   where
     ins  = Map.map fromSpent $ summarizeInputs s tx
     outs = Map.map fromReceived $ summarizeOutputs s tx
-
-mkTxSummary : Tx → ValueTransfer → TxSummary
-mkTxSummary = λ tx transfer → (0 , Tx.txid tx , transfer)
-
 
 getAddressSummary
   : Address → List (Address × TxSummary) → List TxSummary
