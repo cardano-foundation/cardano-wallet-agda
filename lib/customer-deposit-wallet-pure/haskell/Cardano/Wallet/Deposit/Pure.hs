@@ -1,6 +1,6 @@
 module Cardano.Wallet.Deposit.Pure where
 
-import Cardano.Wallet.Deposit.Read (Address, Block(transactions), ChainPoint, Slot, Tx, TxBody, TxId, TxOut(TxOutC), Value, chainPointFromBlock)
+import Cardano.Wallet.Deposit.Read (Address, Block(transactions), ChainPoint, Tx, TxBody, TxOut(TxOutC), Value, chainPointFromBlock)
 import Cardano.Write.Tx.Balance (ChangeAddressGen, PartialTx(PartialTxC), balanceTransaction)
 import qualified Haskell.Data.Map as Map (Map, lookup)
 
@@ -12,14 +12,12 @@ import Cardano.Wallet.Deposit.Pure.Address
 import Cardano.Wallet.Deposit.Pure.UTxO
     ( UTxO
     )
+import Cardano.Wallet.Deposit.Pure.TxSummary
+    ( TxSummary
+    )
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
 import qualified Cardano.Wallet.Deposit.Pure.Balance as Balance
 import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO
-
-data ValueTransfer = ValueTransfer{spent :: Value,
-                                   received :: Value}
-
-type TxSummary = (Slot, TxId, ValueTransfer)
 
 data WalletState = WalletState{addresses :: AddressState,
                                utxo :: UTxO, txSummaries :: Map.Map Customer [TxSummary],
