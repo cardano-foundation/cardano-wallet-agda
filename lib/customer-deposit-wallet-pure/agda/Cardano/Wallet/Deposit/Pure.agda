@@ -36,6 +36,9 @@ import Cardano.Wallet.Deposit.Pure.Address
 import Cardano.Wallet.Deposit.Pure.UTxO
     ( UTxO
     )
+import Cardano.Wallet.Deposit.Pure.TxSummary
+    ( TxSummary
+    )
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
 import qualified Cardano.Wallet.Deposit.Pure.Balance as Balance
 import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO
@@ -48,6 +51,15 @@ open import Cardano.Wallet.Deposit.Pure.Address using
     )
 open import Cardano.Wallet.Deposit.Pure.UTxO using
     ( UTxO
+    )
+open import Cardano.Wallet.Deposit.Pure.ValueTransfer using
+    ( ValueTransfer
+      ; fromSpent
+      ; fromReceived
+    )
+open import Cardano.Wallet.Deposit.Pure.TxSummary using
+    ( TxSummary
+      ; mkTxSummary
     )
 open import Cardano.Wallet.Deposit.Read using
     ( Address
@@ -85,23 +97,6 @@ import Haskell.Data.Map as Map
 
 -- The import of the cong! tactic slows down type checking…
 open import Tactic.Cong using (cong!)
-
-{-----------------------------------------------------------------------------
-    Assumptions
-------------------------------------------------------------------------------}
-
-record ValueTransfer : Set where
-  field
-    spent    : Value
-    received : Value
-
-open ValueTransfer public
-
-TxSummary : Set
-TxSummary = Slot × TxId × ValueTransfer
-
-{-# COMPILE AGDA2HS ValueTransfer #-}
-{-# COMPILE AGDA2HS TxSummary #-}
 
 {-----------------------------------------------------------------------------
     Type definition
@@ -211,18 +206,6 @@ prop-changeAddress-not-Customer s addr =
     Tracking incoming funds
 ------------------------------------------------------------------------------}
 
-fromSpent : Value → ValueTransfer
-fromSpent = λ value → record { spent = value ; received = mempty }
-
-fromReceived : Value → ValueTransfer
-fromReceived = λ value → record { spent = mempty ; received = value }
-
-combine : ValueTransfer → ValueTransfer → ValueTransfer
-combine = λ v1 v2 → record
-    { spent = spent v1 <> spent v2
-    ; received = received v1 <> received v2
-    }
-
 isOurTxOut : WalletState → TxOut → Bool
 isOurTxOut s = isOurs s ∘ TxOut.address
 
@@ -249,14 +232,10 @@ summarizeOutputs s =
 
 summarizeTx : WalletState → Tx → Map.Map Address ValueTransfer
 summarizeTx s tx =
-    Map.unionWith combine ins outs
+    Map.unionWith (_<>_) ins outs
   where
     ins  = Map.map fromSpent $ summarizeInputs s tx
     outs = Map.map fromReceived $ summarizeOutputs s tx
-
-mkTxSummary : Tx → ValueTransfer → TxSummary
-mkTxSummary = λ tx transfer → (0 , Tx.txid tx , transfer)
-
 
 getAddressSummary
   : Address → List (Address × TxSummary) → List TxSummary
