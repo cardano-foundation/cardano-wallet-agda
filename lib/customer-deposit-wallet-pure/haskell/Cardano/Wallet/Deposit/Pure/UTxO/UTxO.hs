@@ -2,7 +2,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO where
 
 import Cardano.Wallet.Deposit.Read (Address, TxIn, TxOut(address, value), Value)
 import Data.Set (Set)
-import qualified Haskell.Data.Map as Map (Map, empty, filter, keysSet, member, null, unionWith, withoutKeys)
+import qualified Haskell.Data.Map as Map (Map, empty, filter, keysSet, member, null, restrictKeys, unionWith, withoutKeys)
 import qualified Haskell.Data.Set as Set (filter)
 
 type UTxO = Map.Map TxIn TxOut
@@ -24,6 +24,9 @@ union = Map.unionWith (\ x y -> x)
 
 excluding :: UTxO -> Set TxIn -> UTxO
 excluding = Map.withoutKeys
+
+restrictedBy :: UTxO -> Set TxIn -> UTxO
+restrictedBy = Map.restrictKeys
 
 excludingS :: Set TxIn -> UTxO -> Set TxIn
 excludingS s utxo
