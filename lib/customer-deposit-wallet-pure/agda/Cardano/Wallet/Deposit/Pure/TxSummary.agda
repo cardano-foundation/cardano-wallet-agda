@@ -2,7 +2,7 @@ module Cardano.Wallet.Deposit.Pure.TxSummary where
 
 open import Haskell.Prelude
 
-open import Cardano.Wallet.Deposit.Pure.ValueTransfer using
+open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ( ValueTransfer
     )
 open import Cardano.Wallet.Deposit.Read using

@@ -1,7 +1,7 @@
 module Cardano.Write.Tx.Balance where
 
-import Cardano.Wallet.Deposit.Pure.UTxO (UTxO)
-import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO (balance)
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (balance)
 import Cardano.Wallet.Deposit.Read (Address, TxBody(TxBodyC), TxIn, TxOut(TxOutC, value), Value, exceeds, minus)
 import qualified Haskell.Data.Map as Map (toAscList)
 

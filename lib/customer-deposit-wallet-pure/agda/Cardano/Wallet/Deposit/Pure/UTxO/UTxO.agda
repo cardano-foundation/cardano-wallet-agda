@@ -1,6 +1,6 @@
 {-# OPTIONS --erasure #-}
 
-module Cardano.Wallet.Deposit.Pure.UTxO
+module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     {-
     ; UTxO
       ; null

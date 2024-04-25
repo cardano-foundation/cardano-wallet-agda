@@ -1,4 +1,4 @@
-module Cardano.Wallet.Deposit.Pure.ValueTransfer where
+module Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer where
 
 open import Haskell.Prelude
 
