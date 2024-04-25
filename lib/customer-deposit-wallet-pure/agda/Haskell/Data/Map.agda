@@ -144,6 +144,9 @@ module
   member : k → Map k a → Bool
   member key = isJust ∘ lookup key
 
+  elems : Map k a → List a
+  elems = List.map snd ∘ toAscList
+
   keysSet : Map k a → Set.ℙ k
   keysSet = Set.fromList ∘ List.map fst ∘ toAscList
 
