@@ -206,36 +206,11 @@ prop-changeAddress-not-Customer s addr =
     Tracking incoming funds
 ------------------------------------------------------------------------------}
 
-isOurTxOut : WalletState → TxOut → Bool
-isOurTxOut s = isOurs s ∘ TxOut.address
-
-lookupTxIn : WalletState → TxIn → Maybe TxOut
-lookupTxIn s txin = Map.lookup txin (utxo s)
-
-relevantOutputs : WalletState → Tx → List TxOut
-relevantOutputs s = filter (isOurTxOut s) ∘ TxBody.outputs ∘ Tx.txbody
-
-relevantInputs : WalletState → Tx → List TxOut
-relevantInputs s =
-    catMaybes ∘ map (lookupTxIn s) ∘ TxBody.inputs ∘ Tx.txbody
-
-pairFromTxOut : TxOut → (Address × Value)
-pairFromTxOut = λ txout → (TxOut.address txout , TxOut.value txout)
-
-summarizeInputs : WalletState → Tx → Map.Map Address Value
-summarizeInputs s =
-    Map.fromListWith (_<>_) ∘ map pairFromTxOut ∘ relevantInputs s
-
-summarizeOutputs : WalletState → Tx → Map.Map Address Value
-summarizeOutputs s =
-    Map.fromListWith (_<>_) ∘ map pairFromTxOut ∘ relevantOutputs s
-
 summarizeTx : WalletState → Tx → Map.Map Address ValueTransfer
 summarizeTx s tx =
-    Map.unionWith (_<>_) ins outs
+    UTxO.computeValueTransfer (utxo s) du
   where
-    ins  = Map.map fromSpent $ summarizeInputs s tx
-    outs = Map.map fromReceived $ summarizeOutputs s tx
+    du = fst (UTxO.applyTx (isOurs s) tx (utxo s))
 
 getAddressSummary
   : Address → List (Address × TxSummary) → List TxSummary
@@ -249,34 +224,6 @@ getCustomerHistory s c = concat (Map.lookup c (txSummaries s))
 {-# COMPILE AGDA2HS getCustomerHistory #-}
 
 {-
---
-prop-txout-only-isOurs
-  : ∀ (address : Address)
-      (s : WalletState)
-      (tx : Tx)
-  → Map.member address (summarizeOutputs s tx) ≡ True
-  → isOurs s address ≡ True
---
-prop-txout-only-isOurs address s tx eq = {!   !}
-  where
-    lem1 : _
-    lem1 =
-      begin
-        Map.member address (summarizeOutputs s tx)
-      ≡⟨⟩
-        elem address ((map fst ∘ map pairFromTxOut ∘ relevantOutputs s) tx)
-      ≡⟨⟩
-        elem address ((map TxOut.address ∘ relevantOutputs s) tx)
-      ≡⟨⟩
-        elem address ((map TxOut.address ∘ relevantOutputs s) tx)
-      ∎
-
-    lem2 : elem y ∘ map f xs ≡ ∃ (λ x → (y ≡ f x && elem x xs ≡ True))
-    lem2 = ?
-
-    lem2 : (elem x ∘ filter p) xs ≡ p x && elem x xs
-    lem2 = ?
-
 --
 prop-track-only-isOurs
   : ∀ (address : Address)

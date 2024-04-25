@@ -1,14 +1,15 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.Tx where
 
-import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO (DeltaUTxO)
+import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO (DeltaUTxO(excluded, received))
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO (excludingD, null, receiveD)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
-import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (filterByAddress, null)
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (filterByAddress, null, restrictedBy)
+import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer, fromReceived, fromSpent)
 import Cardano.Wallet.Deposit.Read (Tx(txbody, txid), TxBody(inputs, outputs))
-import qualified Cardano.Wallet.Deposit.Read as Read (Addr, TxIn, TxOut)
+import qualified Cardano.Wallet.Deposit.Read as Read (Addr, Address, TxIn, TxOut(address, value), Value)
 import Data.Set (Set)
 import qualified Haskell.Data.ByteString (ByteString)
-import qualified Haskell.Data.Map as Map (fromList)
+import qualified Haskell.Data.Map as Map (Map, elems, fromList, fromListWith, map, unionWith)
 import qualified Haskell.Data.Set as Set (fromList)
 
 spendTxD :: Tx -> UTxO -> (DeltaUTxO, UTxO)
@@ -47,4 +48,30 @@ applyTx isOurs tx u0
          (Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.receiveD
             (snd (spendTxD tx u0))
             (UTxO.filterByAddress isOurs (utxoFromTxOutputs tx))))
+
+data ResolvedTx = ResolvedTx{resolvedTx :: Tx,
+                             resolvedInputs :: UTxO}
+
+resolveInputs :: UTxO -> Tx -> ResolvedTx
+resolveInputs utxo tx
+  = ResolvedTx tx
+      (UTxO.restrictedBy utxo (Set.fromList (inputs (txbody tx))))
+
+pairFromTxOut :: Read.TxOut -> (Read.Address, Read.Value)
+pairFromTxOut = \ txout -> (Read.address txout, Read.value txout)
+
+groupByAddress :: UTxO -> Map.Map Read.Address Read.Value
+groupByAddress
+  = Map.fromListWith (<>) . map pairFromTxOut . Map.elems
+
+computeValueTransfer ::
+                     UTxO -> DeltaUTxO -> Map.Map Read.Address ValueTransfer
+computeValueTransfer u0 du = Map.unionWith (<>) ins outs
+  where
+    u1 :: UTxO
+    u1 = UTxO.restrictedBy u0 (excluded du)
+    ins :: Map.Map Read.Address ValueTransfer
+    ins = Map.map fromSpent (groupByAddress u1)
+    outs :: Map.Map Read.Address ValueTransfer
+    outs = Map.map fromReceived (groupByAddress (received du))
 

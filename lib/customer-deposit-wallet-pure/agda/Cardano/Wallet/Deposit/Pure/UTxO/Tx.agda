@@ -11,6 +11,11 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
 open import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO using
     ( DeltaUTxO
     )
+open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
+    ( ValueTransfer
+    ; fromReceived
+    ; fromSpent
+    )
 open import Cardano.Wallet.Deposit.Read using
     ( Tx
     ; TxBody
@@ -77,3 +82,59 @@ applyTx isOurs tx u0 =
 {-# COMPILE AGDA2HS IsOurs #-}
 {-# COMPILE AGDA2HS applyTx #-}
 
+{-----------------------------------------------------------------------------
+    Resolve Inputs
+------------------------------------------------------------------------------}
+-- | A transaction whose inputs have been partially resolved.
+record ResolvedTx : Set where
+  field
+    resolvedTx : Read.Tx
+    resolvedInputs : UTxO
+
+open ResolvedTx public
+
+resolveInputs : UTxO → Read.Tx → ResolvedTx
+resolveInputs utxo tx =
+  record
+    { resolvedTx = tx
+    ; resolvedInputs =
+        UTxO.restrictedBy
+            utxo
+            (Set.fromList (TxBody.inputs (Tx.txbody tx)))
+    }
+
+{-# COMPILE AGDA2HS ResolvedTx #-}
+{-# COMPILE AGDA2HS resolveInputs #-}
+
+{-----------------------------------------------------------------------------
+    ValueTransfer
+------------------------------------------------------------------------------}
+-- Helper function
+pairFromTxOut : Read.TxOut → (Read.Address × Read.Value)
+pairFromTxOut =
+    λ txout → (Read.TxOut.address txout , Read.TxOut.value txout)
+
+-- | Compute how much 'Value' a 'UTxO' set contains at each address.
+groupByAddress : UTxO → Map.Map Read.Address Read.Value
+groupByAddress =
+    Map.fromListWith (_<>_) ∘ map pairFromTxOut ∘ Map.elems
+
+-- | Compute the 'ValueTransfer' corresponding to 'DeltaUTxO'.
+computeValueTransfer
+  : UTxO
+    -- ^ UTxO set to which the 'DeltaUTxO' is applied.
+  → DeltaUTxO
+    -- ^ Change to the 'UTxO' set.
+  → Map.Map Read.Address ValueTransfer
+    -- ^ Value transfer, grouped by address.
+computeValueTransfer u0 du =
+    Map.unionWith (_<>_) ins outs
+  where
+    u1 = UTxO.restrictedBy u0 (DeltaUTxO.excluded du)
+
+    ins  = Map.map fromSpent (groupByAddress u1)
+    outs = Map.map fromReceived (groupByAddress (DeltaUTxO.received du))
+
+{-# COMPILE AGDA2HS pairFromTxOut #-}
+{-# COMPILE AGDA2HS groupByAddress #-}
+{-# COMPILE AGDA2HS computeValueTransfer #-}
