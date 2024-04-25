@@ -1,6 +1,6 @@
 {-# OPTIONS --erasure #-}
 
-module Cardano.Wallet.Deposit.Pure.DeltaUTxO
+module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     {-
     ; DeltaUTxO
       ; null
@@ -18,14 +18,14 @@ open import Haskell.Prelude hiding
     )
 open import Haskell.Reasoning
 
-open import Cardano.Wallet.Deposit.Pure.UTxO using
+open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
 open import Cardano.Wallet.Deposit.Read using
     ( TxIn
     )
 
-import Cardano.Wallet.Deposit.Pure.UTxO as UTxO
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 

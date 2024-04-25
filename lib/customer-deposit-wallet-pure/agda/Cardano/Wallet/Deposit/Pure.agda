@@ -33,15 +33,15 @@ import Cardano.Wallet.Deposit.Pure.Address
     ( Customer
     , AddressState
     )
-import Cardano.Wallet.Deposit.Pure.UTxO
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     ( UTxO
     )
 import Cardano.Wallet.Deposit.Pure.TxSummary
     ( TxSummary
     )
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
-import qualified Cardano.Wallet.Deposit.Pure.Balance as Balance
-import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.Balance as Balance
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 #-}
 
 open import Cardano.Wallet.Deposit.Pure.Address using
@@ -49,10 +49,10 @@ open import Cardano.Wallet.Deposit.Pure.Address using
     ; deriveCustomerAddress
     ; AddressState
     )
-open import Cardano.Wallet.Deposit.Pure.UTxO using
+open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
-open import Cardano.Wallet.Deposit.Pure.ValueTransfer using
+open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ( ValueTransfer
       ; fromSpent
       ; fromReceived
@@ -91,8 +91,8 @@ open import Haskell.Data.Maybe using
     )
 
 import Cardano.Wallet.Deposit.Pure.Address as Addr
-import Cardano.Wallet.Deposit.Pure.Balance as Balance
-import Cardano.Wallet.Deposit.Pure.UTxO as UTxO
+import Cardano.Wallet.Deposit.Pure.UTxO.Balance as Balance
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Haskell.Data.Map as Map
 
 -- The import of the cong! tactic slows down type checking…

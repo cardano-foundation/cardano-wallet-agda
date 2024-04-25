@@ -1,4 +1,4 @@
-module Cardano.Wallet.Deposit.Pure.UTxO where
+module Cardano.Wallet.Deposit.Pure.UTxO.UTxO where
 
 import Cardano.Wallet.Deposit.Read (Address, TxIn, TxOut(address, value), Value)
 import Data.Set (Set)

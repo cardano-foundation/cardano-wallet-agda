@@ -1,13 +1,13 @@
 {-# OPTIONS --erasure #-}
 
-module Cardano.Wallet.Deposit.Pure.Balance where
+module Cardano.Wallet.Deposit.Pure.UTxO.Balance where
 
 open import Haskell.Prelude
 
-open import Cardano.Wallet.Deposit.Pure.UTxO using
+open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
-open import Cardano.Wallet.Deposit.Pure.DeltaUTxO using
+open import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO using
     ( DeltaUTxO
     )
 open import Cardano.Wallet.Deposit.Read using
@@ -15,8 +15,8 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxBody
     )
 
-import Cardano.Wallet.Deposit.Pure.DeltaUTxO as DeltaUTxO
-import Cardano.Wallet.Deposit.Pure.UTxO as UTxO
+import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Cardano.Wallet.Deposit.Read as Read
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set

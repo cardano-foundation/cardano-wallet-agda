@@ -1,7 +1,7 @@
-module Cardano.Wallet.Deposit.Pure.DeltaUTxO where
+module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO where
 
-import Cardano.Wallet.Deposit.Pure.UTxO (UTxO)
-import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO (empty, excluding, excludingS, null, union)
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (empty, excluding, excludingS, null, union)
 import Cardano.Wallet.Deposit.Read (TxIn)
 import Data.Set (Set)
 import qualified Haskell.Data.Map as Map (empty, keysSet)

@@ -15,7 +15,7 @@ module Cardano.Write.Tx.Balance
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
-open import Cardano.Wallet.Deposit.Pure.UTxO using
+open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
 open import Cardano.Wallet.Deposit.Read using
@@ -30,7 +30,7 @@ open import Cardano.Wallet.Deposit.Read using
 open import Haskell.Data.List.Prop using ( _∈_ )
 open import Haskell.Data.Maybe using ( isJust )
 
-import Cardano.Wallet.Deposit.Pure.UTxO as UTxO
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Haskell.Data.ByteString as BS
 import Haskell.Data.Map as Map
 

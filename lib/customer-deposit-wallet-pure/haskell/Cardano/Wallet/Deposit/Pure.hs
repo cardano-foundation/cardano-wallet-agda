@@ -9,15 +9,15 @@ import Cardano.Wallet.Deposit.Pure.Address
     ( Customer
     , AddressState
     )
-import Cardano.Wallet.Deposit.Pure.UTxO
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     ( UTxO
     )
 import Cardano.Wallet.Deposit.Pure.TxSummary
     ( TxSummary
     )
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
-import qualified Cardano.Wallet.Deposit.Pure.Balance as Balance
-import qualified Cardano.Wallet.Deposit.Pure.UTxO as UTxO
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.Balance as Balance
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 
 data WalletState = WalletState{addresses :: AddressState,
                                utxo :: UTxO, txSummaries :: Map.Map Customer [TxSummary],
