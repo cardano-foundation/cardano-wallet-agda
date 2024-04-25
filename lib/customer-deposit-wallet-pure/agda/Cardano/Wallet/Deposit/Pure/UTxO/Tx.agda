@@ -1,6 +1,7 @@
 {-# OPTIONS --erasure #-}
 
-module Cardano.Wallet.Deposit.Pure.UTxO.Balance where
+-- | Applying transactions to a UTxO set.
+module Cardano.Wallet.Deposit.Pure.UTxO.Tx where
 
 open import Haskell.Prelude
 
@@ -43,7 +44,7 @@ utxoFromTxOutputs tx = Map.fromList $ zip txins txouts
 {-# COMPILE AGDA2HS utxoFromTxOutputs #-}
 
 {-----------------------------------------------------------------------------
-    Applying Blocks
+    Apply Transactions
 ------------------------------------------------------------------------------}
 IsOurs : Set → Set
 IsOurs addr = addr -> Bool

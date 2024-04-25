@@ -59,8 +59,8 @@ library
   exposed-modules:
     Cardano.Wallet.Deposit.Pure
     Cardano.Wallet.Deposit.Pure.Address
-    Cardano.Wallet.Deposit.Pure.UTxO.Balance
     Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
+    Cardano.Wallet.Deposit.Pure.UTxO.Tx
     Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
     Cardano.Wallet.Deposit.Pure.Timeline

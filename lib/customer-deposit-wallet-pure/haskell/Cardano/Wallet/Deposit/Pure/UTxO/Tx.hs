@@ -1,4 +1,4 @@
-module Cardano.Wallet.Deposit.Pure.UTxO.Balance where
+module Cardano.Wallet.Deposit.Pure.UTxO.Tx where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO (DeltaUTxO)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO (excludingD, null, receiveD)
