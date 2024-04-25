@@ -51,12 +51,11 @@ library
   hs-source-dirs:
     haskell
   build-depends:
-    , base >=4.14.3.0
-    , bytestring
-    , containers
-    , deepseq >= 1.4.4
-    , text
-    , time
+    , base >= 4.14.3.0 && < 4.20
+    , bytestring >= 0.10.12.0 && < 0.13
+    , containers >= 0.6.6 && < 0.8
+    , deepseq >= 1.4.4 && < 1.6
+    , text >= 1.2.4.1 && < 2.2
   exposed-modules:
     Cardano.Wallet.Deposit.Pure
     Cardano.Wallet.Deposit.Pure.Address
