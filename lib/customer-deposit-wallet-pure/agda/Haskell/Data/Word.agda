@@ -46,7 +46,7 @@ instance
   iBoundedBelowWord8 .minBound = 0
 
   iBoundedAboveWord8 : BoundedAbove Word8
-  iBoundedAboveWord8 .maxBound = Word8C (256 - 1)
+  iBoundedAboveWord8 .maxBound = Word8C (primWord64FromNat (2⁸ - 1))
 
   iEnumWord8 : Enum Word8
   iEnumWord8 = boundedEnumViaInteger integerFromWord8 word8FromInteger

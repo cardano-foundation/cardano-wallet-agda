@@ -8,3 +8,5 @@ import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.Tx
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
+
+import Haskell.Data.Word.Odd
