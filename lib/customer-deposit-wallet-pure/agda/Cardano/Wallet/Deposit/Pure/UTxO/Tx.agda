@@ -77,3 +77,26 @@ applyTx isOurs tx u0 =
 {-# COMPILE AGDA2HS IsOurs #-}
 {-# COMPILE AGDA2HS applyTx #-}
 
+{-----------------------------------------------------------------------------
+    Resolve Inputs
+------------------------------------------------------------------------------}
+-- | A transaction whose inputs have been partially resolved.
+record ResolvedTx : Set where
+  field
+    resolvedTx : Read.Tx
+    resolvedInputs : UTxO
+
+open ResolvedTx public
+
+resolveInputs : UTxO → Read.Tx → ResolvedTx
+resolveInputs utxo tx =
+  record
+    { resolvedTx = tx
+    ; resolvedInputs =
+        UTxO.restrictedBy
+            utxo
+            (Set.fromList (TxBody.inputs (Tx.txbody tx)))
+    }
+
+{-# COMPILE AGDA2HS ResolvedTx #-}
+{-# COMPILE AGDA2HS resolveInputs #-}

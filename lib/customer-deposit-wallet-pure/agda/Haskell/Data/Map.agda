@@ -153,6 +153,9 @@ module
   withoutKeys : Map k a → Set.ℙ k → Map k a
   withoutKeys m s = filterWithKey (λ k _ → not (Set.member k s)) m
 
+  restrictKeys : Map k a → Set.ℙ k → Map k a
+  restrictKeys m s = filterWithKey (λ k _ → Set.member k s) m
+
   filter : (a → Bool) → Map k a → Map k a
   filter p = filterWithKey (λ _ x → p x)
 

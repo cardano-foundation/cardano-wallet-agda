@@ -9,6 +9,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
       ; balance
       ; union
       ; excluding
+      ; restrictedBy
       ; excludingS
       ; filterByAddress
     -}
@@ -55,6 +56,9 @@ union = Map.unionWith (λ x y → x)
 excluding : UTxO → Set.ℙ TxIn → UTxO
 excluding = Map.withoutKeys
 
+restrictedBy : UTxO → Set.ℙ TxIn → UTxO
+restrictedBy = Map.restrictKeys
+
 -- | Exclude the inputs of a 'UTxO' from a 'Set' of inputs.
 excludingS : Set.ℙ TxIn → UTxO → Set.ℙ TxIn
 excludingS s utxo = Set.filter (not ∘ (λ txin → Map.member txin utxo)) s
@@ -69,6 +73,7 @@ filterByAddress p = Map.filter (p ∘ TxOut.address)
 {-# COMPILE AGDA2HS balance #-}
 {-# COMPILE AGDA2HS union #-}
 {-# COMPILE AGDA2HS excluding #-}
+{-# COMPILE AGDA2HS restrictedBy #-}
 {-# COMPILE AGDA2HS excludingS #-}
 {-# COMPILE AGDA2HS filterByAddress #-}
 
