@@ -30,6 +30,29 @@ index-state:
 packages:
     lib/customer-deposit-wallet-pure/
 
+--------------------------------------------------------------------------------
+-- Packages from cardano-wallet
+--------------------------------------------------------------------------------
+source-repository-package
+  type: git
+  location: https://github.com/cardano-foundation/cardano-wallet
+  tag: 2bd29c4f157409b3d660e04cbb12c0ef8c420938
+  subdir: lib/test-utils
+  --sha256: 0q61jv6m8bmnkayp96igjszyyc22a55drx9v2w6wcrpnkykjf61m
+
+source-repository-package
+  type: git
+  location: https://github.com/cardano-foundation/cardano-wallet
+  tag: 2bd29c4f157409b3d660e04cbb12c0ef8c420938
+  subdir: lib/text-class
+  --sha256: NRgnp5/2ZsYNFzv13EpRQjDvv5YvmnS9mrYuVM2WwWA=
+
+source-repository-package
+  type: git
+  location: https://github.com/cardano-foundation/cardano-wallet
+  tag: 2bd29c4f157409b3d660e04cbb12c0ef8c420938
+  subdir: lib/read
+  --sha256: NRgnp5/2ZsYNFzv13EpRQjDvv5YvmnS9mrYuVM2WwWA=
 
 --------------------------------------------------------------------------------
 -- BEGIN Constraints tweaking section

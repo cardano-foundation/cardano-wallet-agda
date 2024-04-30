@@ -55,6 +55,7 @@ library
     , base >= 4.14.3.0 && < 4.20
     , bytestring >= 0.10.12.0 && < 0.13
     , cardano-crypto >= 1.1.2 && < 1.2
+    , cardano-wallet-read
     , containers >= 0.6.6 && < 0.8
     , deepseq >= 1.4.4 && < 1.6
     , text >= 1.2.4.1 && < 2.2
