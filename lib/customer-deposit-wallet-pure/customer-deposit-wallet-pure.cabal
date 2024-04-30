@@ -33,6 +33,7 @@ common opts-lib
     -Wincomplete-record-updates
     -Wno-redundant-constraints
     -Wno-unused-matches
+    -Wno-unused-imports
 
   if flag(release)
     ghc-options: -O2 -Werror
@@ -53,11 +54,13 @@ library
   build-depends:
     , base >= 4.14.3.0 && < 4.20
     , bytestring >= 0.10.12.0 && < 0.13
+    , cardano-crypto >= 1.1.2 && < 1.2
     , containers >= 0.6.6 && < 0.8
     , deepseq >= 1.4.4 && < 1.6
     , text >= 1.2.4.1 && < 2.2
     , OddWord >= 1.0.1.1 && < 1.1
   exposed-modules:
+    Cardano.Wallet.Address.BIP32_Ed25519
     Cardano.Wallet.Deposit.Pure
     Cardano.Wallet.Deposit.Pure.Address
     Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
