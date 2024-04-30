@@ -10,3 +10,6 @@ rewrites:
   - from: "Haskell.Data.Word.Word8"
     to: "Word8"
     importing: "Data.Word"
+  - from: "Haskell.Data.Word.Odd.Word31"
+    to: "Word31"
+    importing: "Data.Word.Odd"
