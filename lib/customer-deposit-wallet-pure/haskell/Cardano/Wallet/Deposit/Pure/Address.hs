@@ -1,9 +1,9 @@
 module Cardano.Wallet.Deposit.Pure.Address where
 
+import Cardano.Wallet.Address.Hash (blake2b'256)
 import Cardano.Wallet.Deposit.Read (Address)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word (Word8)
-import Haskell.Crypto.Hash (Digest, HashAlgorithm(hash), TrivialHash, encodeDigest)
 import qualified Haskell.Data.ByteString as BS (ByteString, pack)
 import qualified Haskell.Data.Map as Map (Map, insert, lookup, toAscList)
 import Haskell.Data.Maybe (isJust)
@@ -11,10 +11,7 @@ import Haskell.Data.Maybe (isJust)
 type Customer = Word8
 
 hashFromList :: [Word8] -> BS.ByteString
-hashFromList xs = encodeDigest digest
-  where
-    digest :: Digest TrivialHash
-    digest = hash (BS.pack xs)
+hashFromList = blake2b'256 . BS.pack
 
 data DerivationPath = DerivationCustomer Customer
                     | DerivationChange
