@@ -6,3 +6,6 @@ haskell:
 
 build0:
     cabal build -v0 -O0 -j all
+
+clean:
+    find . -name "*.agdai" -type f -delete

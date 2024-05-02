@@ -15,6 +15,9 @@ import Data.ByteString
 import Data.Maybe
   ( fromJust
   )
+import Data.Word
+  ( Word32
+  )
 import Data.Word.Odd
   ( Word31
   )
@@ -22,7 +25,7 @@ import qualified Cardano.Crypto.Wallet as CC
 import qualified Data.ByteString as BS
 
 sign :: XPrv ->ByteString ->XSignature
-sign = CC.sign mempty
+sign = CC.sign BS.empty
 
 verify :: XPub ->ByteString ->XSignature ->Bool
 verify = CC.verify
@@ -44,7 +47,7 @@ deriveXPrvSoft :: XPrv ->Word31 ->XPrv
 deriveXPrvSoft xprv ix =
   CC.deriveXPrv
     CC.DerivationScheme2
-    mempty
+    BS.empty
     xprv
     (word32fromWord31 ix)
 
@@ -52,7 +55,7 @@ deriveXPrvHard :: XPrv ->Word31 ->XPrv
 deriveXPrvHard xprv ix =
   CC.deriveXPrv
     CC.DerivationScheme2
-    mempty
+    BS.empty
     xprv
     (0x80000000 + word32fromWord31 ix)
 
