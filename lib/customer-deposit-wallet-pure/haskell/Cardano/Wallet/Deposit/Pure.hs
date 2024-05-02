@@ -1,5 +1,6 @@
 module Cardano.Wallet.Deposit.Pure where
 
+import Cardano.Wallet.Address.BIP32_Ed25519 (XPub)
 import Cardano.Wallet.Deposit.Read (Address, Block(transactions), ChainPoint, Tx, TxBody, TxOut(TxOutC), Value, chainPointFromBlock)
 import Cardano.Write.Tx.Balance (ChangeAddressGen, PartialTx(PartialTxC), balanceTransaction)
 import qualified Haskell.Data.Map as Map (Map, lookup)
@@ -22,6 +23,9 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 data WalletState = WalletState{addresses :: AddressState,
                                utxo :: UTxO, txSummaries :: Map.Map Customer [TxSummary],
                                localTip :: ChainPoint}
+
+getXPub :: WalletState -> XPub
+getXPub = Addr.getXPub . \ r -> addresses r
 
 listCustomers :: WalletState -> [(Customer, Address)]
 listCustomers = Addr.listCustomers . \ r -> addresses r

@@ -3,12 +3,6 @@
 module Cardano.Wallet.Address.BIP32_Ed25519 where
 
 
-import Cardano.Crypto.Wallet
-  ( XPrv
-  , XPub
-  , XSignature
-  , toXPub
-  )
 import Data.ByteString
   ( ByteString
   )
@@ -24,11 +18,30 @@ import Data.Word.Odd
 import qualified Cardano.Crypto.Wallet as CC
 import qualified Data.ByteString as BS
 
+-- FIXME: We define type synonyms here so that
+-- they can be exported. Ideally, we would re-export from
+-- the Cardano.Wallet.Crypto module.
+type XPub = CC.XPub
+type XPrv = CC.XPrv
+type XSignature = CC.XSignature
+
+toXPub :: XPrv ->XPub
+toXPub = CC.toXPub
+
 sign :: XPrv ->ByteString ->XSignature
 sign = CC.sign BS.empty
 
 verify :: XPub ->ByteString ->XSignature ->Bool
 verify = CC.verify
+
+rawSerialiseXPub :: XPub ->ByteString
+rawSerialiseXPub = CC.unXPub
+
+rawSerialiseXPrv :: XPrv ->ByteString
+rawSerialiseXPrv = CC.unXPrv
+
+rawSerialiseXSignature :: XSignature ->ByteString
+rawSerialiseXSignature = CC.unXSignature
 
 word32fromWord31 :: Word31 ->Word32
 word32fromWord31 = fromInteger . toInteger

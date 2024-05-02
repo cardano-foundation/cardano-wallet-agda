@@ -7,6 +7,8 @@ module Cardano.Wallet.Deposit.Pure
     ; ValueTransfer
       ; TxSummary
     ; WalletState
+      ; getXPub
+
       ; listCustomers
       ; isOurs
       ; knownCustomerAddress
@@ -44,6 +46,9 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 #-}
 
+open import Cardano.Wallet.Address.BIP32_Ed25519 using
+    ( XPub
+    )
 open import Cardano.Wallet.Deposit.Pure.Address using
     ( Customer
     ; deriveCustomerAddress
@@ -117,6 +122,11 @@ open WalletState public
 
 {-# COMPILE AGDA2HS WalletState #-}
 
+getXPub : WalletState → XPub
+getXPub = Addr.getXPub ∘ addresses
+
+{-# COMPILE AGDA2HS getXPub #-}
+
 {-----------------------------------------------------------------------------
     Mapping between Customers and Address
 ------------------------------------------------------------------------------}
@@ -179,7 +189,7 @@ prop-create-derive
   : ∀ (c : Customer)
       (s0 : WalletState)
   → let (address , _) = createAddress c s0
-    in  deriveCustomerAddress c ≡ address
+    in  deriveCustomerAddress (getXPub s0) c ≡ address
 --
 prop-create-derive c s0 = Addr.prop-create-derive c (addresses s0)
  

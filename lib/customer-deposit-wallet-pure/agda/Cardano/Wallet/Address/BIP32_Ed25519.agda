@@ -3,6 +3,7 @@
 module Cardano.Wallet.Address.BIP32_Ed25519 where
 
 open import Haskell.Prelude
+open import Haskell.Reasoning
 
 open import Haskell.Data.ByteString using
   ( ByteString
@@ -13,12 +14,6 @@ open import Haskell.Data.Word.Odd using
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE UnicodeSyntax #-}
-import Cardano.Crypto.Wallet
-  ( XPrv
-  , XPub
-  , XSignature
-  , toXPub
-  )
 import Data.ByteString
   ( ByteString
   )
@@ -60,11 +55,42 @@ postulate
       in  verify xpub msg (sign xprv msg) ≡ True
 
 {-# FOREIGN AGDA2HS
+-- FIXME: We define type synonyms here so that
+-- they can be exported. Ideally, we would re-export from
+-- the Cardano.Wallet.Crypto module.
+type XPub = CC.XPub
+type XPrv = CC.XPrv
+type XSignature = CC.XSignature
+
+toXPub :: XPrv → XPub
+toXPub = CC.toXPub
+
 sign :: XPrv → ByteString → XSignature
 sign = CC.sign BS.empty
 
 verify :: XPub → ByteString → XSignature → Bool
 verify = CC.verify
+#-}
+
+postulate
+  rawSerialiseXPub : XPub → ByteString
+  rawSerialiseXPrv : XPrv → ByteString
+  rawSerialiseXSignature : XSignature → ByteString
+
+  prop-rawSerialiseXPub-injective
+    : ∀ (x y : XPub)
+    → rawSerialiseXPub x ≡ rawSerialiseXPub y
+    → x ≡ y
+
+{-# FOREIGN AGDA2HS
+rawSerialiseXPub :: XPub → ByteString
+rawSerialiseXPub = CC.unXPub
+
+rawSerialiseXPrv :: XPrv → ByteString
+rawSerialiseXPrv = CC.unXPrv
+
+rawSerialiseXSignature :: XSignature → ByteString
+rawSerialiseXSignature = CC.unXSignature
 #-}
 
 {-----------------------------------------------------------------------------
@@ -76,6 +102,8 @@ postulate
   deriveXPrvSoft : XPrv → Word31 → XPrv
   deriveXPrvHard : XPrv → Word31 → XPrv
 
+postulate
+
   prop-derive-soft
     : ∀ (xprv : XPrv)
         (ix   : Word31)
@@ -86,10 +114,14 @@ postulate
   -- are not true in the strict sense,
   -- only cryptographically hard.
   prop-deriveXPubSoft-injective
-    : ∀ (xpub    : XPub)
-        (ix1 ix2 : Word31)
-    → deriveXPubSoft xpub ix1 ≡ deriveXPubSoft xpub ix2
-    → ix1 ≡ ix2
+    : ∀ (xpub1 xpub2 : XPub)
+        (ix1   ix2   : Word31)
+    → deriveXPubSoft xpub1 ix1 ≡ deriveXPubSoft xpub2 ix2
+    → (xpub1 ≡ xpub2 ⋀ ix1 ≡ ix2)
+
+  prop-deriveXPubSoft-not-identity
+    : ∀ (xpub : XPub) (ix : Word31)
+    → ¬ (deriveXPubSoft xpub ix ≡ xpub)
 
   prop-deriveXPrvSoft-injective
     : ∀ (xprv    : XPrv)
