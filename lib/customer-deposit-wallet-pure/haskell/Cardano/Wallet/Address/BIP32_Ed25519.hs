@@ -34,6 +34,15 @@ sign = CC.sign BS.empty
 verify :: XPub ->ByteString ->XSignature ->Bool
 verify = CC.verify
 
+rawSerialiseXPub :: XPub ->ByteString
+rawSerialiseXPub = CC.unXPub
+
+rawSerialiseXPrv :: XPrv ->ByteString
+rawSerialiseXPrv = CC.unXPrv
+
+rawSerialiseXSignature :: XSignature ->ByteString
+rawSerialiseXSignature = CC.unXSignature
+
 word32fromWord31 :: Word31 ->Word32
 word32fromWord31 = fromInteger . toInteger
 

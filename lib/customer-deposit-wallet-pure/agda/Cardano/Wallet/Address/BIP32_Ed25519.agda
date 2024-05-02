@@ -72,6 +72,27 @@ verify :: XPub → ByteString → XSignature → Bool
 verify = CC.verify
 #-}
 
+postulate
+  rawSerialiseXPub : XPub → ByteString
+  rawSerialiseXPrv : XPrv → ByteString
+  rawSerialiseXSignature : XSignature → ByteString
+
+  prop-rawSerialiseXPub-injective
+    : ∀ (x y : XPub)
+    → rawSerialiseXPub x ≡ rawSerialiseXPub y
+    → x ≡ y
+
+{-# FOREIGN AGDA2HS
+rawSerialiseXPub :: XPub → ByteString
+rawSerialiseXPub = CC.unXPub
+
+rawSerialiseXPrv :: XPrv → ByteString
+rawSerialiseXPrv = CC.unXPrv
+
+rawSerialiseXSignature :: XSignature → ByteString
+rawSerialiseXSignature = CC.unXSignature
+#-}
+
 {-----------------------------------------------------------------------------
     Key derivation
 ------------------------------------------------------------------------------}
