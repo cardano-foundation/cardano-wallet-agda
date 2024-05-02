@@ -81,6 +81,8 @@ postulate
   deriveXPrvSoft : XPrv → Word31 → XPrv
   deriveXPrvHard : XPrv → Word31 → XPrv
 
+postulate
+
   prop-derive-soft
     : ∀ (xprv : XPrv)
         (ix   : Word31)
@@ -91,10 +93,14 @@ postulate
   -- are not true in the strict sense,
   -- only cryptographically hard.
   prop-deriveXPubSoft-injective
-    : ∀ (xpub    : XPub)
-        (ix1 ix2 : Word31)
-    → deriveXPubSoft xpub ix1 ≡ deriveXPubSoft xpub ix2
-    → ix1 ≡ ix2
+    : ∀ (xpub1 xpub2 : XPub)
+        (ix1   ix2   : Word31)
+    → deriveXPubSoft xpub1 ix1 ≡ deriveXPubSoft xpub2 ix2
+    → (xpub1 ≡ xpub2 ⋀ ix1 ≡ ix2)
+
+  prop-deriveXPubSoft-not-identity
+    : ∀ (xpub : XPub) (ix : Word31)
+    → ¬ (deriveXPubSoft xpub ix ≡ xpub)
 
   prop-deriveXPrvSoft-injective
     : ∀ (xprv    : XPrv)
