@@ -23,6 +23,10 @@ module Cardano.Wallet.Deposit.Pure.Address
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
+open import Cardano.Wallet.Address.Hash using
+    ( blake2b'256
+    ; prop-blake2b'256-injective
+    )
 open import Cardano.Wallet.Deposit.Read using
     ( Address
     )
@@ -30,15 +34,6 @@ open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
     ; isChange
     )
-open import Haskell.Crypto.Hash using
-    ( Digest
-      ; encodeDigest
-      ; prop-encodeDigest-injective
-    ; HashAlgorithm
-    ; TrivialHash
-      ; iTrivialHashAlgorithm
-    )
-open HashAlgorithm
 open import Haskell.Data.List.Prop using
     ( _∈_ )
 open import Haskell.Data.Maybe using
@@ -65,10 +60,7 @@ Customer = Word8
 {-# COMPILE AGDA2HS Customer #-}
 
 hashFromList : List Word8 → BS.ByteString
-hashFromList xs = encodeDigest digest
-  where
-    digest : Digest TrivialHash
-    digest = hash iTrivialHashAlgorithm (BS.pack xs)
+hashFromList = blake2b'256 ∘ BS.pack
 
 {-# COMPILE AGDA2HS hashFromList #-}
 
@@ -114,8 +106,7 @@ lemma-listFromDerivationPath-injective {DerivationChange} {DerivationChange} ref
 lemma-derive-injective =
   lemma-listFromDerivationPath-injective
   ∘ BS.prop-pack-injective _ _
-  ∘ prop-hash-injective iTrivialHashAlgorithm _ _
-  ∘ prop-encodeDigest-injective _ _
+  ∘ prop-blake2b'256-injective _ _
 
 --
 @0 lemma-derive-notCustomer
