@@ -1,34 +1,37 @@
 module Cardano.Wallet.Deposit.Pure.Address where
 
+import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft, rawSerialiseXPub)
 import Cardano.Wallet.Address.Hash (blake2b'256)
 import Cardano.Wallet.Deposit.Read (Address)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
-import Data.Word (Word8)
-import qualified Haskell.Data.ByteString as BS (ByteString, pack)
-import qualified Haskell.Data.Map as Map (Map, insert, lookup, toAscList)
+import Data.Word.Odd (Word31)
+import qualified Haskell.Data.ByteString as BS (ByteString)
+import qualified Haskell.Data.Map as Map (Map, empty, insert, lookup, toAscList)
 import Haskell.Data.Maybe (isJust)
 
-type Customer = Word8
+type Customer = Word31
 
-hashFromList :: [Word8] -> BS.ByteString
-hashFromList = blake2b'256 . BS.pack
+hashFromXPub :: XPub -> BS.ByteString
+hashFromXPub = blake2b'256 . rawSerialiseXPub
 
 data DerivationPath = DerivationCustomer Customer
                     | DerivationChange
 
-listFromDerivationPath :: DerivationPath -> [Word8]
-listFromDerivationPath DerivationChange = [0]
-listFromDerivationPath (DerivationCustomer c) = [1, c]
+xpubFromDerivationPath :: XPub -> DerivationPath -> XPub
+xpubFromDerivationPath xpub DerivationChange
+  = deriveXPubSoft xpub 0
+xpubFromDerivationPath xpub (DerivationCustomer c)
+  = deriveXPubSoft (deriveXPubSoft xpub 1) c
 
-deriveAddress :: DerivationPath -> Address
-deriveAddress = hashFromList . listFromDerivationPath
+deriveAddress :: XPub -> DerivationPath -> Address
+deriveAddress xpub = hashFromXPub . xpubFromDerivationPath xpub
 
-deriveCustomerAddress :: Customer -> Address
-deriveCustomerAddress c = deriveAddress (DerivationCustomer c)
+deriveCustomerAddress :: XPub -> Customer -> Address
+deriveCustomerAddress xpub c
+  = deriveAddress xpub (DerivationCustomer c)
 
-data AddressState = AddressStateC{addresses ::
-                                  Map.Map Address Customer,
-                                  change :: Address}
+data AddressState = AddressStateC{stateXPub :: XPub,
+                                  addresses :: Map.Map Address Customer, change :: Address}
 
 isCustomerAddress :: AddressState -> Address -> Bool
 isCustomerAddress s
@@ -55,12 +58,31 @@ createAddress ::
               Customer -> AddressState -> (Address, AddressState)
 createAddress c s0 = (addr, s1)
   where
+    xpub :: XPub
+    xpub = stateXPub s0
     addr :: Address
-    addr = deriveCustomerAddress c
-    addresses1 :: Map.Map BS.ByteString Word8
+    addr = deriveCustomerAddress xpub c
+    addresses1 :: Map.Map BS.ByteString Word31
     addresses1 = Map.insert addr c (addresses s0)
     s1 :: AddressState
-    s1 = AddressStateC addresses1 (change s0)
+    s1 = AddressStateC (stateXPub s0) addresses1 (change s0)
+
+getXPub :: AddressState -> XPub
+getXPub = \ r -> stateXPub r
+
+emptyFromXPub :: XPub -> AddressState
+emptyFromXPub xpub
+  = AddressStateC xpub Map.empty
+      (deriveAddress xpub DerivationChange)
+
+fromXPubAndCount :: XPub -> Word31 -> AddressState
+fromXPubAndCount xpub knownCustomerCount
+  = foldl (\ s c -> snd (createAddress c s)) s0 customers
+  where
+    s0 :: AddressState
+    s0 = emptyFromXPub xpub
+    customers :: [Word31]
+    customers = [0 .. knownCustomerCount]
 
 newChangeAddress :: AddressState -> ChangeAddressGen ()
 newChangeAddress s = \ _ -> (change s, ())
