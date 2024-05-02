@@ -3,6 +3,7 @@
 module Cardano.Wallet.Address.BIP32_Ed25519 where
 
 open import Haskell.Prelude
+open import Haskell.Reasoning
 
 open import Haskell.Data.ByteString using
   ( ByteString
@@ -13,12 +14,6 @@ open import Haskell.Data.Word.Odd using
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE UnicodeSyntax #-}
-import Cardano.Crypto.Wallet
-  ( XPrv
-  , XPub
-  , XSignature
-  , toXPub
-  )
 import Data.ByteString
   ( ByteString
   )
@@ -60,6 +55,16 @@ postulate
       in  verify xpub msg (sign xprv msg) ≡ True
 
 {-# FOREIGN AGDA2HS
+-- FIXME: We define type synonyms here so that
+-- they can be exported. Ideally, we would re-export from
+-- the Cardano.Wallet.Crypto module.
+type XPub = CC.XPub
+type XPrv = CC.XPrv
+type XSignature = CC.XSignature
+
+toXPub :: XPrv → XPub
+toXPub = CC.toXPub
+
 sign :: XPrv → ByteString → XSignature
 sign = CC.sign BS.empty
 
