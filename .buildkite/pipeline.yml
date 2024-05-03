@@ -24,7 +24,7 @@ steps:
   - label: "Build agda2hs"
     depends_on: linux-nix
     command: |
-      ${nix} --command bash -c 'just haskell && just build0'
+      ${nix} --command bash -c 'just ci'
     agents:
       system: ${linux}
     env:
