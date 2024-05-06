@@ -1,5 +1,6 @@
 module Cardano.Wallet.Deposit.Pure.Address where
 
+import Cardano.Wallet.Address.BIP32 (BIP32Path(Root, Segment), DerivationType(Hardened, Soft))
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft)
 import Cardano.Wallet.Address.Encoding (mkEnterpriseAddress)
 import Cardano.Wallet.Deposit.Read (Address)
@@ -14,11 +15,24 @@ type Customer = Word31
 data DerivationPath = DerivationCustomer Customer
                     | DerivationChange
 
+toBIP32Path :: DerivationPath -> BIP32Path
+toBIP32Path = addSuffix prefix
+  where
+    prefix :: BIP32Path
+    prefix
+      = Segment (Segment (Segment Root Hardened 1857) Hardened 1815)
+          Hardened
+          0
+    addSuffix :: BIP32Path -> DerivationPath -> BIP32Path
+    addSuffix path DerivationChange = Segment path Soft 1
+    addSuffix path (DerivationCustomer c)
+      = Segment (Segment path Soft 0) Soft c
+
 xpubFromDerivationPath :: XPub -> DerivationPath -> XPub
 xpubFromDerivationPath xpub DerivationChange
-  = deriveXPubSoft xpub 0
+  = deriveXPubSoft xpub 1
 xpubFromDerivationPath xpub (DerivationCustomer c)
-  = deriveXPubSoft (deriveXPubSoft xpub 1) c
+  = deriveXPubSoft (deriveXPubSoft xpub 0) c
 
 deriveAddress :: XPub -> DerivationPath -> Address
 deriveAddress xpub
@@ -41,6 +55,21 @@ isChangeAddress = \ s -> (change s ==)
 isOurs :: AddressState -> Address -> Bool
 isOurs
   = \ s addr -> isChangeAddress s addr || isCustomerAddress s addr
+
+getDerivationPath'cases ::
+                        AddressState -> Address -> Maybe Customer -> Maybe DerivationPath
+getDerivationPath'cases s addr (Just c)
+  = Just (DerivationCustomer c)
+getDerivationPath'cases s addr Nothing
+  = if isChangeAddress s addr then Just DerivationChange else Nothing
+
+getDerivationPath ::
+                  AddressState -> Address -> Maybe DerivationPath
+getDerivationPath s addr
+  = getDerivationPath'cases s addr (Map.lookup addr (addresses s))
+
+getBIP32Path :: AddressState -> Address -> Maybe BIP32Path
+getBIP32Path s = fmap toBIP32Path . getDerivationPath s
 
 swap :: (a, b) -> (b, a)
 swap (x, y) = (y, x)

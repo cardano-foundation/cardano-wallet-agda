@@ -26,6 +26,12 @@ module Cardano.Wallet.Deposit.Pure.Address
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
+open import Cardano.Wallet.Address.BIP32 using
+    ( BIP32Path
+    ; DerivationType
+      ; Hardened
+      ; Soft
+    )
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
     ( XPub
     ; deriveXPubSoft
@@ -83,11 +89,41 @@ data DerivationPath : Set where
 
 {-# COMPILE AGDA2HS DerivationPath #-}
 
+toBIP32Path : DerivationPath → BIP32Path
+toBIP32Path = addSuffix prefix
+  where
+    prefix =
+      (BIP32Path.Segment
+      (BIP32Path.Segment
+      (BIP32Path.Segment
+        BIP32Path.Root
+        Hardened 1857) -- Address derivation standard
+        Hardened 1815) -- ADA
+        Hardened 0)    -- account
+
+    addSuffix : BIP32Path → DerivationPath → BIP32Path
+    addSuffix path DerivationChange =
+        (BIP32Path.Segment
+          path
+          Soft 1)
+    addSuffix path (DerivationCustomer c) =
+        (BIP32Path.Segment
+        (BIP32Path.Segment
+          path
+          Soft 0)
+          Soft c)
+
+{-# COMPILE AGDA2HS toBIP32Path #-}
+
 xpubFromDerivationPath : XPub → DerivationPath → XPub
 xpubFromDerivationPath xpub DerivationChange =
-  deriveXPubSoft xpub 0
+  (deriveXPubSoft xpub
+    1)
 xpubFromDerivationPath xpub (DerivationCustomer c) =
-  deriveXPubSoft (deriveXPubSoft xpub 1) c
+  (deriveXPubSoft
+  (deriveXPubSoft xpub
+    0)
+    c)
 
 {-# COMPILE AGDA2HS xpubFromDerivationPath #-}
 
@@ -242,6 +278,69 @@ lemma-contra-Bool True True impl1 = λ _ → impl1 refl
 --
 lemma-isCustomer-not-isChange s addr =
     lemma-contra-Bool _ _ (lemma-isChange-not-isCustomer s addr)
+
+{-----------------------------------------------------------------------------
+    Observations, BIP32
+------------------------------------------------------------------------------}
+
+getDerivationPath'cases
+  : AddressState → Address → Maybe Customer → Maybe DerivationPath
+getDerivationPath'cases s addr (Just c) = Just (DerivationCustomer c)
+getDerivationPath'cases s addr Nothing =
+  if isChangeAddress s addr
+  then Just DerivationChange
+  else Nothing
+
+getDerivationPath : AddressState → Address → Maybe DerivationPath
+getDerivationPath s addr =
+    getDerivationPath'cases s addr (Map.lookup addr (addresses s))
+
+{-# COMPILE AGDA2HS getDerivationPath'cases #-}
+{-# COMPILE AGDA2HS getDerivationPath #-}
+
+getBIP32Path : AddressState → Address → Maybe BIP32Path
+getBIP32Path s = fmap toBIP32Path ∘ getDerivationPath s
+
+{-# COMPILE AGDA2HS getBIP32Path #-}
+
+lemma-||-⋁
+  : ∀ (b b' : Bool)
+  → (b || b') ≡ True
+  → (b ≡ True) ⋁ (b' ≡ True)
+lemma-||-⋁ True b' refl = inl refl
+lemma-||-⋁ False True refl = inr refl
+
+--
+@0 lemma-getDerivationPath-Just
+  : ∀ (s : AddressState)
+      (addr : Address)
+  → isOurs s addr ≡ True
+  → ∃ (λ path → getDerivationPath s addr ≡ Just path)
+--
+lemma-getDerivationPath-Just s addr eq =
+  case Map.lookup addr (addresses s) of λ
+    { (Just c) {{eq1}} →
+      DerivationCustomer c `witness`
+        cong (getDerivationPath'cases s addr) eq1
+    ; Nothing {{eq1}} →
+      case isChangeAddress s addr of λ
+        { True {{eq2}} → DerivationChange `witness`(
+            begin
+              getDerivationPath s addr
+            ≡⟨ cong (getDerivationPath'cases s addr) eq1 ⟩
+              (if (isChangeAddress s addr) then (Just DerivationChange) else Nothing)
+            ≡⟨ cong (λ b → if b then _ else _) eq2 ⟩
+              Just DerivationChange
+            ∎
+          )
+        ; False {{eq2}} → case (lemma-||-⋁ _ (isCustomerAddress s addr) eq) of λ
+          { (inl eqChange) →
+            case trans (sym eqChange) eq2 of λ ()
+          ; (inr eqCustomer) →
+            case trans (sym eqCustomer) (cong isJust eq1) of λ () 
+          }
+        }
+    }
 
 {-----------------------------------------------------------------------------
     Observations, specification
