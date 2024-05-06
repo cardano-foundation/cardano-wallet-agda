@@ -62,6 +62,7 @@ library
     , OddWord >= 1.0.1.1 && < 1.1
   exposed-modules:
     Cardano.Wallet.Address.BIP32_Ed25519
+    Cardano.Wallet.Address.Encoding
     Cardano.Wallet.Address.Hash
     Cardano.Wallet.Deposit.Pure
     Cardano.Wallet.Deposit.Pure.Address

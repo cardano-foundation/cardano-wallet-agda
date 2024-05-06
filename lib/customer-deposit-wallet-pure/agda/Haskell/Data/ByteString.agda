@@ -26,7 +26,7 @@ postulate
     iEqByteString  : Eq ByteString
   
   iOrdByteString₀ : Ord ByteString
-  
+
 instance
   iOrdByteString : Ord ByteString
   iOrdByteString = record iOrdByteString₀ { super = iEqByteString }
@@ -34,8 +34,20 @@ instance
 empty : ByteString
 empty = pack []
 
+append : ByteString → ByteString → ByteString
+append x y = pack (unpack x ++ unpack y)
+
 singleton : Word8 → ByteString
 singleton x = pack (x ∷ [])
+
+instance
+  iSemigroupDeltaUTxO : Semigroup ByteString
+  iSemigroupDeltaUTxO = record { _<>_ = append }
+
+instance
+  iMonoidDeltaUTxO : Monoid ByteString
+  iMonoidDeltaUTxO =
+    record {DefaultMonoid (λ where .DefaultMonoid.mempty → empty)}
 
 {-----------------------------------------------------------------------------
     Properties
@@ -68,3 +80,52 @@ prop-pack-injective x y eq =
     y
   ∎
 
+prop-unpack-injective
+  : ∀ (x y : ByteString)
+  → unpack x ≡ unpack y
+  → x ≡ y
+prop-unpack-injective x y eq =
+  begin
+    x
+  ≡⟨ sym (prop-pack-∘-unpack x) ⟩
+    pack (unpack x)
+  ≡⟨ cong pack eq ⟩
+    pack (unpack y)
+  ≡⟨ prop-pack-∘-unpack y ⟩
+    y
+  ∎
+
+prop-pack-morphism
+  : ∀ (x y : List Word8)
+  → pack x <> pack y ≡ pack (x ++ y)
+prop-pack-morphism x y =
+  begin
+    pack x <> pack y
+  ≡⟨⟩
+    pack (unpack (pack x) ++ unpack (pack y))
+  ≡⟨ cong (λ X → pack (X ++ unpack (pack y))) (prop-unpack-∘-pack x) ⟩
+    pack (x ++ unpack (pack y))
+  ≡⟨ cong (λ Y → pack (x ++ Y)) (prop-unpack-∘-pack y) ⟩
+    pack (x ++ y)
+  ∎
+
+prop-unpack-morphism
+  : ∀ (x y : ByteString)
+  → unpack (x <> y) ≡ unpack x ++ unpack y
+prop-unpack-morphism x y =
+  begin
+    unpack (x <> y)
+  ≡⟨ cong unpack refl ⟩
+    unpack (pack (unpack x ++ unpack y))
+  ≡⟨ prop-unpack-∘-pack _ ⟩
+    unpack x ++ unpack y
+  ∎
+
+prop-<>-cancel-left
+  : ∀ (x y z : ByteString)
+  → x <> y ≡ x <> z
+  → y ≡ z
+prop-<>-cancel-left x y z =
+  prop-unpack-injective _ _
+  ∘ ++-cancel-left (unpack x) (unpack y)
+  ∘ prop-pack-injective _ _
