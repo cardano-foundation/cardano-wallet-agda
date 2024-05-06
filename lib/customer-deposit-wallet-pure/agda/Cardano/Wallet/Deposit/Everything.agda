@@ -1,5 +1,6 @@
 module Cardano.Wallet.Deposit.Everything where
 
+import Cardano.Wallet.Address.BIP32
 import Cardano.Wallet.Address.BIP32_Ed25519
 import Cardano.Wallet.Address.Hash
 
