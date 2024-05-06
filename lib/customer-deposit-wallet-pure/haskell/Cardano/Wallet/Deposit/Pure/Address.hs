@@ -1,7 +1,7 @@
 module Cardano.Wallet.Deposit.Pure.Address where
 
-import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft, rawSerialiseXPub)
-import Cardano.Wallet.Address.Hash (blake2b'256)
+import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft)
+import Cardano.Wallet.Address.Encoding (mkEnterpriseAddress)
 import Cardano.Wallet.Deposit.Read (Address)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word.Odd (Word31)
@@ -10,9 +10,6 @@ import qualified Haskell.Data.Map as Map (Map, empty, insert, lookup, toAscList)
 import Haskell.Data.Maybe (isJust)
 
 type Customer = Word31
-
-hashFromXPub :: XPub -> BS.ByteString
-hashFromXPub = blake2b'256 . rawSerialiseXPub
 
 data DerivationPath = DerivationCustomer Customer
                     | DerivationChange
@@ -24,7 +21,8 @@ xpubFromDerivationPath xpub (DerivationCustomer c)
   = deriveXPubSoft (deriveXPubSoft xpub 1) c
 
 deriveAddress :: XPub -> DerivationPath -> Address
-deriveAddress xpub = hashFromXPub . xpubFromDerivationPath xpub
+deriveAddress xpub
+  = mkEnterpriseAddress . xpubFromDerivationPath xpub
 
 deriveCustomerAddress :: XPub -> Customer -> Address
 deriveCustomerAddress xpub c

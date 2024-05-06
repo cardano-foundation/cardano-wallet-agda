@@ -34,9 +34,9 @@ open import Cardano.Wallet.Address.BIP32_Ed25519 using
     ; prop-deriveXPubSoft-not-identity
     ; prop-rawSerialiseXPub-injective
     )
-open import Cardano.Wallet.Address.Hash using
-    ( blake2b'256
-    ; prop-blake2b'256-injective
+open import Cardano.Wallet.Address.Encoding using
+    ( mkEnterpriseAddress
+    ; prop-mkEnterpriseAddress-injective
     )
 open import Cardano.Wallet.Deposit.Read using
     ( Address
@@ -77,11 +77,6 @@ Customer = Word31
 
 {-# COMPILE AGDA2HS Customer #-}
 
-hashFromXPub : XPub → BS.ByteString
-hashFromXPub = blake2b'256 ∘ rawSerialiseXPub
-
-{-# COMPILE AGDA2HS hashFromXPub #-}
-
 data DerivationPath : Set where
   DerivationCustomer : Customer → DerivationPath
   DerivationChange   : DerivationPath
@@ -96,9 +91,8 @@ xpubFromDerivationPath xpub (DerivationCustomer c) =
 
 {-# COMPILE AGDA2HS xpubFromDerivationPath #-}
 
--- FIXME: Proper enterprise address.
 deriveAddress : XPub → DerivationPath → Address
-deriveAddress xpub = hashFromXPub ∘ xpubFromDerivationPath xpub
+deriveAddress xpub = mkEnterpriseAddress ∘ xpubFromDerivationPath xpub
 
 {-# COMPILE AGDA2HS deriveAddress #-}
 
@@ -130,8 +124,7 @@ lemma-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationChange}
 --
 lemma-derive-injective =
   lemma-xpubFromDerivationPath-injective
-  ∘ prop-rawSerialiseXPub-injective _ _
-  ∘ prop-blake2b'256-injective _ _
+  ∘ prop-mkEnterpriseAddress-injective _ _
 
 --
 @0 lemma-derive-notCustomer
