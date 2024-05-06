@@ -303,6 +303,45 @@ getBIP32Path s = fmap toBIP32Path ∘ getDerivationPath s
 
 {-# COMPILE AGDA2HS getBIP32Path #-}
 
+lemma-||-⋁
+  : ∀ (b b' : Bool)
+  → (b || b') ≡ True
+  → (b ≡ True) ⋁ (b' ≡ True)
+lemma-||-⋁ True b' refl = inl refl
+lemma-||-⋁ False True refl = inr refl
+
+--
+@0 lemma-getDerivationPath-Just
+  : ∀ (s : AddressState)
+      (addr : Address)
+  → isOurs s addr ≡ True
+  → ∃ (λ path → getDerivationPath s addr ≡ Just path)
+--
+lemma-getDerivationPath-Just s addr eq =
+  case Map.lookup addr (addresses s) of λ
+    { (Just c) {{eq1}} →
+      DerivationCustomer c `witness`
+        cong (getDerivationPath'cases s addr) eq1
+    ; Nothing {{eq1}} →
+      case isChangeAddress s addr of λ
+        { True {{eq2}} → DerivationChange `witness`(
+            begin
+              getDerivationPath s addr
+            ≡⟨ cong (getDerivationPath'cases s addr) eq1 ⟩
+              (if (isChangeAddress s addr) then (Just DerivationChange) else Nothing)
+            ≡⟨ cong (λ b → if b then _ else _) eq2 ⟩
+              Just DerivationChange
+            ∎
+          )
+        ; False {{eq2}} → case (lemma-||-⋁ _ (isCustomerAddress s addr) eq) of λ
+          { (inl eqChange) →
+            case trans (sym eqChange) eq2 of λ ()
+          ; (inr eqCustomer) →
+            case trans (sym eqCustomer) (cong isJust eq1) of λ () 
+          }
+        }
+    }
+
 {-----------------------------------------------------------------------------
     Observations, specification
 ------------------------------------------------------------------------------}
