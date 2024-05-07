@@ -303,13 +303,6 @@ getBIP32Path s = fmap toBIP32Path ∘ getDerivationPath s
 
 {-# COMPILE AGDA2HS getBIP32Path #-}
 
-lemma-||-⋁
-  : ∀ (b b' : Bool)
-  → (b || b') ≡ True
-  → (b ≡ True) ⋁ (b' ≡ True)
-lemma-||-⋁ True b' refl = inl refl
-lemma-||-⋁ False True refl = inr refl
-
 --
 @0 lemma-getDerivationPath-Just
   : ∀ (s : AddressState)
@@ -333,7 +326,7 @@ lemma-getDerivationPath-Just s addr eq =
               Just DerivationChange
             ∎
           )
-        ; False {{eq2}} → case (lemma-||-⋁ _ (isCustomerAddress s addr) eq) of λ
+        ; False {{eq2}} → case (prop-||-⋁ eq) of λ
           { (inl eqChange) →
             case trans (sym eqChange) eq2 of λ ()
           ; (inr eqCustomer) →

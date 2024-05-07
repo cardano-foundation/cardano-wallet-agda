@@ -150,13 +150,6 @@ lemma-isChange-c0
   → isChange new addr
 lemma-isChange-c0 = λ new c0 addr x → c0 `witness` (sym x)
 
-lemma-||-equal
-  : ∀ (b b' : Bool)
-  → (b || b') ≡ True
-  → (b ≡ True) ⋁ (b' ≡ True)
-lemma-||-equal True b' refl = inl refl
-lemma-||-equal False True refl = inr refl
-
 onLeft
   : ∀ {p p' q : Set} → (p → p') → p ⋁ q → p' ⋁ q
 onLeft f (inl p) = inl (f p)
@@ -179,7 +172,7 @@ prop-balanceTransaction-addresses
         ⋁ addr ∈ map TxOut.address (PartialTx.outputs partialTx)
 
 prop-balanceTransaction-addresses u partialTx new c0 tx balance addr el
-    = onLeft lemma2 (lemma-||-equal b1 b2 (sym lemma1))
+    = onLeft lemma2 (prop-||-⋁ (sym lemma1))
   where
     lemma1 =
       begin
