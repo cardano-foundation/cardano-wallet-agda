@@ -20,25 +20,6 @@ import Haskell.Prelude as List using (map)
 import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
-    Helpers
-------------------------------------------------------------------------------}
-
--- These lemmas are obvious substitutions,
--- but substitution in a subterm is sometimes cumbersome
--- with equational reasoning.
-lemma-if-True
-  : ∀ {A B : Set} {{_ : Eq A}} (x x' : A) {t f : B}
-  → (x == x') ≡ True
-  → (if (x == x') then t else f) ≡ t
-lemma-if-True _ _ eq1 rewrite eq1 = refl
-
-lemma-if-False
-  : ∀ {A B : Set} {{_ : Eq A}} (x x' : A) {t f : B}
-  → (x == x') ≡ False
-  → (if (x == x') then t else f) ≡ f
-lemma-if-False _ _ eq1 rewrite eq1 = refl
-
-{-----------------------------------------------------------------------------
     Data.Maybe
 ------------------------------------------------------------------------------}
 
