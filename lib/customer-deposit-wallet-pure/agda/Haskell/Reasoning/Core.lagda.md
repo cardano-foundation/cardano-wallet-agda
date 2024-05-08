@@ -4,7 +4,7 @@
 
 ```agda
 {-# OPTIONS --erasure #-}
-module Haskell.Reasoning where
+module Haskell.Reasoning.Core where
 ```
 
 This module bundles tools for reasoning about Haskell programs in [Agda][] and [Agda2hs][].

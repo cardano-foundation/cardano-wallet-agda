@@ -337,17 +337,6 @@ prop-createPayment-success = λ s destinations x → {!   !}
     Proposition: Never sends funds to known address
 ------------------------------------------------------------------------------}
 
-lemma-neg-or
-  : ∀ {A B : Set}
-  → (A ⋁ B) → (¬ B) → A
-lemma-neg-or (inl a) _ = a
-lemma-neg-or (inr b) ¬b = magic (¬b b)
-
-lemma-neg-impl
-  : ∀ {A B : Set}
-  → (A → B) → ¬ B → ¬ A
-lemma-neg-impl = λ f ¬b a → ¬b (f a)
-
 --
 @0 prop-createPayment-not-known
   : ∀ (s : WalletState)
@@ -360,9 +349,13 @@ lemma-neg-impl = λ f ¬b a → ¬b (f a)
     → ¬ (address ∈ map TxOut.address (TxBody.outputs tx))
 --
 prop-createPayment-not-known s destinations tx created addr known ¬dest =
-    lemma-neg-impl
-        (λ outs → lemma-neg-or (changeOrPartial outs) lem2)
-        (prop-changeAddress-not-Customer s addr known)
+  λ outs →
+    case changeOrPartial outs of λ
+      { (inl caseChange) →
+          magic (prop-changeAddress-not-Customer s addr known caseChange)
+      ; (inr casePartial) →
+          magic (lem2 casePartial)
+      }
   where
     new = newChangeAddress s
     partialTx = record { outputs = map txOutFromPair destinations }
