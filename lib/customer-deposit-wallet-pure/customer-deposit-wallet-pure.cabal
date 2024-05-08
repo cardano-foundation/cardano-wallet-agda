@@ -82,4 +82,3 @@ library
     Haskell.Data.Set
     Haskell.Data.Word
     Haskell.Data.Word.Odd
-    Haskell.Crypto.Hash
