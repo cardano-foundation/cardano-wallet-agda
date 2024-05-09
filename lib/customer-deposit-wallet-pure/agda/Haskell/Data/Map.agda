@@ -35,11 +35,7 @@ unionWithMaybe f (Just x) (Just y) = Just (f x y)
 postulate
   Map : ∀ (k : Set) {{iOrd : Ord k}} → Set → Set
 
-module
-    OperationsAndProperties
-      {k a : Set}
-      {{_ : Ord k}}
-  where
+module _ {k a : Set} {{_ : Ord k}} where
   postulate
     lookup    : k → Map k a → Maybe a
     null      : Map k a → Bool
@@ -58,6 +54,8 @@ module
 
     instance
       iMapFunctor : Functor (Map k)
+
+    mapWithKey : (k → a → b) → Map k a → Map k b
 
     prop-member-null
       : ∀ (m : Map k a)
@@ -161,7 +159,22 @@ module
   foldMap' : ∀ {{_ : Monoid b}} → (a → b) → Map k a → b
   foldMap' f = foldMap f ∘ L.map snd ∘ toAscList
 
-open OperationsAndProperties public
+postulate
+  prop-lookup-fmap
+    : ∀ {a b k : Set} {{_ : Ord k}}
+        (key : k)
+        (m : Map k a)
+        (f : a → b)
+    → lookup key (fmap {{iMapFunctor {k} {a}}} f m)
+      ≡ fmap f (lookup key m)
+
+  prop-lookup-mapWithKey
+    : ∀ {a b k : Set} {{_ : Ord k}}
+        (key : k)
+        (m : Map k a)
+        (f : k → a → b)
+    → lookup key (mapWithKey f m)
+      ≡ fmap (f key) (lookup key m)
 
 instance
   iMapFoldable : ∀ {k : Set} {{_ : Ord k}} → Foldable (Map k)
