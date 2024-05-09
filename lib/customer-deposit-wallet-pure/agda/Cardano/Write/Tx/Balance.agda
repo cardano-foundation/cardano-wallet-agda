@@ -24,8 +24,8 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxIn
     ; TxOut
     ; Value
-    ; exceeds
-    ; minus
+    ; largerOrEqual
+    ; monus
     )
 open import Haskell.Data.List.Prop using ( _∈_ )
 open import Haskell.Data.Maybe using ( isJust )
@@ -76,9 +76,9 @@ coinSelectionGreedy
 coinSelectionGreedy v [] = (mempty , [])
 coinSelectionGreedy v ((txin , txout) ∷ xs) =
     let dv = (TxOut.value txout)
-    in  if exceeds v dv
-            then secondCons txin $ coinSelectionGreedy (minus v dv) xs
-            else (minus dv v , [])
+    in  if largerOrEqual v dv
+            then secondCons txin $ coinSelectionGreedy (monus v dv) xs
+            else (monus dv v , [])
 
 {-# COMPILE AGDA2HS secondCons #-}
 {-# COMPILE AGDA2HS coinSelectionGreedy #-}
@@ -102,7 +102,7 @@ balanceTransaction utxo newAddress c0 partialTx =
             ; value = changeValue
             }
     in
-    if exceeds target (UTxO.balance utxo)
+    if largerOrEqual target (UTxO.balance utxo)
         then Nothing
         else Just $ record
           { outputs = changeOutput ∷ PartialTx.outputs partialTx
@@ -134,7 +134,7 @@ lemma-balanceTransaction-addresses
   → map TxOut.address (TxBody.outputs tx)
     ≡ fst (new c0) ∷ map TxOut.address (PartialTx.outputs partialTx)
 lemma-balanceTransaction-addresses u partialTx new c0 tx balance
-  with exceeds (totalOut partialTx) (UTxO.balance u)
+  with largerOrEqual (totalOut partialTx) (UTxO.balance u)
 ...  | True = magic (unequal tx balance)
 ...  | False = begin
           map TxOut.address (TxBody.outputs tx)

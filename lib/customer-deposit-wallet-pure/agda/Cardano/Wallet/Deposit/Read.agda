@@ -3,6 +3,15 @@ module Cardano.Wallet.Deposit.Read where
 
 open import Haskell.Prelude
 
+open import Cardano.Wallet.Deposit.Read.Value public
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Deposit.Read.Value 
+    ( Value
+    )
+#-}
+
 import Haskell.Data.ByteString as BS
 import Haskell.Data.Map as Map
 
@@ -25,32 +34,6 @@ instance
 
 {-# COMPILE AGDA2HS Addr #-}
 {-# COMPILE AGDA2HS Address #-}
-
-{-----------------------------------------------------------------------------
-    Value
-------------------------------------------------------------------------------}
-data Value : Set where
-    MkValue : Integer → Value
-
-instance
-  iSemigroupValue : Semigroup Value
-  _<>_ {{iSemigroupValue}} (MkValue a) (MkValue b) = MkValue (a + b)
-
-  iMonoidValue : Monoid Value
-  iMonoidValue =
-    record {DefaultMonoid (λ where .DefaultMonoid.mempty → MkValue 0)}
-
-exceeds : Value → Value → Bool
-exceeds (MkValue a) (MkValue b) = a >= b
-
-minus : Value → Value → Value
-minus (MkValue a) (MkValue b) = MkValue (a - b)
-
-{-# COMPILE AGDA2HS Value #-}
-{-# COMPILE AGDA2HS iSemigroupValue #-}
-{-# COMPILE AGDA2HS iMonoidValue #-}
-{-# COMPILE AGDA2HS exceeds #-}
-{-# COMPILE AGDA2HS minus #-}
 
 {-----------------------------------------------------------------------------
     Transactions
