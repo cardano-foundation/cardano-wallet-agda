@@ -1,6 +1,7 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxO where
 
-import Cardano.Wallet.Deposit.Read (Address, TxIn, TxOut(address, value), Value)
+import Cardano.Wallet.Deposit.Read (Address, TxIn, TxOut(address, value))
+import Cardano.Wallet.Deposit.Read.Value (Value)
 import Data.Set (Set)
 import qualified Haskell.Data.Map as Map (Map, empty, filter, keysSet, member, null, restrictKeys, unionWith, withoutKeys)
 import qualified Haskell.Data.Set as Set (filter)

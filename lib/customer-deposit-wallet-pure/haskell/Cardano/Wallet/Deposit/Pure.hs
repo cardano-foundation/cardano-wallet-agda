@@ -1,7 +1,8 @@
 module Cardano.Wallet.Deposit.Pure where
 
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub)
-import Cardano.Wallet.Deposit.Read (Address, Block(transactions), ChainPoint, Tx, TxBody, TxOut(TxOutC), Value, chainPointFromBlock)
+import Cardano.Wallet.Deposit.Read (Address, Block(transactions), ChainPoint, Tx, TxBody, TxOut(TxOutC), chainPointFromBlock)
+import Cardano.Wallet.Deposit.Read.Value (Value)
 import Cardano.Write.Tx.Balance (ChangeAddressGen, PartialTx(PartialTxC), balanceTransaction)
 import qualified Haskell.Data.Map as Map (Map, lookup)
 

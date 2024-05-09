@@ -78,7 +78,6 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxIn
     ; TxOut
     ; Value
-    ; exceeds
     )
 open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
