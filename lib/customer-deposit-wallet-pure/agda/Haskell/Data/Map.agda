@@ -28,6 +28,10 @@ unionWithMaybe f Nothing my = my
 unionWithMaybe f (Just x) Nothing = Just x
 unionWithMaybe f (Just x) (Just y) = Just (f x y)
 
+intersectionWithMaybe : (f : a → b → c) → Maybe a → Maybe b → Maybe c
+intersectionWithMaybe f (Just x) (Just y) = Just (f x y)
+intersectionWithMaybe _ _ _ = Nothing
+
 {-----------------------------------------------------------------------------
     Data.Map
 ------------------------------------------------------------------------------}
@@ -180,6 +184,16 @@ instance
   iMapFoldable : ∀ {k : Set} {{_ : Ord k}} → Foldable (Map k)
   iMapFoldable =
     record {DefaultFoldable (record {foldMap = foldMap'})}
+
+module _ {k a b c : Set} {{_ : Ord k}} where
+  postulate
+    intersectionWith : (a → b → c) → Map k a → Map k b → Map k c
+
+    prop-lookup-intersectionWith
+      : ∀ (key : k) (ma : Map k a) (mb : Map k b)
+          (f : a → b → c)
+      → lookup key (intersectionWith f ma mb)
+        ≡ intersectionWithMaybe f (lookup key ma) (lookup key mb)
 
 {-----------------------------------------------------------------------------
     Test proofs
