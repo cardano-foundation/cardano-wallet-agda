@@ -24,17 +24,16 @@ import Haskell.Prelude as L using (map)
 
 -- | As the term 'Set' is already taken in Agda, we use ℙ (\bP).
 postulate
-  ℙ : ∀ (a : Set) {{_ : Ord a}} → Set
+  ℙ : Set → Set
 
-module
-    OperationsAndProperties
-      {a : Set}
-      {{_ : Ord a}}
-  where
+module _ {a : Set} where
+  postulate
+    toAscList : ℙ a → List a
+    null      : ℙ a → Bool
+
+module _ {a : Set} {{_ : Ord a}} where
   postulate
     member    : a → ℙ a → Bool
-    null      : ℙ a → Bool
-    toAscList : ℙ a → List a
 
     empty     : ℙ a
     insert    : a → ℙ a → ℙ a
@@ -92,10 +91,16 @@ module
   singleton : a → ℙ a
   singleton = λ x → insert x empty
 
-open OperationsAndProperties public
+foldMap' : ∀ {{_ : Monoid b}} → (a → b) → ℙ a → b
+foldMap' f = foldMap f ∘ toAscList
 
 postulate
   prop-member-map
     : ∀ {a b} {{_ : Ord a}} {{_ : Ord b}}
       (x : a) (s : ℙ a) (f : a → b)
     → member (f x) (map f s) ≡ member x s
+
+instance
+  iSetFoldable : Foldable ℙ
+  iSetFoldable =
+    record {DefaultFoldable (record {foldMap = foldMap'})}
