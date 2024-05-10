@@ -1,3 +1,4 @@
+{-# LANGUAGE StandaloneDeriving #-}
 module Cardano.Wallet.Deposit.Read where
 
 import qualified Haskell.Data.ByteString as BS (ByteString)
@@ -24,16 +25,25 @@ data TxBody = TxBodyC{inputs :: [TxIn], outputs :: [TxOut]}
 
 data Tx = TxC{txid :: TxId, txbody :: TxBody}
 
-type BlockNo = Natural
+type SlotNo = Natural
 
-type Slot = Natural
+data WithOrigin a = Origin
+                  | At a
+
+deriving instance (Eq a) => Eq (WithOrigin a)
+
+deriving instance (Ord a) => Ord (WithOrigin a)
+
+type Slot = WithOrigin SlotNo
+
+type BlockNo = Natural
 
 type HashHeader = ()
 
 type HashBBody = ()
 
 data BHBody = BHBody{prev :: Maybe HashHeader, blockno :: BlockNo,
-                     slot :: Slot, bhash :: HashBBody}
+                     slot :: SlotNo, bhash :: HashBBody}
 
 dummyBHBody :: BHBody
 dummyBHBody = BHBody Nothing 128 42 ()
@@ -52,7 +62,7 @@ dummyBHeader = BHeader dummyBHBody ()
 data Block = Block{blockHeader :: BHeader, transactions :: [Tx]}
 
 data ChainPoint = GenesisPoint
-                | BlockPoint Slot HashHeader
+                | BlockPoint SlotNo HashHeader
 
 chainPointFromBlock :: Block -> ChainPoint
 chainPointFromBlock block

@@ -86,14 +86,46 @@ open Tx public
 {-# COMPILE AGDA2HS TxBody #-}
 {-# COMPILE AGDA2HS Tx #-}
 
+
+{-----------------------------------------------------------------------------
+    Slot
+------------------------------------------------------------------------------}
+SlotNo = Nat
+
+{-# COMPILE AGDA2HS SlotNo #-}
+
+data WithOrigin (a : Set) : Set where
+  Origin : WithOrigin a
+  At     : a → WithOrigin a
+
+instance
+  iEqWithOrigin : {{Eq a}} → Eq (WithOrigin a)
+  iEqWithOrigin ._==_ Origin Origin = True
+  iEqWithOrigin ._==_ (At x) (At y) = x == y
+  iEqWithOrigin ._==_ _      _      = False
+
+  iOrdWithOrigin : {{Ord a}} → Ord (WithOrigin a)
+  iOrdWithOrigin = ordFromCompare λ where
+    Origin Origin → EQ
+    Origin (At _) → LT
+    (At _) Origin → GT
+    (At x) (At y) → compare x y
+
+{-# COMPILE AGDA2HS WithOrigin #-}
+{-# COMPILE AGDA2HS iEqWithOrigin derive #-}
+{-# COMPILE AGDA2HS iOrdWithOrigin derive #-}
+
+Slot : Set
+Slot = WithOrigin SlotNo
+
+{-# COMPILE AGDA2HS Slot #-}
+
 {-----------------------------------------------------------------------------
     Blocks
 ------------------------------------------------------------------------------}
 BlockNo = Nat
-Slot = Nat
 
 {-# COMPILE AGDA2HS BlockNo #-}
-{-# COMPILE AGDA2HS Slot #-}
 
 HashHeader = ⊤
 HashBBody = ⊤
@@ -105,7 +137,7 @@ record BHBody : Set where
   field
     prev    : Maybe HashHeader
     blockno : BlockNo
-    slot    : Slot
+    slot    : SlotNo
     bhash   : HashBBody
 open BHBody public
 
@@ -162,7 +194,7 @@ open Block public
 ------------------------------------------------------------------------------}
 data ChainPoint : Set where
   GenesisPoint : ChainPoint
-  BlockPoint   : Slot → HashHeader → ChainPoint
+  BlockPoint   : SlotNo → HashHeader → ChainPoint
 
 {-# COMPILE AGDA2HS ChainPoint #-}
 
