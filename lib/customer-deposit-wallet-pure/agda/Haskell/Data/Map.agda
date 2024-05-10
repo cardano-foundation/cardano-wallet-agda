@@ -55,6 +55,7 @@ module _ {k a : Set} {{_ : Ord k}} where
     empty     : Map k a
     insert    : k → a → Map k a → Map k a
     delete    : k → Map k a → Map k a
+    update    : (a → Maybe a) → k → Map k a → Map k a
     fromList  : List (k × a) → Map k a
     fromListWith : (a → a → a) → List (k × a) → Map k a
 
@@ -92,6 +93,11 @@ module _ {k a : Set} {{_ : Ord k}} where
       : ∀ (key keyi : k) (m : Map k a)
       → lookup key (delete keyi m)
         ≡ (if (key == keyi) then Nothing else lookup key m)
+
+    prop-lookup-update
+      : ∀ (key keyi : k) (m : Map k a) (f : a → Maybe a)
+      → lookup key (update f keyi m)
+        ≡ (if (key == keyi) then Nothing else (lookup key m >>= f))
 
     prop-lookup-toAscList-Just
       : ∀ (key : k) (x : a) (m : Map k a)
