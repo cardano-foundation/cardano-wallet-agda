@@ -40,10 +40,11 @@ module _ {a : Set} {{_ : Ord a}} where
     delete    : a → ℙ a → ℙ a
     fromList  : List a → ℙ a
 
-    map        : ∀ {b} {{_ : Ord b}} → (a → b) → ℙ a → ℙ b
-    union      : ℙ a → ℙ a → ℙ a
-    difference : ℙ a → ℙ a → ℙ a
-    filter     : (a → Bool) → ℙ a → ℙ a
+    map          : ∀ {b} {{_ : Ord b}} → (a → b) → ℙ a → ℙ b
+    union        : ℙ a → ℙ a → ℙ a
+    intersection : ℙ a → ℙ a → ℙ a
+    difference   : ℙ a → ℙ a → ℙ a
+    filter       : (a → Bool) → ℙ a → ℙ a
 
     prop-member-null
       : ∀ (s : ℙ a)
@@ -78,6 +79,11 @@ module _ {a : Set} {{_ : Ord a}} where
       → member x (union s1 s2)
         ≡ (member x s1 || member x s2)
 
+    prop-member-intersection    
+      : ∀ (x : a) (s1 s2 : ℙ a)
+      → member x (intersection s1 s2)
+        ≡ (member x s1 && member x s2)
+
     prop-member-difference    
       : ∀ (x : a) (s1 s2 : ℙ a)
       → member x (difference s1 s2)
@@ -104,3 +110,9 @@ instance
   iSetFoldable : Foldable ℙ
   iSetFoldable =
     record {DefaultFoldable (record {foldMap = foldMap'})}
+
+  iSetSemigroup : {{Ord a}} → Semigroup (ℙ a)
+  iSetSemigroup ._<>_ = union
+
+  iSetMonoid : {{Ord a}} → Monoid (ℙ a)
+  iSetMonoid = record {DefaultMonoid (record {mempty = empty})}
