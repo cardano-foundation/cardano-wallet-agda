@@ -20,6 +20,13 @@ import Haskell.Prelude as List using (map)
 import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
+    Helper predicates
+------------------------------------------------------------------------------}
+AntitonicPred : {a : Set} → {{Ord a}} → (a → Bool) → Set
+AntitonicPred {a} p =
+  ∀ {x y : a} → ((x <= y) ≡ True) → ((p x >= p y) ≡ True)
+
+{-----------------------------------------------------------------------------
     Data.Maybe
 ------------------------------------------------------------------------------}
 
@@ -55,6 +62,7 @@ module _ {k a : Set} {{_ : Ord k}} where
     filterWithKey : (k → a → Bool) → Map k a → Map k a
 
     takeWhileAntitone : (k → Bool) → Map k a → Map k a
+    dropWhileAntitone : (k → Bool) → Map k a → Map k a
 
     instance
       iMapFunctor : Functor (Map k)
@@ -112,14 +120,16 @@ module _ {k a : Set} {{_ : Ord k}} where
       → lookup key (filterWithKey p m) ≡ Nothing
 
     prop-lookup-takeWhileAntitone
-      : ∀ (p : k → Bool)
-      → (∀ (key1 key2 : k)
-          → (key1 < key2) ≡ True
-          → (p key1 >= p key2) ≡ True
-        )
+      : ∀ (p : k → Bool) → AntitonicPred p
       → ∀ (key : k) (m : Map k a)
       → lookup key (takeWhileAntitone p m)
         ≡ lookup key (filterWithKey (λ k _ → p k) m)
+
+    prop-lookup-dropWhileAntitone
+      : ∀ (p : k → Bool) → AntitonicPred p
+      → ∀ (key : k) (m : Map k a)
+      → lookup key (dropWhileAntitone p m)
+        ≡ lookup key (filterWithKey (λ k _ → not (p k)) m)
 
   map : ∀ {b : Set} → (a → b) → Map k a → Map k b
   map = fmap
@@ -144,6 +154,9 @@ module _ {k a : Set} {{_ : Ord k}} where
 
   filter : (a → Bool) → Map k a → Map k a
   filter p = filterWithKey (λ _ x → p x)
+
+  spanAntitone : (k → Bool) → Map k a → (Map k a × Map k a)
+  spanAntitone p m = (takeWhileAntitone p m , dropWhileAntitone p m)
 
   prop-lookup-singleton
     : ∀ (key keyi : k) (x : a)
