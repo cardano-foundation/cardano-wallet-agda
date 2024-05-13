@@ -59,6 +59,7 @@ open import Haskell.Data.Set using
     )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
+import Haskell.Data.InverseMap as InverseMap
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
