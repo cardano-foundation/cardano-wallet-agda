@@ -24,27 +24,27 @@ import Haskell.Prelude as L using (map)
 
 -- | As the term 'Set' is already taken in Agda, we use ℙ (\bP).
 postulate
-  ℙ : ∀ (a : Set) {{_ : Ord a}} → Set
+  ℙ : Set → Set
 
-module
-    OperationsAndProperties
-      {a : Set}
-      {{_ : Ord a}}
-  where
+module _ {a : Set} where
+  postulate
+    toAscList : ℙ a → List a
+    null      : ℙ a → Bool
+
+module _ {a : Set} {{_ : Ord a}} where
   postulate
     member    : a → ℙ a → Bool
-    null      : ℙ a → Bool
-    toAscList : ℙ a → List a
 
     empty     : ℙ a
     insert    : a → ℙ a → ℙ a
     delete    : a → ℙ a → ℙ a
     fromList  : List a → ℙ a
 
-    map        : ∀ {b} {{_ : Ord b}} → (a → b) → ℙ a → ℙ b
-    union      : ℙ a → ℙ a → ℙ a
-    difference : ℙ a → ℙ a → ℙ a
-    filter     : (a → Bool) → ℙ a → ℙ a
+    map          : ∀ {b} {{_ : Ord b}} → (a → b) → ℙ a → ℙ b
+    union        : ℙ a → ℙ a → ℙ a
+    intersection : ℙ a → ℙ a → ℙ a
+    difference   : ℙ a → ℙ a → ℙ a
+    filter       : (a → Bool) → ℙ a → ℙ a
 
     prop-member-null
       : ∀ (s : ℙ a)
@@ -79,6 +79,11 @@ module
       → member x (union s1 s2)
         ≡ (member x s1 || member x s2)
 
+    prop-member-intersection    
+      : ∀ (x : a) (s1 s2 : ℙ a)
+      → member x (intersection s1 s2)
+        ≡ (member x s1 && member x s2)
+
     prop-member-difference    
       : ∀ (x : a) (s1 s2 : ℙ a)
       → member x (difference s1 s2)
@@ -92,10 +97,22 @@ module
   singleton : a → ℙ a
   singleton = λ x → insert x empty
 
-open OperationsAndProperties public
+foldMap' : ∀ {{_ : Monoid b}} → (a → b) → ℙ a → b
+foldMap' f = foldMap f ∘ toAscList
 
 postulate
   prop-member-map
     : ∀ {a b} {{_ : Ord a}} {{_ : Ord b}}
       (x : a) (s : ℙ a) (f : a → b)
     → member (f x) (map f s) ≡ member x s
+
+instance
+  iSetFoldable : Foldable ℙ
+  iSetFoldable =
+    record {DefaultFoldable (record {foldMap = foldMap'})}
+
+  iSetSemigroup : {{Ord a}} → Semigroup (ℙ a)
+  iSetSemigroup ._<>_ = union
+
+  iSetMonoid : {{Ord a}} → Monoid (ℙ a)
+  iSetMonoid = record {DefaultMonoid (record {mempty = empty})}
