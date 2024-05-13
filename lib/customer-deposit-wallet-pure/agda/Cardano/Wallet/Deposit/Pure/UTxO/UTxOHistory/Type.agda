@@ -17,6 +17,9 @@ open import Haskell.Data.Map using
 open import Haskell.Data.Set using
     ( ℙ
     )
+open import Haskell.Data.InverseMap using
+    ( InverseMap
+    )
 
 {-----------------------------------------------------------------------------
     Pruned
@@ -57,14 +60,14 @@ record UTxOHistory : Set where
   field
     history : UTxO
         -- ^ All UTxO , spent and unspent.
-    creationSlots : Map Slot (ℙ TxIn)
-        -- ^ All TxIn, indexed by creation slot.
+    creationSlots : InverseMap TxIn Slot
+        -- ^ All TxIn, efficiently indexed by creation slot.
     creationTxIns : Map TxIn Slot
-        -- ^ Reverse map of the `creationSlots` map
-    spentSlots : Map SlotNo (ℙ TxIn)
-        -- ^ All spent TxIn, indexed by spent slot.
+        -- ^ Creation slot of each 'TxIn'.
+    spentSlots : InverseMap TxIn SlotNo
+        -- ^ All spent 'TxIn', efficiently indexed by spent slot.
     spentTxIns : Map TxIn SlotNo
-        -- ^ Reverse map of the `spentSlots` map.
+        -- ^ Spent slot of each spent 'TxIn'.
     tip : Slot
         -- ^ Current tip slot.
     finality : Pruned

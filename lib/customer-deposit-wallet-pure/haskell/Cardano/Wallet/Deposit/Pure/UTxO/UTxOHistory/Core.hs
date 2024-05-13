@@ -7,10 +7,11 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (union)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type (Pruned(NotPruned, PrunedUpTo), UTxOHistory(boot, creationSlots, creationTxIns, finality, history, spentSlots, spentTxIns, tip))
 import Cardano.Wallet.Deposit.Read (Slot, SlotNo, TxIn, WithOrigin(At, Origin))
 import Data.Set (Set)
+import qualified Haskell.Data.InverseMap as InverseMap (difference, empty, insertManyKeys)
 import Haskell.Data.Map (Map)
-import qualified Haskell.Data.Map as Map (dropWhileAntitone, empty, fromList, insert, restrictKeys, singleton, spanAntitone, takeWhileAntitone, toAscList, update, withoutKeys)
+import qualified Haskell.Data.Map as Map (dropWhileAntitone, empty, insert, restrictKeys, spanAntitone, takeWhileAntitone, withoutKeys)
 import Haskell.Data.Maybe (fromMaybe)
-import qualified Haskell.Data.Set as Set (delete, difference, intersection, null, toAscList)
+import qualified Haskell.Data.Set as Set (difference, intersection)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
@@ -27,49 +28,21 @@ foldl' = foldl
 fold :: (Foldable t, Monoid m) => t m -> m
 fold = foldMap id
 
-insertNonEmpty ::
-                 (Ord key, Ord v) =>
-                 key -> Set v -> Map key (Set v) -> Map key (Set v)
-insertNonEmpty key x = if Set.null x then id else Map.insert key x
-
-reverseMapOfSets ::
-                   (Ord key, Ord v) => Map key (Set v) -> Map v key
-reverseMapOfSets m
-  = Map.fromList $
-      do (k, vs) <- Map.toAscList m
-         v <- Set.toAscList vs
-         pure (v, k)
-
-insertNonEmptyReversedMap ::
-                            (Ord key, Ord v) => key -> Set v -> Map v key -> Map v key
-insertNonEmptyReversedMap key vs m0
-  = foldl' (\ m v -> Map.insert v key m) m0 vs
-
-deleteFromSet :: Ord v => v -> Set v -> Maybe (Set v)
-deleteFromSet x vs
-  = if Set.null (Set.delete x vs) then Nothing else
-      Just (Set.delete x vs)
-
-deleteFromMap ::
-                (Ord v, Ord key) => (v, key) -> Map key (Set v) -> Map key (Set v)
-deleteFromMap (x, key) = Map.update (deleteFromSet x) key
-
-differenceReversedMap ::
-                        (Ord v, Ord key) => Map key (Set v) -> Map v key -> Map key (Set v)
-differenceReversedMap whole part
-  = foldl' (flip deleteFromMap) whole $ Map.toAscList part
+insertManyKeys ::
+                 (Ord key, Ord v) => Set key -> v -> Map key v -> Map key v
+insertManyKeys keys v m0
+  = foldl' (\ m key -> Map.insert key v m) m0 keys
 
 empty :: UTxO -> UTxOHistory
 empty utxo
-  = UTxOHistory utxo creationSlots' (reverseMapOfSets creationSlots')
+  = UTxOHistory utxo
+      (InverseMap.insertManyKeys (dom utxo) Origin InverseMap.empty)
+      (insertManyKeys (dom utxo) Origin Map.empty)
       Map.empty
       Map.empty
       Origin
       NotPruned
       utxo
-  where
-    creationSlots' :: Map (WithOrigin SlotNo) (Set TxIn)
-    creationSlots' = Map.singleton Origin $ dom utxo
 
 getUTxO :: UTxOHistory -> UTxO
 getUTxO us = excluding (history us) (fold (spentSlots us))
@@ -115,11 +88,11 @@ appendBlock :: SlotNo -> DeltaUTxO -> UTxOHistory -> UTxOHistory
 appendBlock newTip delta noop
   = constrainingAppendBlock noop noop newTip
       (UTxOHistory (UTxO.union (history noop) (received delta))
-         (insertNonEmpty (At newTip) receivedTxIns (creationSlots noop))
-         (insertNonEmptyReversedMap (At newTip) receivedTxIns
-            (creationTxIns noop))
-         (insertNonEmpty newTip excludedTxIns (spentSlots noop))
-         (insertNonEmptyReversedMap newTip excludedTxIns (spentTxIns noop))
+         (InverseMap.insertManyKeys receivedTxIns (At newTip)
+            (creationSlots noop))
+         (insertManyKeys receivedTxIns (At newTip) (creationTxIns noop))
+         (InverseMap.insertManyKeys excludedTxIns newTip (spentSlots noop))
+         (insertManyKeys excludedTxIns newTip (spentTxIns noop))
          (At newTip)
          (finality noop)
          (boot noop))
@@ -165,7 +138,7 @@ prune newFinality noop
           (excluding (history noop)
              (fold
                 (fst (Map.spanAntitone (<= newFinality') (spentSlots noop)))))
-          (differenceReversedMap (creationSlots noop)
+          (InverseMap.difference (creationSlots noop)
              (Map.restrictKeys (creationTxIns noop)
                 (fold
                    (fst (Map.spanAntitone (<= newFinality') (spentSlots noop))))))

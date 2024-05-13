@@ -59,6 +59,7 @@ open import Haskell.Data.Set using
     )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
+import Haskell.Data.InverseMap as InverseMap
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
@@ -100,60 +101,14 @@ fold = foldMap id
     Helper functions
 ------------------------------------------------------------------------------}
 
--- | Insert a 'Set' into a 'Map' of 'Set' — but only if the 'Set' is nonempty.
-insertNonEmpty
-    : {{_ : Ord key}} → {{_ : Ord v}}
-    → key → ℙ v → Map key (ℙ v) → Map key (ℙ v)
-insertNonEmpty key x = if Set.null x then id else Map.insert key x
+-- | Insert a set of keys into a 'Map' that all have the same value.
+insertManyKeys
+    : {{_ : Ord key}} {{_ : Ord v}}
+    → ℙ key → v → Map key v → Map key v
+insertManyKeys keys v m0 =
+    foldl' (\m key → Map.insert key v m) m0 keys
 
-{-# COMPILE AGDA2HS insertNonEmpty #-}
-
--- | Reverse the roles of key and values for a 'Map' of 'Set's.
-reverseMapOfSets
-    : {{_ : Ord key}} → {{_ : Ord v}}
-    → Map key (ℙ v) → Map v key
-reverseMapOfSets m = Map.fromList $ do
-    (k , vs) <- Map.toAscList m
-    v <- Set.toAscList vs
-    pure (v , k)
-
-{-# COMPILE AGDA2HS reverseMapOfSets #-}
-
--- | Insert a 'Set' of items into a 'Map' that is
--- the result of 'reverseMapOfSets'.
-insertNonEmptyReversedMap
-    : {{_ : Ord key}} → {{_ : Ord v}}
-    → key → ℙ v → Map v key → Map v key
-insertNonEmptyReversedMap key vs m0 =
-    foldl' (\m v → Map.insert v key m) m0 vs
-
-{-# COMPILE AGDA2HS insertNonEmptyReversedMap #-}
-
-deleteFromSet
-    : ∀ {v : Set} {{_ : Ord v}}
-    → v → ℙ v → Maybe (ℙ v)
-deleteFromSet x vs =
-    let vs' = Set.delete x vs
-    in  if Set.null vs' then Nothing else Just vs'
-
-{-# COMPILE AGDA2HS deleteFromSet #-}
-
-deleteFromMap
-    : {v key : Set} → {{_ : Ord v}} → {{_ : Ord key}}
-    → v × key → Map key (ℙ v) → Map key (ℙ v)
-deleteFromMap (x , key) = Map.update (deleteFromSet x) key
-
-{-# COMPILE AGDA2HS deleteFromMap #-}
-
--- | Take the difference between a 'Map' and another 'Map'
--- that was created by using 'reverseMapOfSets'.
-differenceReversedMap
-    : {v key : Set} → {{_ : Ord v}} → {{_ : Ord key}}
-    → Map key (ℙ v) → Map v key → Map key (ℙ v)
-differenceReversedMap whole part =
-    foldl' (flip deleteFromMap) whole $ Map.toAscList part
-
-{-# COMPILE AGDA2HS differenceReversedMap #-}
+{-# COMPILE AGDA2HS insertManyKeys #-}
 
 {-----------------------------------------------------------------------------
     Basic functions
@@ -164,16 +119,22 @@ empty : UTxO → UTxOHistory
 empty utxo =
     record
         { history = utxo
-        ; creationSlots = creationSlots'
-        ; creationTxIns = reverseMapOfSets creationSlots'
+        ; creationSlots =
+            InverseMap.insertManyKeys
+                (dom utxo)
+                WithOrigin.Origin
+                InverseMap.empty
+        ; creationTxIns =
+            insertManyKeys
+                (dom utxo)
+                WithOrigin.Origin
+                Map.empty
         ; spentSlots = Map.empty
         ; spentTxIns = Map.empty
         ; tip = WithOrigin.Origin
         ; finality = Pruned.NotPruned
         ; boot = utxo
         }
-  where
-    creationSlots' = Map.singleton WithOrigin.Origin $ dom utxo
 
 {-# COMPILE AGDA2HS empty #-}
 
@@ -267,14 +228,17 @@ appendBlock newTip delta noop =
       record
         { history = UTxO.union history (DeltaUTxO.received delta)
         ; creationSlots =
-            insertNonEmpty (WithOrigin.At newTip) receivedTxIns creationSlots
+            InverseMap.insertManyKeys
+                receivedTxIns (WithOrigin.At newTip) creationSlots
         ; creationTxIns =
-            insertNonEmptyReversedMap
-                (WithOrigin.At newTip) receivedTxIns creationTxIns
+            insertManyKeys
+                receivedTxIns (WithOrigin.At newTip) creationTxIns
         ; spentSlots =
-            insertNonEmpty newTip excludedTxIns spentSlots
+            InverseMap.insertManyKeys
+                excludedTxIns newTip spentSlots
         ; spentTxIns =
-            insertNonEmptyReversedMap newTip excludedTxIns spentTxIns
+            insertManyKeys
+                excludedTxIns newTip spentTxIns
         ; tip = WithOrigin.At newTip
         ; finality = finality
         ; boot = boot
@@ -350,7 +314,7 @@ prune newFinality noop =
         record
             { history = excluding history prunedTxIns
             ; creationSlots =
-                differenceReversedMap
+                InverseMap.difference
                     creationSlots
                     (Map.restrictKeys creationTxIns prunedTxIns)
             ; creationTxIns =
