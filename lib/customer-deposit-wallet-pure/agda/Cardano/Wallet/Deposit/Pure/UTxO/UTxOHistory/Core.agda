@@ -130,32 +130,6 @@ insertNonEmptyReversedMap key vs m0 =
 
 {-# COMPILE AGDA2HS insertNonEmptyReversedMap #-}
 
-deleteFromSet
-    : ∀ {v : Set} {{_ : Ord v}}
-    → v → ℙ v → Maybe (ℙ v)
-deleteFromSet x vs =
-    let vs' = Set.delete x vs
-    in  if Set.null vs' then Nothing else Just vs'
-
-{-# COMPILE AGDA2HS deleteFromSet #-}
-
-deleteFromMap
-    : {v key : Set} → {{_ : Ord v}} → {{_ : Ord key}}
-    → v × key → Map key (ℙ v) → Map key (ℙ v)
-deleteFromMap (x , key) = Map.update (deleteFromSet x) key
-
-{-# COMPILE AGDA2HS deleteFromMap #-}
-
--- | Take the difference between a 'Map' and another 'Map'
--- that was created by using 'reverseMapOfSets'.
-differenceReversedMap
-    : {v key : Set} → {{_ : Ord v}} → {{_ : Ord key}}
-    → Map key (ℙ v) → Map v key → Map key (ℙ v)
-differenceReversedMap whole part =
-    foldl' (flip deleteFromMap) whole $ Map.toAscList part
-
-{-# COMPILE AGDA2HS differenceReversedMap #-}
-
 {-----------------------------------------------------------------------------
     Basic functions
 ------------------------------------------------------------------------------}
@@ -351,7 +325,7 @@ prune newFinality noop =
         record
             { history = excluding history prunedTxIns
             ; creationSlots =
-                differenceReversedMap
+                InverseMap.difference
                     creationSlots
                     (Map.restrictKeys creationTxIns prunedTxIns)
             ; creationTxIns =

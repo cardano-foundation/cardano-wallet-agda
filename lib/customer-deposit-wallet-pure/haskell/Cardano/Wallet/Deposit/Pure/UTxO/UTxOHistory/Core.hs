@@ -7,10 +7,11 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (union)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type (Pruned(NotPruned, PrunedUpTo), UTxOHistory(boot, creationSlots, creationTxIns, finality, history, spentSlots, spentTxIns, tip))
 import Cardano.Wallet.Deposit.Read (Slot, SlotNo, TxIn, WithOrigin(At, Origin))
 import Data.Set (Set)
+import qualified Haskell.Data.InverseMap as InverseMap (difference)
 import Haskell.Data.Map (Map)
-import qualified Haskell.Data.Map as Map (dropWhileAntitone, empty, fromList, insert, restrictKeys, singleton, spanAntitone, takeWhileAntitone, toAscList, update, withoutKeys)
+import qualified Haskell.Data.Map as Map (dropWhileAntitone, empty, fromList, insert, restrictKeys, singleton, spanAntitone, takeWhileAntitone, toAscList, withoutKeys)
 import Haskell.Data.Maybe (fromMaybe)
-import qualified Haskell.Data.Set as Set (delete, difference, intersection, null, toAscList)
+import qualified Haskell.Data.Set as Set (difference, intersection, null, toAscList)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
@@ -44,20 +45,6 @@ insertNonEmptyReversedMap ::
                             (Ord key, Ord v) => key -> Set v -> Map v key -> Map v key
 insertNonEmptyReversedMap key vs m0
   = foldl' (\ m v -> Map.insert v key m) m0 vs
-
-deleteFromSet :: Ord v => v -> Set v -> Maybe (Set v)
-deleteFromSet x vs
-  = if Set.null (Set.delete x vs) then Nothing else
-      Just (Set.delete x vs)
-
-deleteFromMap ::
-                (Ord v, Ord key) => (v, key) -> Map key (Set v) -> Map key (Set v)
-deleteFromMap (x, key) = Map.update (deleteFromSet x) key
-
-differenceReversedMap ::
-                        (Ord v, Ord key) => Map key (Set v) -> Map v key -> Map key (Set v)
-differenceReversedMap whole part
-  = foldl' (flip deleteFromMap) whole $ Map.toAscList part
 
 empty :: UTxO -> UTxOHistory
 empty utxo
@@ -165,7 +152,7 @@ prune newFinality noop
           (excluding (history noop)
              (fold
                 (fst (Map.spanAntitone (<= newFinality') (spentSlots noop)))))
-          (differenceReversedMap (creationSlots noop)
+          (InverseMap.difference (creationSlots noop)
              (Map.restrictKeys (creationTxIns noop)
                 (fold
                    (fst (Map.spanAntitone (<= newFinality') (spentSlots noop))))))
