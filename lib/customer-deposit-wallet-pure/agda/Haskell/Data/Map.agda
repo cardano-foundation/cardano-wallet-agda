@@ -152,6 +152,11 @@ module _ {k a : Set} {{_ : Ord k}} where
   singleton : k → a → Map k a
   singleton = λ k x → insert k x empty
 
+  insertWith : (a → a → a) → k → a → Map k a → Map k a
+  insertWith f k new m = case lookup k m of λ where
+    Nothing → insert k new m
+    (Just old) → insert k (f new old) m
+
   withoutKeys : Map k a → Set.ℙ k → Map k a
   withoutKeys m s = filterWithKey (λ k _ → not (Set.member k s)) m
 
