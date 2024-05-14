@@ -48,6 +48,9 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxIn
     ; WithOrigin
     )
+open import Haskell.Data.List using
+    ( foldl'
+    )
 open import Haskell.Data.Maybe using
     ( fromMaybe
     )
@@ -82,13 +85,6 @@ guard True = Just tt
 guard False = Nothing
 
 {-# COMPILE AGDA2HS guard #-}
-
-foldl'
-    : ∀ {t : Set → Set} {{_ : Foldable t}}
-    → (b -> a -> b) -> b -> t a -> b
-foldl' = foldl
-
-{-# COMPILE AGDA2HS foldl' #-}
 
 fold
     : ∀ {t : Set → Set} {m : Set} {{_ : Foldable t}} → {{Monoid m}}

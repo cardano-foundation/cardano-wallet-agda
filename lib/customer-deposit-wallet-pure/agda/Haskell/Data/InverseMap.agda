@@ -3,6 +3,9 @@ module Haskell.Data.InverseMap where
 
 open import Haskell.Prelude
 
+open import Haskell.Data.List using
+    ( foldl'
+    )
 open import Haskell.Data.Maybe using
     ( fromMaybe
     )
@@ -15,13 +18,6 @@ open import Haskell.Data.Set using
 
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
-
-foldl'
-    : ∀ {t : Set → Set} {{_ : Foldable t}}
-    → (b -> a -> b) -> b -> t a -> b
-foldl' = foldl
-
-{-# COMPILE AGDA2HS foldl' #-}
 
 {-----------------------------------------------------------------------------
     Inverse Map
