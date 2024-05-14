@@ -84,6 +84,7 @@ library
     Haskell.Data.InverseMap
     Haskell.Data.List
     Haskell.Data.Map
+    Haskell.Data.Maps.PairMap
     Haskell.Data.Maybe
     Haskell.Data.Set
     Haskell.Data.Word
