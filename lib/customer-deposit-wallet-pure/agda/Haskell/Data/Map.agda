@@ -146,8 +146,11 @@ module _ {k a : Set} {{_ : Ord k}} where
   elems : Map k a → List a
   elems = List.map snd ∘ toAscList
 
+  keys : Map k a → List k
+  keys = List.map fst ∘ toAscList
+
   keysSet : Map k a → Set.ℙ k
-  keysSet = Set.fromList ∘ List.map fst ∘ toAscList
+  keysSet = Set.fromList ∘ keys
 
   singleton : k → a → Map k a
   singleton = λ k x → insert k x empty
