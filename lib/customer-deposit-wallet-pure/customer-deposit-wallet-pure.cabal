@@ -82,6 +82,7 @@ library
   other-modules:
     Haskell.Data.ByteString
     Haskell.Data.InverseMap
+    Haskell.Data.List
     Haskell.Data.Map
     Haskell.Data.Maybe
     Haskell.Data.Set

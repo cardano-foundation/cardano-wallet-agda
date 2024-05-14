@@ -8,6 +8,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type (Pruned(NotPruned, Prun
 import Cardano.Wallet.Deposit.Read (Slot, SlotNo, TxIn, WithOrigin(At, Origin))
 import Data.Set (Set)
 import qualified Haskell.Data.InverseMap as InverseMap (difference, empty, insertManyKeys)
+import Haskell.Data.List (foldl')
 import Haskell.Data.Map (Map)
 import qualified Haskell.Data.Map as Map (dropWhileAntitone, empty, insert, restrictKeys, spanAntitone, takeWhileAntitone, withoutKeys)
 import Haskell.Data.Maybe (fromMaybe)
@@ -21,9 +22,6 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
 guard :: Bool -> Maybe ()
 guard True = Just ()
 guard False = Nothing
-
-foldl' :: Foldable t => (b -> a -> b) -> b -> t a -> b
-foldl' = foldl
 
 fold :: (Foldable t, Monoid m) => t m -> m
 fold = foldMap id

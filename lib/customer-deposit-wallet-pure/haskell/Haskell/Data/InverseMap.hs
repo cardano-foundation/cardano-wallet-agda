@@ -1,12 +1,10 @@
 module Haskell.Data.InverseMap where
 
 import Data.Set (Set)
+import Haskell.Data.List (foldl')
 import Haskell.Data.Map (Map)
 import qualified Haskell.Data.Map as Map (empty, fromListWith, insertWith, toAscList, update)
 import qualified Haskell.Data.Set as Set (delete, null, singleton, union)
-
-foldl' :: Foldable t => (b -> a -> b) -> b -> t a -> b
-foldl' = foldl
 
 type InverseMap key v = Map v (Set key)
 
