@@ -155,6 +155,11 @@ module _ {k a : Set} {{_ : Ord k}} where
   singleton : k → a → Map k a
   singleton = λ k x → insert k x empty
 
+  alter : (Maybe a → Maybe a) → k → Map k a → Map k a
+  alter f k m = case f (lookup k m) of λ where
+    Nothing → delete k m
+    (Just a) → insert k a m
+
   insertWith : (a → a → a) → k → a → Map k a → Map k a
   insertWith f k new m = case lookup k m of λ where
     Nothing → insert k new m
