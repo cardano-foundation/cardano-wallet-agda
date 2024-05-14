@@ -146,11 +146,19 @@ module _ {k a : Set} {{_ : Ord k}} where
   elems : Map k a → List a
   elems = List.map snd ∘ toAscList
 
+  keys : Map k a → List k
+  keys = List.map fst ∘ toAscList
+
   keysSet : Map k a → Set.ℙ k
-  keysSet = Set.fromList ∘ List.map fst ∘ toAscList
+  keysSet = Set.fromList ∘ keys
 
   singleton : k → a → Map k a
   singleton = λ k x → insert k x empty
+
+  alter : (Maybe a → Maybe a) → k → Map k a → Map k a
+  alter f k m = case f (lookup k m) of λ where
+    Nothing → delete k m
+    (Just a) → insert k a m
 
   insertWith : (a → a → a) → k → a → Map k a → Map k a
   insertWith f k new m = case lookup k m of λ where
