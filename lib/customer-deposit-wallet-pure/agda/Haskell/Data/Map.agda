@@ -30,12 +30,12 @@ AntitonicPred {a} p =
     Data.Maybe
 ------------------------------------------------------------------------------}
 
-unionWithMaybe : (f : a → a → a) → Maybe a → Maybe a → Maybe a
+unionWithMaybe : (a → a → a) → Maybe a → Maybe a → Maybe a
 unionWithMaybe f Nothing my = my
 unionWithMaybe f (Just x) Nothing = Just x
 unionWithMaybe f (Just x) (Just y) = Just (f x y)
 
-intersectionWithMaybe : (f : a → b → c) → Maybe a → Maybe b → Maybe c
+intersectionWithMaybe : (a → b → c) → Maybe a → Maybe b → Maybe c
 intersectionWithMaybe f (Just x) (Just y) = Just (f x y)
 intersectionWithMaybe _ _ _ = Nothing
 
