@@ -3,6 +3,7 @@
 module Haskell.Data.Maps.PairMap where
 
 open import Haskell.Prelude
+open import Haskell.Reasoning
 
 open import Haskell.Data.List using
     ( foldl'
@@ -39,6 +40,38 @@ withEmpty f = explicitEmpty ∘ f ∘ implicitEmpty
 {-# COMPILE AGDA2HS explicitEmpty #-}
 {-# COMPILE AGDA2HS implicitEmpty #-}
 {-# COMPILE AGDA2HS withEmpty #-}
+
+@0 prop-explicitEmpty-bind
+  : ∀ {{_ : Ord a}} (x : a) (m : Map a b)
+  → explicitEmpty m >>= Map.lookup x
+    ≡ Map.lookup x m
+prop-explicitEmpty-bind x m = case Map.null m of λ
+  { True {{eq}} →
+    begin
+      (if Map.null m then Nothing else Just m) >>= Map.lookup x
+    ≡⟨ cong (λ o → (if o then Nothing else Just m) >>= Map.lookup x) eq ⟩
+      Nothing
+    ≡⟨ sym (Map.prop-lookup-empty x) ⟩
+      Map.lookup x Map.empty
+    ≡⟨ cong (λ o → Map.lookup x o) (sym (Map.prop-null-empty m eq)) ⟩
+      Map.lookup x m
+    ∎
+  ; False {{eq}} →
+    begin
+      (if Map.null m then Nothing else Just m) >>= Map.lookup x
+    ≡⟨ cong (λ o → (if o then Nothing else Just m) >>= Map.lookup x) eq ⟩
+      Just m >>= Map.lookup x
+    ≡⟨⟩
+      Map.lookup x m
+    ∎
+  }
+
+@0 prop-implicitEmpty-bind
+  : ∀ {{_ : Ord a}} (x : a) (m : Maybe (Map a b))
+  → m >>= Map.lookup x
+    ≡ Map.lookup x (implicitEmpty m)
+prop-implicitEmpty-bind x Nothing = sym (Map.prop-lookup-empty x)
+prop-implicitEmpty-bind x (Just m1) = refl
 
 {-----------------------------------------------------------------------------
     Map a (Map b v)
