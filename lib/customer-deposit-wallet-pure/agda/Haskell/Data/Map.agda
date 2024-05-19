@@ -97,7 +97,8 @@ module _ {k a : Set} {{_ : Ord k}} where
     prop-lookup-update
       : ∀ (key keyi : k) (m : Map k a) (f : a → Maybe a)
       → lookup key (update f keyi m)
-        ≡ (if (key == keyi) then Nothing else (lookup key m >>= f))
+        ≡ (if (key == keyi) then (lookup keyi m >>= f) else lookup key m)
+
 
     prop-lookup-toAscList-Just
       : ∀ (key : k) (x : a) (m : Map k a)
