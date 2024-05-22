@@ -14,6 +14,9 @@ open import Haskell.Data.Maybe using
 open import Haskell.Data.Map using
     ( Map
     )
+open import Haskell.Data.Set using
+    ( ℙ
+    )
 
 import Haskell.Data.Map as Map
 
@@ -489,6 +492,9 @@ module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
           Nothing
         ∎
 
+  withoutKeysA : PairMap a b v → ℙ a → PairMap a b v
+  withoutKeysA m0 xs = foldl' (λ m x → deleteA x m) m0 xs
+
   @0 prop-lookupA-lookupB
     : ∀ (x : a) (y : b) (m : PairMap a b v)
     → Map.lookup y (lookupA x m)
@@ -510,3 +516,4 @@ module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
 {-# COMPILE AGDA2HS lookupAB #-}
 {-# COMPILE AGDA2HS insert #-}
 {-# COMPILE AGDA2HS deleteA #-}
+{-# COMPILE AGDA2HS withoutKeysA #-}
