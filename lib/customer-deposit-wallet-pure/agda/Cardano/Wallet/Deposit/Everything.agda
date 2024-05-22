@@ -6,6 +6,7 @@ import Cardano.Wallet.Address.Hash
 
 import Cardano.Wallet.Deposit.Pure
 import Cardano.Wallet.Deposit.Pure.Timeline
+import Cardano.Wallet.Deposit.Pure.TxHistory
 import Cardano.Wallet.Deposit.Pure.TxSummary
 
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
