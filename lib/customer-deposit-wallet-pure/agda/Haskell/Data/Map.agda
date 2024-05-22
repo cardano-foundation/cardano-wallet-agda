@@ -30,14 +30,18 @@ AntitonicPred {a} p =
     Data.Maybe
 ------------------------------------------------------------------------------}
 
-unionWithMaybe : (f : a → a → a) → Maybe a → Maybe a → Maybe a
+unionWithMaybe : (a → a → a) → Maybe a → Maybe a → Maybe a
 unionWithMaybe f Nothing my = my
 unionWithMaybe f (Just x) Nothing = Just x
 unionWithMaybe f (Just x) (Just y) = Just (f x y)
 
-intersectionWithMaybe : (f : a → b → c) → Maybe a → Maybe b → Maybe c
+intersectionWithMaybe : (a → b → c) → Maybe a → Maybe b → Maybe c
 intersectionWithMaybe f (Just x) (Just y) = Just (f x y)
 intersectionWithMaybe _ _ _ = Nothing
+
+updateMaybe : (a → Maybe a) → Maybe a → Maybe a
+updateMaybe f Nothing = Nothing
+updateMaybe f (Just x) = f x
 
 {-----------------------------------------------------------------------------
     Data.Map
@@ -80,6 +84,11 @@ module _ {k a : Set} {{_ : Ord k}} where
       → null m ≡ True
       → m ≡ empty
 
+    prop-lookup-eq
+      : ∀ (key1 key2 : k) (m : Map k a)
+      → (key1 == key2) ≡ True
+      → lookup key1 m ≡ lookup key2 m
+
     prop-lookup-empty
       : ∀ (key : k)
       → lookup key empty ≡ Nothing
@@ -97,7 +106,8 @@ module _ {k a : Set} {{_ : Ord k}} where
     prop-lookup-update
       : ∀ (key keyi : k) (m : Map k a) (f : a → Maybe a)
       → lookup key (update f keyi m)
-        ≡ (if (key == keyi) then Nothing else (lookup key m >>= f))
+        ≡ (if (key == keyi) then (lookup keyi m >>= f) else lookup key m)
+
 
     prop-lookup-toAscList-Just
       : ∀ (key : k) (x : a) (m : Map k a)
