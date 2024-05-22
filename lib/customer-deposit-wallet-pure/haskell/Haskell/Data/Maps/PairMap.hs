@@ -9,8 +9,7 @@ explicitEmpty :: Ord a => Map a v -> Maybe (Map a v)
 explicitEmpty m = if Map.null m then Nothing else Just m
 
 implicitEmpty :: Ord a => Maybe (Map a v) -> Map a v
-implicitEmpty Nothing = Map.empty
-implicitEmpty (Just x) = x
+implicitEmpty = fromMaybe Map.empty
 
 withEmpty ::
             Ord a => (Map a v -> Map a v) -> Maybe (Map a v) -> Maybe (Map a v)
@@ -38,11 +37,11 @@ data PairMap a b v = PairMap{mab :: Map a (Map b v),
 
 lookupA ::
         forall a b v . (Ord a, Ord b) => a -> PairMap a b v -> Map b v
-lookupA a = fromMaybe Map.empty . Map.lookup a . \ r -> mab r
+lookupA a = implicitEmpty . Map.lookup a . \ r -> mab r
 
 lookupB ::
         forall a b v . (Ord a, Ord b) => b -> PairMap a b v -> Map a v
-lookupB b = fromMaybe Map.empty . Map.lookup b . \ r -> mba r
+lookupB b = implicitEmpty . Map.lookup b . \ r -> mba r
 
 lookupAB ::
          forall a b v . (Ord a, Ord b) => a -> b -> PairMap a b v -> Maybe v

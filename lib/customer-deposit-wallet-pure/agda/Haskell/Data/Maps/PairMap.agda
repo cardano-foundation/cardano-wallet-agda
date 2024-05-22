@@ -60,8 +60,7 @@ explicitEmpty : {{_ : Ord a}} → Map a v → Maybe (Map a v)
 explicitEmpty m = if Map.null m then Nothing else Just m
 
 implicitEmpty : {{_ : Ord a}} → Maybe (Map a v) → Map a v
-implicitEmpty Nothing = Map.empty
-implicitEmpty (Just x) = x 
+implicitEmpty = fromMaybe Map.empty
 
 withEmpty
   : {{_ : Ord a}}
@@ -382,7 +381,22 @@ prop-lookup2-delete1all a b ai m =
 {-----------------------------------------------------------------------------
     PairMap
 ------------------------------------------------------------------------------}
+{-|
 
+The type `PairMap a b v` is essentially the type `Map (a × b) v`,
+but with two efficient lookup functions
+
+> lookupA : a → PairMap a b v → Map b v
+> lookupB : b → PairMap a b v → Map a v
+
+The property `prop-lookupA-lookupB` states that these lookups
+yield the same values.
+
+In the terminology of relational database,
+this type stores rows of the form `a × b × v`
+and maintains an index on both the first column `a` and the second column `b`.
+
+-}
 record PairMap (a b v : Set) {{orda : Ord a}} {{ordb : Ord b}} : Set where
   field
     mab : Map a (Map b v)
@@ -414,10 +428,10 @@ module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
     }
 
   lookupA : a → PairMap a b v → Map b v
-  lookupA a = fromMaybe Map.empty ∘ Map.lookup a ∘ mab
+  lookupA a = implicitEmpty ∘ Map.lookup a ∘ mab
 
   lookupB : b → PairMap a b v → Map a v
-  lookupB b = fromMaybe Map.empty ∘ Map.lookup b ∘ mba
+  lookupB b = implicitEmpty ∘ Map.lookup b ∘ mba
 
   lookupAB : a → b → PairMap a b v → Maybe v
   lookupAB a b m = Map.lookup a (mab m) >>= Map.lookup b
@@ -474,6 +488,21 @@ module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
         ≡⟨ prop-elem-keys y (implicitEmpty (Map.lookup ai (mab m))) eq-elem ⟩ 
           Nothing
         ∎
+
+  @0 prop-lookupA-lookupB
+    : ∀ (x : a) (y : b) (m : PairMap a b v)
+    → Map.lookup y (lookupA x m)
+      ≡ Map.lookup x (lookupB y m)
+  prop-lookupA-lookupB x y m =
+    begin
+      Map.lookup y (lookupA x m)
+    ≡⟨ sym (prop-implicitEmpty-bind y (Map.lookup x (mab m))) ⟩
+      lookup2 x y (mab m)
+    ≡⟨ invariant-equal m x y ⟩
+      lookup2 y x (mba m)
+    ≡⟨ prop-implicitEmpty-bind x (Map.lookup y (mba m)) ⟩
+      Map.lookup x (lookupB y m)
+    ∎
 
 {-# COMPILE AGDA2HS PairMap #-}
 {-# COMPILE AGDA2HS lookupA #-}
