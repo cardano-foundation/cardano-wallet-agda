@@ -20,6 +20,38 @@ import Haskell.Data.Map as Map
 variable
   v : Set
 
+
+{-----------------------------------------------------------------------------
+    Helper properties
+    general
+------------------------------------------------------------------------------}
+prop-bind-if-Maybe
+  : ∀ (b : Bool) (t e : a → Maybe c) (m1 : Maybe a)
+  → m1 >>= (λ x → if b then t x else e x)
+      ≡ (if b then (m1 >>= t) else (m1 >>= e))
+prop-bind-if-Maybe False = λ t e m1 → refl
+prop-bind-if-Maybe True = λ t e m1 → refl
+
+prop-bind-Nothing
+  : ∀ {a b : Set} (m : Maybe a)
+  → let nothing : Maybe b
+        nothing = Nothing
+    in m >>= (λ x → nothing) ≡ nothing
+prop-bind-Nothing Nothing = refl
+prop-bind-Nothing (Just x) = refl
+
+@0 prop-elem-keys
+  : ∀ {a k : Set} {{_ : Ord k}}
+  → ∀ (key : k) (xs : Map k a)
+  → elem key (Map.keys xs) ≡ False
+  → Map.lookup key xs ≡ Nothing
+prop-elem-keys key xs eq-elem = case Map.lookup key xs of λ
+  { Nothing {{eq}} → eq
+  ; (Just x) {{eq}} →
+      case (trans (sym eq-elem) (Map.prop-lookup-toAscList-Just key x xs eq))
+        of λ ()
+  }
+
 {-----------------------------------------------------------------------------
     Helper functions
 ------------------------------------------------------------------------------}
@@ -104,6 +136,248 @@ delete2s xs b m0 = foldr (λ a m → delete2 a b m) m0 xs
 {-# COMPILE AGDA2HS insert2 #-}
 {-# COMPILE AGDA2HS delete2 #-}
 {-# COMPILE AGDA2HS delete2s #-}
+
+prop-lookup2-eqA
+  : ∀ {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}}
+  → ∀ (a1 a2 : A) (b : B) (m : Map A (Map B V))
+  → (a1 == a2) ≡ True
+  → lookup2 a1 b m ≡ lookup2 a2 b m
+prop-lookup2-eqA a1 a2 b m eq =
+  cong (_>>= Map.lookup b) (Map.prop-lookup-eq a1 a2 m eq)
+
+prop-lookup2-eqB
+  : ∀ {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}}
+  → ∀ (a : A) (b1 b2 : B) (m : Map A (Map B V))
+  → (b1 == b2) ≡ True
+  → lookup2 a b1 m ≡ lookup2 a b2 m
+prop-lookup2-eqB a b1 b2 m eq =
+  cong (Map.lookup a m >>=_) (ext (λ o → Map.prop-lookup-eq b1 b2 o eq))
+
+--
+@0 prop-lookup2-insert2
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  → ∀ (a ai : A) (b bi : B) (v : V) (m : Map A (Map B V))
+  → lookup2 a b (insert2 ai bi v m)
+    ≡ (if a == ai && b == bi then Just v else lookup2 a b m)
+--
+prop-lookup2-insert2 a ai b bi v m = lem2
+  where
+    fun = Map.insert bi v ∘ implicitEmpty
+
+    lem1
+      : ((a == ai) ≡ True)
+      → (if (b == bi) then Just v else lookup2 a b m)
+        ≡ (if (b == bi) then Just v else lookup2 ai b m)
+    lem1 = λ eq →
+      begin
+        (if (b == bi) then Just v else lookup2 a b m)
+      ≡⟨ cong (λ o → if (b == bi) then Just v else o) (prop-lookup2-eqA a ai b m eq) ⟩
+        (if (b == bi) then Just v else lookup2 ai b m)
+      ∎
+
+    lem2 =
+      begin
+        lookup2 a b (insert2 ai bi v m)
+      ≡⟨⟩
+        Map.lookup a (Map.insert ai (Map.insert bi v (implicitEmpty (Map.lookup ai m))) m)
+          >>= Map.lookup b
+      ≡⟨ cong (λ o → o >>= Map.lookup b) (Map.prop-lookup-insert a ai _ m) ⟩
+        (if (a == ai)
+          then Just (Map.insert bi v (implicitEmpty (Map.lookup ai m)))
+          else Map.lookup a m
+        ) >>= Map.lookup b
+      ≡⟨ prop-if-apply (a == ai) _ (Map.lookup a m) (_>>= Map.lookup b) ⟩
+        (if (a == ai)
+          then Map.lookup b (Map.insert bi v (implicitEmpty (Map.lookup ai m)))
+          else lookup2 a b m
+        )
+      ≡⟨ cong (λ o → if (a == ai) then o else _) (Map.prop-lookup-insert b bi v _) ⟩
+        (if (a == ai)
+          then (if (b == bi) then Just v else Map.lookup b (implicitEmpty (Map.lookup ai m)))
+          else lookup2 a b m
+        )
+      ≡⟨ cong (λ o → if (a == ai) then (if (b == bi) then Just v else o) else _) (sym (prop-implicitEmpty-bind b (Map.lookup ai m))) ⟩
+        (if (a == ai)
+          then (if (b == bi) then Just v else Map.lookup ai m >>= Map.lookup b)
+          else lookup2 a b m
+        )
+      ≡⟨⟩
+        (if (a == ai)
+          then (if (b == bi) then Just v else lookup2 ai b m)
+          else lookup2 a b m
+        )
+      ≡⟨ sym (prop-if-eq-subst a ai (λ ax → if (b == bi) then Just v else lookup2 ax b m) (lookup2 a b m) lem1) ⟩
+        (if (a == ai)
+          then (if (b == bi) then Just v else lookup2 a b m)
+          else lookup2 a b m
+        )
+      ≡⟨ prop-if-nested (a == ai) (b == bi) _ (lookup2 a b m) ⟩
+        (if a == ai && b == bi then Just v else lookup2 a b m)
+     ∎
+
+--
+@0 prop-lookup2-delete2
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  → ∀ (a : A) (b : B) (ai : A) (bi : B) (m : Map A (Map B V))
+  → lookup2 a b (delete2 ai bi m)
+    ≡ (if a == ai && b == bi then Nothing else lookup2 a b m)
+--
+prop-lookup2-delete2 {A} {B} {V} a b ai bi m = lem2
+  where
+    fun : Map B V → Maybe (Map B V)
+    fun x = explicitEmpty (Map.delete bi x)
+
+    nothing : Maybe V
+    nothing = Nothing
+
+    lem1
+      : ∀ (m : Map A (Map B V))
+      → ((Map.lookup a m >>= fun) >>= Map.lookup b)
+        ≡ (if b == bi then Nothing else (Map.lookup a m >>= Map.lookup b))
+    lem1 m =
+      begin
+        ((Map.lookup a m >>= fun) >>= Map.lookup b)
+      ≡⟨ sym (IsLawfulMonad.associativity iLawfulMonadMaybe (Map.lookup a m) fun (Map.lookup b)) ⟩
+        (Map.lookup a m >>= (λ x → fun x >>= Map.lookup b))
+      ≡⟨⟩
+        (Map.lookup a m >>= (λ x → explicitEmpty (Map.delete bi x) >>= Map.lookup b))
+      ≡⟨ cong (λ o → Map.lookup a m >>= o) (ext (λ x → prop-explicitEmpty-bind b (Map.delete bi x))) ⟩
+        (Map.lookup a m >>= (λ x → Map.lookup b (Map.delete bi x)))
+      ≡⟨ cong (λ o → Map.lookup a m >>= o) (ext (Map.prop-lookup-delete b bi)) ⟩
+        (Map.lookup a m >>= (λ x → if b == bi then Nothing else Map.lookup b x))
+      ≡⟨ prop-bind-if-Maybe (b == bi) (λ x → nothing) (Map.lookup b) (Map.lookup a m) ⟩
+        (if b == bi then ((Map.lookup a m) >>= (λ x → nothing)) else (Map.lookup a m >>= Map.lookup b))
+      ≡⟨ cong (λ o → if b == bi then o else (Map.lookup a m >>= Map.lookup b) ) (prop-bind-Nothing (Map.lookup a m)) ⟩
+        (if b == bi then Nothing else (Map.lookup a m >>= Map.lookup b))
+      ∎
+
+    lem2 =
+      begin
+        lookup2 a b (delete2 ai bi m)
+      ≡⟨⟩
+        Map.lookup a (Map.update fun ai m) >>= Map.lookup b
+      ≡⟨ cong (_>>= Map.lookup b) (Map.prop-lookup-update a ai m fun) ⟩
+        (if (a == ai) then (Map.lookup ai m >>= fun) else Map.lookup a m)
+          >>= Map.lookup b
+      ≡⟨ cong (_>>= Map.lookup b) (sym (prop-if-eq-subst a ai (λ o → Map.lookup o m >>= fun) (Map.lookup a m) (λ eq → cong ((_>>= fun)) (Map.prop-lookup-eq a ai m eq)))) ⟩
+        (if (a == ai) then (Map.lookup a m >>= fun) else Map.lookup a m)
+          >>= Map.lookup b
+      ≡⟨ prop-if-apply (a == ai) (Map.lookup a m >>= fun) (Map.lookup a m) (_>>= Map.lookup b) ⟩
+        (if (a == ai)
+          then ((Map.lookup a m >>= fun) >>= Map.lookup b)
+          else (Map.lookup a m >>= Map.lookup b)
+        )
+      ≡⟨⟩
+        (if (a == ai)
+          then ((Map.lookup a m >>= fun) >>= Map.lookup b)
+          else lookup2 a b m
+        )
+      ≡⟨ cong (λ o → if (a == ai) then o else lookup2 a b m) (lem1 m) ⟩
+        (if (a == ai)
+          then (if b == bi then Nothing else (Map.lookup a m >>= Map.lookup b))
+          else lookup2 a b m
+        )
+      ≡⟨⟩
+        (if (a == ai)
+          then (if b == bi then Nothing else (lookup2 a b m))
+          else lookup2 a b m
+        )
+      ≡⟨ prop-if-nested {Maybe V} (a == ai) (b == bi) Nothing (lookup2 a b m) ⟩
+        (if a == ai && b == bi then Nothing else lookup2 a b m)
+      ∎
+
+--
+@0 prop-lookup2-delete2s
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  → ∀ (a : A) (b : B) (as : List A) (bi : B) (m : Map A (Map B V))
+  → lookup2 a b (delete2s as bi m)
+    ≡ (if elem a as && b == bi then Nothing else lookup2 a b m)
+--
+prop-lookup2-delete2s a b [] bi m = refl
+prop-lookup2-delete2s a b (x ∷ xs) bi m =
+    begin
+      lookup2 a b (delete2s (x ∷ xs) bi m)
+    ≡⟨⟩
+      lookup2 a b (delete2 x bi (delete2s xs bi m))
+    ≡⟨ prop-lookup2-delete2 a b x bi _ ⟩
+      (if a == x && b == bi then Nothing else lookup2 a b (delete2s xs bi m))
+    ≡⟨ cong (λ o → if a == x && _ then Nothing else o) (prop-lookup2-delete2s a b xs bi m) ⟩
+      (if a == x && b == bi
+        then Nothing
+        else (if elem a xs && b == bi then Nothing else lookup2 a b m)
+      )
+    ≡⟨ lem-if-shuffle (a == x) (elem a xs) (b == bi) (lookup2 a b m) ⟩
+      (if (a == x || elem a xs) && b == bi then Nothing else lookup2 a b m)
+    ≡⟨⟩
+      (if elem a (x ∷ xs) && b == bi then Nothing else lookup2 a b m)      
+    ∎
+  where
+    lem-if-shuffle
+      : ∀ {X : Set} (c1 c2 c3 : Bool) (mv : Maybe X)
+      → (if (c1 && c3) then Nothing else (if (c2 && c3) then Nothing else mv))
+        ≡ (if (c1 || c2) && c3 then Nothing else mv)
+    lem-if-shuffle True True True = λ mv → refl
+    lem-if-shuffle True False True = λ mv → refl
+    lem-if-shuffle False True True = λ mv → refl
+    lem-if-shuffle False False True = λ mv → refl
+    lem-if-shuffle True True False = λ mv → refl
+    lem-if-shuffle True False False = λ mv → refl
+    lem-if-shuffle False True False = λ mv → refl
+    lem-if-shuffle False False False = λ mv → refl
+
+--
+@0 prop-lookup2-delete2all
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  → ∀ (a : A) (b : B) (as : List A) (bi : B) (m : Map A (Map B V))
+  → (elem a as ≡ False → lookup2 a bi m ≡ Nothing)
+  → lookup2 a b (delete2s as bi m)
+    ≡ (if b == bi then Nothing else lookup2 a b m)
+--
+prop-lookup2-delete2all a b as bi m conseq =
+  case elem a as of λ
+    { True {{eq}} → 
+      begin
+        lookup2 a b (delete2s as bi m)
+      ≡⟨ prop-lookup2-delete2s a b as bi m ⟩
+        (if elem a as && b == bi then Nothing else lookup2 a b m)
+      ≡⟨ cong (λ x → if x && _ then _ else _) eq ⟩
+        (if b == bi then Nothing else lookup2 a b m)
+      ∎
+    ; False {{eq}} →
+      begin
+        lookup2 a b (delete2s as bi m)
+      ≡⟨ prop-lookup2-delete2s a b as bi m ⟩
+        (if elem a as && b == bi then Nothing else lookup2 a b m)
+      ≡⟨ cong (λ x → if x && _ then _ else _) eq ⟩
+        lookup2 a b m
+      ≡⟨ sym (prop-if-redundant (b == bi) (lookup2 a b m)) ⟩
+        (if b == bi then lookup2 a b m else lookup2 a b m)
+      ≡⟨ prop-if-eq-subst b bi (λ bx → lookup2 a bx m) (lookup2 a b m) (prop-lookup2-eqB a b bi m) ⟩
+       (if b == bi then lookup2 a bi m else lookup2 a b m)
+      ≡⟨ cong (λ o → if b == bi then o else lookup2 a b m) (conseq eq) ⟩
+        (if b == bi then Nothing else lookup2 a b m)
+      ∎
+    }
+
+--
+prop-lookup2-delete1all
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  → ∀ (a : A) (b : B) (ai : A) (m : Map A (Map B V))
+  → lookup2 a b (Map.delete ai m)
+    ≡ (if a == ai then Nothing else lookup2 a b m)
+--
+prop-lookup2-delete1all a b ai m =
+  begin
+    lookup2 a b (Map.delete ai m)
+  ≡⟨⟩
+    Map.lookup a (Map.delete ai m) >>= Map.lookup b
+  ≡⟨ cong (λ o → o >>= Map.lookup b) (Map.prop-lookup-delete a ai m)⟩
+    (if a == ai then Nothing else Map.lookup a m) >>= Map.lookup b
+  ≡⟨ prop-if-apply (a == ai) Nothing (Map.lookup a m) (_>>= Map.lookup b) ⟩
+    (if a == ai then Nothing else (Map.lookup a m >>= Map.lookup b))
+  ≡⟨⟩
+    (if a == ai then Nothing else lookup2 a b m)
+  ∎
 
 {-----------------------------------------------------------------------------
     PairMap
