@@ -388,11 +388,30 @@ record PairMap (a b v : Set) {{orda : Ord a}} {{ordb : Ord b}} : Set where
     mab : Map a (Map b v)
     mba : Map b (Map a v)
 
+    @0 invariant-equal
+      : ∀ (x : a) (y : b)
+      → lookup2 x y mab ≡ lookup2 y x mba
+
 open PairMap public
 
 module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
   empty : PairMap a b v
-  empty = record { mab = Map.empty ; mba = Map.empty }
+  empty = record
+    { mab = Map.empty
+    ; mba = Map.empty
+    ; invariant-equal = λ x y → 
+      begin
+        Map.lookup x Map.empty >>= Map.lookup y
+      ≡⟨ cong (λ m → m >>= _) (Map.prop-lookup-empty x) ⟩
+        Nothing >>= Map.lookup y
+      ≡⟨⟩
+        Nothing
+      ≡⟨⟩
+        Nothing >>= Map.lookup x
+      ≡⟨ sym (cong (λ m → m >>= _) (Map.prop-lookup-empty y)) ⟩
+        Map.lookup y Map.empty >>= Map.lookup x
+      ∎
+    }
 
   lookupA : a → PairMap a b v → Map b v
   lookupA a = fromMaybe Map.empty ∘ Map.lookup a ∘ mab
@@ -407,16 +426,54 @@ module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
   insert ai bi v m = record
     { mab = insert2 ai bi v (mab m)
     ; mba = insert2 bi ai v (mba m)
+    ; invariant-equal = λ al bl →
+        begin
+          lookup2 al bl (insert2 ai bi v (mab m))
+        ≡⟨ prop-lookup2-insert2 al ai bl bi v (mab m) ⟩
+          (if al == ai && bl == bi then Just v else lookup2 al bl (mab m))
+        ≡⟨ cong (λ x → if x then _ else _) (&&-sym (al == ai) (bl == bi)) ⟩
+          (if bl == bi && al == ai then Just v else lookup2 al bl (mab m))
+        ≡⟨ cong (λ x → if bl == bi && _ then _ else x) (invariant-equal m al bl) ⟩
+          (if bl == bi && al == ai then Just v else lookup2 bl al (mba m))
+        ≡⟨ sym (prop-lookup2-insert2 bl bi al ai v (mba m)) ⟩
+          lookup2 bl al (insert2 bi ai v (mba m))
+        ∎
     }
 
   deleteA : a → PairMap a b v → PairMap a b v
   deleteA ai m = record
       { mab = Map.delete ai (mab m)
       ; mba = delete2s bs ai (mba m)
+      ; invariant-equal = λ al bl →
+        begin
+          lookup2 al bl (Map.delete ai (mab m))
+        ≡⟨ prop-lookup2-delete1all al bl ai (mab m) ⟩
+          (if al == ai then Nothing else lookup2 al bl (mab m))
+        ≡⟨ cong (λ x → if al == ai then Nothing else x) (invariant-equal m al bl) ⟩
+          (if al == ai then Nothing else lookup2 bl al (mba m))
+        ≡⟨ sym (prop-lookup2-delete2all bl al bs ai (mba m) (lem1 bl)) ⟩
+          lookup2 bl al (delete2s bs ai (mba m))
+        ∎
       }
     where
       bs : List b
       bs = Map.keys (implicitEmpty (Map.lookup ai (mab m)))
+
+      @0 lem1
+        : ∀ (y : b)
+        → elem y bs ≡ False → lookup2 y ai (mba m) ≡ Nothing
+      lem1 y eq-elem =
+        begin
+          lookup2 y ai (mba m)
+        ≡⟨ sym (invariant-equal m ai y) ⟩
+          lookup2 ai y (mab m)
+        ≡⟨⟩
+          Map.lookup ai (mab m) >>= Map.lookup y
+        ≡⟨ prop-implicitEmpty-bind y (Map.lookup ai (mab m)) ⟩
+          Map.lookup y (implicitEmpty (Map.lookup ai (mab m)))
+        ≡⟨ prop-elem-keys y (implicitEmpty (Map.lookup ai (mab m))) eq-elem ⟩ 
+          Nothing
+        ∎
 
 {-# COMPILE AGDA2HS PairMap #-}
 {-# COMPILE AGDA2HS lookupA #-}
