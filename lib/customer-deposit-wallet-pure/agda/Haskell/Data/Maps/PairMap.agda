@@ -511,6 +511,7 @@ module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
     ∎
 
 {-# COMPILE AGDA2HS PairMap #-}
+{-# COMPILE AGDA2HS empty #-}
 {-# COMPILE AGDA2HS lookupA #-}
 {-# COMPILE AGDA2HS lookupB #-}
 {-# COMPILE AGDA2HS lookupAB #-}

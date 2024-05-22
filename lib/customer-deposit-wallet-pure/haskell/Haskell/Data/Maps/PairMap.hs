@@ -37,6 +37,9 @@ delete2s xs b m0 = foldr (\ a -> delete2 a b) m0 xs
 data PairMap a b v = PairMap{mab :: Map a (Map b v),
                              mba :: Map b (Map a v)}
 
+empty :: forall a b v . (Ord a, Ord b) => PairMap a b v
+empty = PairMap Map.empty Map.empty
+
 lookupA ::
         forall a b v . (Ord a, Ord b) => a -> PairMap a b v -> Map b v
 lookupA a = implicitEmpty . Map.lookup a . \ r -> mab r
