@@ -39,6 +39,10 @@ intersectionWithMaybe : (f : a → b → c) → Maybe a → Maybe b → Maybe c
 intersectionWithMaybe f (Just x) (Just y) = Just (f x y)
 intersectionWithMaybe _ _ _ = Nothing
 
+updateMaybe : (a → Maybe a) → Maybe a → Maybe a
+updateMaybe f Nothing = Nothing
+updateMaybe f (Just x) = f x
+
 {-----------------------------------------------------------------------------
     Data.Map
 ------------------------------------------------------------------------------}
