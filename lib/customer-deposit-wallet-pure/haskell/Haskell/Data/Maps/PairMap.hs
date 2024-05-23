@@ -1,6 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Haskell.Data.Maps.PairMap where
 
+import Data.Set (Set)
+import Haskell.Data.List (foldl')
 import Haskell.Data.Map (Map)
 import qualified Haskell.Data.Map as Map (delete, empty, insert, keys, lookup, null, update)
 import Haskell.Data.Maybe (fromMaybe)
@@ -35,6 +37,9 @@ delete2s xs b m0 = foldr (\ a -> delete2 a b) m0 xs
 data PairMap a b v = PairMap{mab :: Map a (Map b v),
                              mba :: Map b (Map a v)}
 
+empty :: forall a b v . (Ord a, Ord b) => PairMap a b v
+empty = PairMap Map.empty Map.empty
+
 lookupA ::
         forall a b v . (Ord a, Ord b) => a -> PairMap a b v -> Map b v
 lookupA a = implicitEmpty . Map.lookup a . \ r -> mab r
@@ -61,4 +66,9 @@ deleteA ai m
   where
     bs :: [b]
     bs = Map.keys (implicitEmpty (Map.lookup ai (mab m)))
+
+withoutKeysA ::
+             forall a b v . (Ord a, Ord b) =>
+               PairMap a b v -> Set a -> PairMap a b v
+withoutKeysA m0 xs = foldl' (\ m x -> deleteA x m) m0 xs
 

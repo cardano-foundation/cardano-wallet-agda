@@ -217,7 +217,7 @@ prop-changeAddress-not-Customer s addr =
 
 summarizeTx : WalletState → Tx → Map.Map Address ValueTransfer
 summarizeTx s tx =
-    UTxO.computeValueTransfer (utxo s) du
+    UTxO.valueTransferFromDeltaUTxO (utxo s) du
   where
     du = fst (UTxO.applyTx (isOurs s) tx (utxo s))
 

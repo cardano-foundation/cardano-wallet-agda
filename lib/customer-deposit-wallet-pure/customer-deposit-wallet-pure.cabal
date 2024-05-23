@@ -75,6 +75,9 @@ library
     Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
     Cardano.Wallet.Deposit.Pure.Timeline
+    Cardano.Wallet.Deposit.Pure.TxHistory
+    Cardano.Wallet.Deposit.Pure.TxHistory.Core
+    Cardano.Wallet.Deposit.Pure.TxHistory.Type
     Cardano.Wallet.Deposit.Pure.TxSummary
     Cardano.Wallet.Deposit.Read
     Cardano.Wallet.Deposit.Read.Value
