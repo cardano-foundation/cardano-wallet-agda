@@ -120,14 +120,14 @@ groupByAddress =
     Map.fromListWith (_<>_) ∘ map pairFromTxOut ∘ Map.elems
 
 -- | Compute the 'ValueTransfer' corresponding to 'DeltaUTxO'.
-computeValueTransfer
+valueTransferFromDeltaUTxO
   : UTxO
     -- ^ UTxO set to which the 'DeltaUTxO' is applied.
   → DeltaUTxO
     -- ^ Change to the 'UTxO' set.
   → Map.Map Read.Address ValueTransfer
     -- ^ Value transfer, grouped by address.
-computeValueTransfer u0 du =
+valueTransferFromDeltaUTxO u0 du =
     Map.unionWith (_<>_) ins outs
   where
     u1 = UTxO.restrictedBy u0 (DeltaUTxO.excluded du)
@@ -135,6 +135,18 @@ computeValueTransfer u0 du =
     ins  = Map.map fromSpent (groupByAddress u1)
     outs = Map.map fromReceived (groupByAddress (DeltaUTxO.received du))
 
+-- | Compute the 'ValueTransfer' corresponding to a 'ResolvedTx'.
+-- Spent transaction outputs that have not been resolved will not
+-- be considered.
+valueTransferFromResolvedTx
+    : ResolvedTx → Map.Map Read.Address ValueTransfer
+valueTransferFromResolvedTx tx =
+    valueTransferFromDeltaUTxO u0 du
+  where
+    u0 = resolvedInputs tx
+    du = fst (applyTx (λ _ → True) (resolvedTx tx) u0)
+
 {-# COMPILE AGDA2HS pairFromTxOut #-}
 {-# COMPILE AGDA2HS groupByAddress #-}
-{-# COMPILE AGDA2HS computeValueTransfer #-}
+{-# COMPILE AGDA2HS valueTransferFromDeltaUTxO #-}
+{-# COMPILE AGDA2HS valueTransferFromResolvedTx #-}

@@ -65,9 +65,9 @@ groupByAddress :: UTxO -> Map.Map Read.Address Read.Value
 groupByAddress
   = Map.fromListWith (<>) . map pairFromTxOut . Map.elems
 
-computeValueTransfer ::
-                     UTxO -> DeltaUTxO -> Map.Map Read.Address ValueTransfer
-computeValueTransfer u0 du = Map.unionWith (<>) ins outs
+valueTransferFromDeltaUTxO ::
+                           UTxO -> DeltaUTxO -> Map.Map Read.Address ValueTransfer
+valueTransferFromDeltaUTxO u0 du = Map.unionWith (<>) ins outs
   where
     u1 :: UTxO
     u1 = UTxO.restrictedBy u0 (excluded du)
@@ -75,4 +75,13 @@ computeValueTransfer u0 du = Map.unionWith (<>) ins outs
     ins = Map.map fromSpent (groupByAddress u1)
     outs :: Map.Map Read.Address ValueTransfer
     outs = Map.map fromReceived (groupByAddress (received du))
+
+valueTransferFromResolvedTx ::
+                            ResolvedTx -> Map.Map Read.Address ValueTransfer
+valueTransferFromResolvedTx tx = valueTransferFromDeltaUTxO u0 du
+  where
+    u0 :: UTxO
+    u0 = resolvedInputs tx
+    du :: DeltaUTxO
+    du = fst (applyTx (\ _ -> True) (resolvedTx tx) u0)
 
