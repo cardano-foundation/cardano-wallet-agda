@@ -12,17 +12,15 @@ open import Cardano.Wallet.Deposit.Read using
 open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ( ValueTransfer
     )
-open import Haskell.Data.InverseMap using
-    ( InverseMap
-    )
 open import Haskell.Data.Map using
     ( Map
     )
 open import Haskell.Data.Maps.PairMap using
     ( PairMap
     )
-
-import Haskell.Data.Maps.PairMap as PairMap
+open import Haskell.Data.Maps.Timeline using
+    ( Timeline
+    )
 
 {-----------------------------------------------------------------------------
     Data type
@@ -39,10 +37,8 @@ Information includes:
 -}
 record TxHistory : Set where
   field
-    txSlotsByTxId : Map TxId Slot
-    txSlotsBySlot : InverseMap TxId Slot
-        -- ^ Map from transactions to slots
-    
+    txIds : Timeline Slot TxId
+
     txTransfers : PairMap TxId Address ValueTransfer
         -- ^ Map from (transaction × address) to ValueTransfer
 

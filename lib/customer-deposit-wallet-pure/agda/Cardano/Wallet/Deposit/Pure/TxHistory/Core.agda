@@ -22,9 +22,6 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.Tx using
 open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ( ValueTransfer
     )
-open import Haskell.Data.InverseMap using
-    ( InverseMap
-    )
 open import Haskell.Data.List using
     ( foldl'
     ; sortOn
@@ -36,9 +33,9 @@ open import Haskell.Data.Set using
     ( ℙ
     )
 
-import Haskell.Data.InverseMap as InverseMap
 import Haskell.Data.Map as Map
 import Haskell.Data.Maps.PairMap as PairMap
+import Haskell.Data.Maps.Timeline as Timeline
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS
@@ -52,25 +49,11 @@ import Data.Foldable
 #-}
 
 {-----------------------------------------------------------------------------
-    Helpers
-------------------------------------------------------------------------------}
-
--- | Insert a set of keys into a 'Map' that all have the same value.
-insertManyKeys
-    : ∀ {key v : Set} {{_ : Ord key}} {{_ : Ord v}}
-    → ℙ key → v → Map key v → Map key v
-insertManyKeys keys v m0 =
-    foldl' (\m key → Map.insert key v m) m0 keys
-
-{-# COMPILE AGDA2HS insertManyKeys #-}
-
-{-----------------------------------------------------------------------------
     Introduction
 ------------------------------------------------------------------------------}
 empty : TxHistory
 empty = record
-  { txSlotsByTxId = Map.empty
-  ; txSlotsBySlot = Map.empty
+  { txIds = Timeline.empty
   ; txTransfers = PairMap.empty
   ; tip = WithOrigin.Origin
   }
@@ -97,19 +80,20 @@ getAddressHistory address history =
     txs1 = Map.keysSet (PairMap.lookupB address txTransfers)
 
     txs2 : Map TxId Slot
-    txs2 = Map.restrictKeys txSlotsByTxId txs1
+    txs2 = Map.restrictKeys (Timeline.getMapTime txIds) txs1
 
 -- | Get the total 'ValueTransfer' in a given slot range.
 getValueTransfers
   : (Slot × Slot) → TxHistory → Map Address ValueTransfer
-getValueTransfers (from , to) history =
+getValueTransfers range history =
     foldl' (Map.unionWith (_<>_)) Map.empty txs2
   where
     open TxHistory history
-    onlyFuture = Map.dropWhileAntitone (_<= from) txSlotsBySlot
 
     txs1 : ℙ TxId
-    txs1 = foldMap id (Map.takeWhileAntitone (_<= to) txSlotsBySlot)
+    txs1 =
+        Map.keysSet
+            (Timeline.getMapTime (Timeline.restrictRange range txIds))
 
     txs2 : List (Map Address ValueTransfer)
     txs2 = map (λ tx → PairMap.lookupA tx txTransfers) (toList txs1)
@@ -127,8 +111,7 @@ rollForward new txs history =
     if WithOrigin.At new <= getTip history
     then history
     else record
-        { txSlotsBySlot = InverseMap.insertManyKeys txids slot txSlotsBySlot
-        ; txSlotsByTxId = insertManyKeys txids slot txSlotsByTxId
+        { txIds = Timeline.insertMany slot txids txIds
         ; txTransfers = foldl' insertValueTransfer txTransfers txs
         ; tip = WithOrigin.At new
         }
@@ -153,18 +136,16 @@ rollBackward new history =
     if new > getTip history
     then history
     else record
-        { txSlotsBySlot = leftSlots
-        ; txSlotsByTxId = Map.withoutKeys txSlotsByTxId rolledTxIds
-        ; txTransfers = PairMap.withoutKeysA txTransfers rolledTxIds
+        { txIds = keptTimeline
+        ; txTransfers = PairMap.withoutKeysA txTransfers deletedTxIds
         ; tip = new
         }
   where 
     open TxHistory history
-    spanSlots = Map.spanAntitone (_<= new) txSlotsBySlot
-    leftSlots = fst spanSlots
-    rolledSlots = snd spanSlots
-    rolledTxIds =
-        foldMap id rolledSlots
+
+    deleteAfterTxIds = Timeline.deleteAfter new txIds
+    deletedTxIds = fst deleteAfterTxIds
+    keptTimeline = snd deleteAfterTxIds
 
 {-# COMPILE AGDA2HS rollForward #-}
 {-# COMPILE AGDA2HS rollBackward #-}
