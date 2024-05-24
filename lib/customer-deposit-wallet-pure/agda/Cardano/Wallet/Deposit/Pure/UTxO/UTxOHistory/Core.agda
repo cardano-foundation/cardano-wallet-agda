@@ -62,8 +62,8 @@ open import Haskell.Data.Set using
     )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
-import Haskell.Data.InverseMap as InverseMap
 import Haskell.Data.Map as Map
+import Haskell.Data.Maps.Timeline as Timeline
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS
@@ -86,26 +86,6 @@ guard False = Nothing
 
 {-# COMPILE AGDA2HS guard #-}
 
-fold
-    : ∀ {t : Set → Set} {m : Set} {{_ : Foldable t}} → {{Monoid m}}
-    → t m → m
-fold = foldMap id
-
-{-# COMPILE AGDA2HS fold #-}
-
-{-----------------------------------------------------------------------------
-    Helper functions
-------------------------------------------------------------------------------}
-
--- | Insert a set of keys into a 'Map' that all have the same value.
-insertManyKeys
-    : {{_ : Ord key}} {{_ : Ord v}}
-    → ℙ key → v → Map key v → Map key v
-insertManyKeys keys v m0 =
-    foldl' (\m key → Map.insert key v m) m0 keys
-
-{-# COMPILE AGDA2HS insertManyKeys #-}
-
 {-----------------------------------------------------------------------------
     Basic functions
 ------------------------------------------------------------------------------}
@@ -115,18 +95,10 @@ empty : UTxO → UTxOHistory
 empty utxo =
     record
         { history = utxo
-        ; creationSlots =
-            InverseMap.insertManyKeys
-                (dom utxo)
-                WithOrigin.Origin
-                InverseMap.empty
-        ; creationTxIns =
-            insertManyKeys
-                (dom utxo)
-                WithOrigin.Origin
-                Map.empty
-        ; spentSlots = Map.empty
-        ; spentTxIns = Map.empty
+        ; created =
+            Timeline.insertMany WithOrigin.Origin (dom utxo)
+            (Timeline.empty)
+        ; spent = Timeline.empty
         ; tip = WithOrigin.Origin
         ; finality = Pruned.NotPruned
         ; boot = utxo
@@ -136,8 +108,10 @@ empty utxo =
 
 -- | Returns the UTxO.
 getUTxO : UTxOHistory → UTxO
-getUTxO us = excluding history (fold spentSlots)
-  where open UTxOHistory us
+getUTxO us =
+    excluding history (Map.keysSet (Timeline.getMapTime spent))
+  where
+    open UTxOHistory us
 
 -- | Returns the tip slot.
 getTip : UTxOHistory → Slot
@@ -149,7 +123,7 @@ getFinality = UTxOHistory.finality
 
 -- | Returns the spent TxIns that can be rolled back.
 getSpent : UTxOHistory → Map TxIn SlotNo
-getSpent = UTxOHistory.spentTxIns
+getSpent = Timeline.getMapTime ∘ UTxOHistory.spent
 
 {-# COMPILE AGDA2HS getUTxO #-}
 {-# COMPILE AGDA2HS getTip #-}
@@ -223,18 +197,12 @@ appendBlock newTip delta noop =
     constrainingAppendBlock noop noop newTip
       record
         { history = UTxO.union history (DeltaUTxO.received delta)
-        ; creationSlots =
-            InverseMap.insertManyKeys
-                receivedTxIns (WithOrigin.At newTip) creationSlots
-        ; creationTxIns =
-            insertManyKeys
-                receivedTxIns (WithOrigin.At newTip) creationTxIns
-        ; spentSlots =
-            InverseMap.insertManyKeys
-                excludedTxIns newTip spentSlots
-        ; spentTxIns =
-            insertManyKeys
-                excludedTxIns newTip spentTxIns
+        ; created =
+            Timeline.insertMany
+                (WithOrigin.At newTip) receivedTxIns created
+        ; spent =
+            Timeline.insertMany
+                newTip excludedTxIns spent
         ; tip = WithOrigin.At newTip
         ; finality = finality
         ; boot = boot
@@ -248,7 +216,7 @@ appendBlock newTip delta noop =
     excludedTxIns =
         Set.difference
             (Set.intersection (DeltaUTxO.excluded delta) (dom history))
-            (fold spentSlots)
+            (Map.keysSet (Timeline.getMapTime spent))
 
 {-# COMPILE AGDA2HS appendBlock #-}
 
@@ -257,35 +225,17 @@ rollback newTip noop =
   constrainingRollback noop noop newTip λ
     { (Just newTip') →
         let
-            (leftCreationSlots , rolledCreatedSlots) =
-                Map.spanAntitone (_<= newTip') creationSlots
-            rolledSpentTxIns = fold (case newTip' of λ
-                { WithOrigin.Origin → spentSlots
-                ; (WithOrigin.At slot'') →
-                    Map.dropWhileAntitone
-                        (_<= slot'')
-                        spentSlots
-                })
-            rolledCreatedTxIns = fold rolledCreatedSlots
+            (rolledCreated , created') =
+                Timeline.deleteAfter newTip' created
         in
             record
-                { history = excluding history rolledCreatedTxIns
-                ; spentSlots = case newTip' of λ
-                    { WithOrigin.Origin → Map.empty
+                { history = excluding history rolledCreated
+                ; created = created'
+                ; spent = case newTip' of λ
+                    { WithOrigin.Origin → Timeline.empty
                     ; (WithOrigin.At slot'') →
-                        Map.takeWhileAntitone
-                            (_<= slot'')
-                            spentSlots
+                        snd (Timeline.takeWhileAntitone (_<= slot'') spent)
                     }
-                ; creationSlots = leftCreationSlots
-                ; creationTxIns =
-                    Map.withoutKeys
-                        creationTxIns
-                        rolledCreatedTxIns
-                ; spentTxIns =
-                    Map.withoutKeys
-                        spentTxIns
-                        rolledSpentTxIns
                 ; tip = newTip'
                 ; finality = finality
                 ; boot = boot
@@ -301,27 +251,13 @@ prune : SlotNo → UTxOHistory → UTxOHistory
 prune newFinality noop =
   constrainingPrune noop noop newFinality $ \newFinality' →
     let
-        (prunedSpentSlots , leftSpentSlots) =
-            Map.spanAntitone
-                (_<= newFinality')
-                spentSlots
-        prunedTxIns = fold prunedSpentSlots
+        (prunedTxIns , spent') =
+            Timeline.dropWhileAntitone (_<= newFinality') spent
     in
         record
             { history = excluding history prunedTxIns
-            ; creationSlots =
-                InverseMap.difference
-                    creationSlots
-                    (Map.restrictKeys creationTxIns prunedTxIns)
-            ; creationTxIns =
-                Map.withoutKeys
-                    creationTxIns
-                    prunedTxIns
-            ; spentSlots = leftSpentSlots
-            ; spentTxIns =
-                Map.withoutKeys
-                    spentTxIns
-                    prunedTxIns
+            ; created = Timeline.difference created prunedTxIns
+            ; spent = spent'
             ; tip = tip
             ; finality = Pruned.PrunedUpTo newFinality'
             ; boot = boot
