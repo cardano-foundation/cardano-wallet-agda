@@ -74,7 +74,6 @@ library
     Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core
     Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
-    Cardano.Wallet.Deposit.Pure.Timeline
     Cardano.Wallet.Deposit.Pure.TxHistory
     Cardano.Wallet.Deposit.Pure.TxHistory.Core
     Cardano.Wallet.Deposit.Pure.TxHistory.Type
@@ -88,6 +87,7 @@ library
     Haskell.Data.List
     Haskell.Data.Map
     Haskell.Data.Maps.PairMap
+    Haskell.Data.Maps.Timeline
     Haskell.Data.Maybe
     Haskell.Data.Set
     Haskell.Data.Word
