@@ -14,11 +14,11 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
 open import Haskell.Data.Map using
     ( Map
     )
+open import Haskell.Data.Maps.Timeline using
+    ( Timeline
+    )
 open import Haskell.Data.Set using
     ( ℙ
-    )
-open import Haskell.Data.InverseMap using
-    ( InverseMap
     )
 
 {-----------------------------------------------------------------------------
@@ -60,14 +60,10 @@ record UTxOHistory : Set where
   field
     history : UTxO
         -- ^ All UTxO , spent and unspent.
-    creationSlots : InverseMap TxIn Slot
-        -- ^ All TxIn, efficiently indexed by creation slot.
-    creationTxIns : Map TxIn Slot
-        -- ^ Creation slot of each 'TxIn'.
-    spentSlots : InverseMap TxIn SlotNo
-        -- ^ All spent 'TxIn', efficiently indexed by spent slot.
-    spentTxIns : Map TxIn SlotNo
-        -- ^ Spent slot of each spent 'TxIn'.
+    created : Timeline Slot TxIn
+        -- ^ Creation slots of the TxIn, spent and unspent.
+    spent : Timeline SlotNo TxIn
+        -- ^ Spending slot number of the TxIn, spent.
     tip : Slot
         -- ^ Current tip slot.
     finality : Pruned
