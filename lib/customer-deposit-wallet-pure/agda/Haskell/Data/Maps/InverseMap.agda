@@ -1,5 +1,5 @@
 -- | A type representing the inverse of a 'Map'
-module Haskell.Data.InverseMap where
+module Haskell.Data.Maps.InverseMap where
 
 open import Haskell.Prelude
 

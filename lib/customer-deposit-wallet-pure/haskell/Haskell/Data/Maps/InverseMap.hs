@@ -1,4 +1,4 @@
-module Haskell.Data.InverseMap where
+module Haskell.Data.Maps.InverseMap where
 
 import Data.Set (Set)
 import Haskell.Data.List (foldl')
