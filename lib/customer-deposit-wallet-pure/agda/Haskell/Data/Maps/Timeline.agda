@@ -17,7 +17,7 @@ open import Haskell.Data.Set using
     ( ℙ
     )
 
-import Haskell.Data.InverseMap as InverseMap
+import Haskell.Data.Maps.InverseMap as InverseMap
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 

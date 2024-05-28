@@ -2,10 +2,10 @@
 module Haskell.Data.Maps.Timeline where
 
 import Data.Set (Set)
-import qualified Haskell.Data.InverseMap as InverseMap (InverseMap, difference, insertManyKeys)
 import Haskell.Data.List (foldl')
 import Haskell.Data.Map (Map)
 import qualified Haskell.Data.Map as Map (empty, insert, lookup, restrictKeys, spanAntitone, toAscList, withoutKeys)
+import qualified Haskell.Data.Maps.InverseMap as InverseMap (InverseMap, difference, insertManyKeys)
 import Haskell.Data.Maybe (fromMaybe)
 import qualified Haskell.Data.Set as Set (empty, toAscList)
 
