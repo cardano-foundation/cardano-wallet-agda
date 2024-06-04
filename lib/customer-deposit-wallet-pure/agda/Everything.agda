@@ -1,4 +1,4 @@
-module Cardano.Wallet.Deposit.Everything where
+module Everything where
 
 import Cardano.Wallet.Address.BIP32
 import Cardano.Wallet.Address.BIP32_Ed25519

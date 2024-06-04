@@ -2,6 +2,7 @@
 module Cardano.Wallet.Deposit.Read.Value where
 
 open import Haskell.Prelude
+open import Haskell.Reasoning
 
 open import Haskell.Data.Maybe using
     ( fromMaybe
@@ -14,10 +15,6 @@ import Haskell.Data.Map as Map
     Coin
 ------------------------------------------------------------------------------}
 Coin = Nat
-
--- general helper, remove when updating adga2hs dependency
-subst : ∀ {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
-subst P refl z = z
 
 monusCoin : Coin → Coin → Coin
 monusCoin a b = case a < b of λ
@@ -73,6 +70,13 @@ record Value : Set where
 open Value public
 
 {-# COMPILE AGDA2HS Value #-}
+
+instance
+  iEqValue : Eq Value
+  iEqValue ._==_ v1 v2 =
+    ada v1 == ada v2 && assets v1 == assets v2
+
+{-# COMPILE AGDA2HS iEqValue derive #-}
 
 valueFromList : Coin → List (PolicyID × AssetName × Quantity) → Value
 valueFromList coin xs = record

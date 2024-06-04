@@ -32,6 +32,8 @@ deriving instance Ord AssetID
 data Value = Value{ada :: Coin,
                    assets :: Map.Map (PolicyID, AssetName) Quantity}
 
+deriving instance Eq Value
+
 valueFromList :: Coin -> [(PolicyID, AssetName, Quantity)] -> Value
 valueFromList coin xs
   = Value coin

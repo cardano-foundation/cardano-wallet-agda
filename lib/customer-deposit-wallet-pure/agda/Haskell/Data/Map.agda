@@ -227,6 +227,10 @@ instance
   iMapFoldable =
     record {DefaultFoldable (record {foldMap = foldMap'})}
 
+instance
+  iEqMap : ∀ {k v : Set} {{_ : Ord k}} {{_ : Eq v}} → Eq (Map k v)
+  iEqMap ._==_ m1 m2 = toAscList m1 == toAscList m2
+
 module _ {k a b c : Set} {{_ : Ord k}} where
   postulate
     intersectionWith : (a → b → c) → Map k a → Map k b → Map k c

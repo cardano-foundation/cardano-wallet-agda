@@ -71,3 +71,7 @@ chainPointFromBlock block
     bh :: BHeader
     bh = blockHeader block
 
+slotFromChainPoint :: ChainPoint -> Slot
+slotFromChainPoint GenesisPoint = Origin
+slotFromChainPoint (BlockPoint slotNo _) = At slotNo
+

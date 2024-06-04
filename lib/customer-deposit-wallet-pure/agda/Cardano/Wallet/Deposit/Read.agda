@@ -205,3 +205,9 @@ chainPointFromBlock block =
     bh = blockHeader block
 
 {-# COMPILE AGDA2HS chainPointFromBlock #-}
+
+slotFromChainPoint : ChainPoint → Slot
+slotFromChainPoint GenesisPoint = WithOrigin.Origin
+slotFromChainPoint (BlockPoint slotNo _) = WithOrigin.At slotNo
+
+{-# COMPILE AGDA2HS slotFromChainPoint #-}
