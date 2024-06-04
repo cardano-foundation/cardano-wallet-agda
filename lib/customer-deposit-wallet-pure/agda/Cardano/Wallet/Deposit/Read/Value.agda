@@ -74,6 +74,13 @@ open Value public
 
 {-# COMPILE AGDA2HS Value #-}
 
+instance
+  iEqValue : Eq Value
+  iEqValue ._==_ v1 v2 =
+    ada v1 == ada v2 && assets v1 == assets v2
+
+{-# COMPILE AGDA2HS iEqValue derive #-}
+
 valueFromList : Coin → List (PolicyID × AssetName × Quantity) → Value
 valueFromList coin xs = record
     { ada = coin
