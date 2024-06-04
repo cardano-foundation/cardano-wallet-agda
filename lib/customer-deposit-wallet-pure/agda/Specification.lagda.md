@@ -43,6 +43,8 @@ In order to formulate the specification, we need to import standard vocabulary:
 ```agda
 open import Haskell.Prelude
 open import Haskell.Reasoning
+
+open import Haskell.Data.Word.Odd using (Word31)
 ```
 
 We also define a few conveniences:
@@ -93,9 +95,10 @@ module
     (WalletState : Set)
     (Address : Set)
     {{_ : Eq Address}}
-    (Slot : Set)
-    (TxId : Set)
     (Tx : Set)
+    (TxBody : Set)
+    (TxId : Set)
+    (Slot : Set)
     (Value : Set)
     {{_ : Eq Value}}
     (PParams : Set)
@@ -112,7 +115,7 @@ This list is meant for reference
 Auxiliary data types:
 
 ```agda
-  Customer = Nat
+  Customer = Word31
 
   record ValueTransfer : Set where
     field
@@ -141,7 +144,7 @@ Operations:
 
       createPayment
         : List (Address × Value)
-        → PParams → WalletState → Maybe Tx
+        → PParams → WalletState → Maybe TxBody
 ```
 
 ## Properties
@@ -362,14 +365,14 @@ Second, the transaction sends funds as indicated
 
 ```agda
     field
-      outputs : Tx → List (Address × Value)
+      outputs : TxBody → List (Address × Value)
 
     field
       prop-createPayment-pays
         : ∀ (s : WalletState)
             (pp : PParams)
             (destinations : List (Address × Value))
-            (tx : Tx)
+            (tx : TxBody)
           → createPayment destinations pp s ≡ Just tx
           → isSubsetOf (outputs tx) destinations ≡ True
 ```
@@ -390,14 +393,15 @@ In other words, we have
 
     field
       prop-createPayment-not-known
-        : ∀ (address : Address)
-            (s : WalletState)
-            (pp : PParams)
+        : ∀ (pp : PParams)
+            (s  : WalletState)
             (destinations : List (Address × Value))
-            (tx : Tx)
-        → knownCustomerAddress address s ≡ True
+            (tx : TxBody)
         → createPayment destinations pp s ≡ Just tx
-        → ¬(address ∈ map getAddress (outputs tx))
+        → ∀ (address : Address)
+          → knownCustomerAddress address s ≡ True
+          → ¬ (address ∈ map fst destinations)
+          → ¬ (address ∈ map getAddress (outputs tx))
 ```
 
 ## Derived Properties
