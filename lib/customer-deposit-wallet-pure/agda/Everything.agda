@@ -14,6 +14,9 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
 
+import Cardano.Wallet.Deposit.Implementation
+import Specification
+
 import Haskell.Data.List
 import Haskell.Data.Maps.InverseMap
 import Haskell.Data.Maps.PairMap

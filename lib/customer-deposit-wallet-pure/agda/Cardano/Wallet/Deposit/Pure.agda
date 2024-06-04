@@ -49,22 +49,28 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
     ( XPub
     )
+open import Cardano.Wallet.Deposit.Pure.Address public using
+    ( deriveCustomerAddress
+    )
 open import Cardano.Wallet.Deposit.Pure.Address using
     ( Customer
-    ; deriveCustomerAddress
     ; AddressState
     )
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
-open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
+open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer public using
     ( ValueTransfer
-      ; fromSpent
-      ; fromReceived
+    )
+open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
+    ( fromSpent
+    ; fromReceived
+    )
+open import Cardano.Wallet.Deposit.Pure.TxSummary public using
+    ( TxSummary
     )
 open import Cardano.Wallet.Deposit.Pure.TxSummary using
-    ( TxSummary
-      ; mkTxSummary
+    ( mkTxSummary
     )
 open import Cardano.Wallet.Deposit.Read using
     ( Address
@@ -78,6 +84,9 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxIn
     ; TxOut
     ; Value
+    )
+open import Cardano.Wallet.Deposit.Read.Value public using
+    ( largerOrEqual
     )
 open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
@@ -326,7 +335,7 @@ totalValue = mconcat ∘ map snd
 prop-createPayment-success
     : ∀ (s : WalletState)
         (destinations : List (Address × Value))
-    → exceeds (availableBalance s) (totalValue destinations <> maxFee) ≡ True
+    → largerOrEqual (availableBalance s) (totalValue destinations <> maxFee) ≡ True
     → isJust (createPayment destinations s) ≡ True
 prop-createPayment-success = λ s destinations x → {!   !}
 -}
