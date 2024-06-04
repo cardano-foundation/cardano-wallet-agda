@@ -269,6 +269,16 @@ In Agda, we can distinguish three notions of equality:
         trans : ∀ {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
         cong  : {A B : Set} → ∀ (f : A → B) {x y} → x ≡ y → f x ≡ f y
 
+    In addition, we have the substitution principle for predicates:
+
+        subst : ∀ {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
+
+```agda
+-- general helper, remove when updating adga2hs dependency
+subst : ∀ {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
+subst P refl z = z
+```
+
 * **Extensional equality** — The above definitions are useful for inductive data types, which typically have a unique normal form, but they don't quite work for functions. Two functions `f` and `g` are considered **extensionally** equal if they give equal results when applied to the same function argument `x`, that is when the proposition
 
         ∀ x → f x ≡ g x
