@@ -1,4 +1,5 @@
 {-# LANGUAGE StandaloneDeriving #-}
+
 module Cardano.Wallet.Deposit.Read where
 
 import qualified Haskell.Data.ByteString as BS (ByteString)
@@ -19,16 +20,17 @@ type Ix = Int
 
 type TxIn = (TxId, Ix)
 
-data TxOut = TxOutC{address :: Address, value :: Value}
+data TxOut = TxOutC {address :: Address, value :: Value}
 
-data TxBody = TxBodyC{inputs :: [TxIn], outputs :: [TxOut]}
+data TxBody = TxBodyC {inputs :: [TxIn], outputs :: [TxOut]}
 
-data Tx = TxC{txid :: TxId, txbody :: TxBody}
+data Tx = TxC {txid :: TxId, txbody :: TxBody}
 
 type SlotNo = Natural
 
-data WithOrigin a = Origin
-                  | At a
+data WithOrigin a
+    = Origin
+    | At a
 
 deriving instance (Eq a) => Eq (WithOrigin a)
 
@@ -42,16 +44,22 @@ type HashHeader = ()
 
 type HashBBody = ()
 
-data BHBody = BHBody{prev :: Maybe HashHeader, blockno :: BlockNo,
-                     slot :: SlotNo, bhash :: HashBBody}
+data BHBody = BHBody
+    { prev :: Maybe HashHeader
+    , blockno :: BlockNo
+    , slot :: SlotNo
+    , bhash :: HashBBody
+    }
 
 dummyBHBody :: BHBody
 dummyBHBody = BHBody Nothing 128 42 ()
 
 type Sig = ()
 
-data BHeader = BHeader{blockHeaderBody :: BHBody,
-                       blockHeaderSignature :: Sig}
+data BHeader = BHeader
+    { blockHeaderBody :: BHBody
+    , blockHeaderSignature :: Sig
+    }
 
 bhHash :: BHeader -> HashHeader
 bhHash _ = ()
@@ -59,14 +67,15 @@ bhHash _ = ()
 dummyBHeader :: BHeader
 dummyBHeader = BHeader dummyBHBody ()
 
-data Block = Block{blockHeader :: BHeader, transactions :: [Tx]}
+data Block = Block {blockHeader :: BHeader, transactions :: [Tx]}
 
-data ChainPoint = GenesisPoint
-                | BlockPoint SlotNo HashHeader
+data ChainPoint
+    = GenesisPoint
+    | BlockPoint SlotNo HashHeader
 
 chainPointFromBlock :: Block -> ChainPoint
-chainPointFromBlock block
-  = BlockPoint (slot (blockHeaderBody bh)) (bhHash bh)
+chainPointFromBlock block =
+    BlockPoint (slot (blockHeaderBody bh)) (bhHash bh)
   where
     bh :: BHeader
     bh = blockHeader block
@@ -74,4 +83,3 @@ chainPointFromBlock block
 slotFromChainPoint :: ChainPoint -> Slot
 slotFromChainPoint GenesisPoint = Origin
 slotFromChainPoint (BlockPoint slotNo _) = At slotNo
-

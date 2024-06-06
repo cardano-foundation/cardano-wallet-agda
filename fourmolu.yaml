@@ -1,0 +1,24 @@
+comma-style: leading
+function-arrows: leading
+import-export-style: leading
+fixities:
+  - infixl 9 . 
+  - infixl 5 ++ 
+  - infixr 4 <$ 
+  - infixr 1 >>, >>= 
+  - infixr 1 =<< 
+  - infixl 0 $, $! 
+  - infixl 4 <*>, <*, *>, <**> 
+  - infixl 6 <> 
+  - infixl 7 <+> 
+  - infixl 3 <|> 
+  - infixr 5 :|
+haddock-style: single-line
+in-style: left-align
+indent-wheres: false
+indentation: 4
+let-style: auto
+newlines-between-decls: 1
+record-brace-space: false
+column-limit: 80
+single-constraint-parens: auto

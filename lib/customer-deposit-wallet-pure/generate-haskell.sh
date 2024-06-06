@@ -5,7 +5,8 @@ agda2hs \
     --no-default-libraries \
     --config agda2hs-rewrites.yaml \
     -o ./haskell/ \
-    ./agda/${ROOT}
+    ./agda/${ROOT} \
+    && fourmolu -i ./haskell/
 
 # agda \
 #     --no-default-libraries \

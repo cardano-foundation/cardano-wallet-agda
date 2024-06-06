@@ -10,6 +10,5 @@ tagEnterprise :: Word8
 tagEnterprise = 97
 
 mkEnterpriseAddress :: XPub -> Addr
-mkEnterpriseAddress xpub
-  = singleton tagEnterprise <> blake2b'224 (rawSerialiseXPub xpub)
-
+mkEnterpriseAddress xpub =
+    singleton tagEnterprise <> blake2b'224 (rawSerialiseXPub xpub)

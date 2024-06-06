@@ -5,6 +5,8 @@ import Cardano.Wallet.Deposit.Read (Address, Slot, TxId)
 import Haskell.Data.Maps.PairMap (PairMap)
 import Haskell.Data.Maps.Timeline (Timeline)
 
-data TxHistory = TxHistory{txIds :: Timeline Slot TxId,
-                           txTransfers :: PairMap TxId Address ValueTransfer, tip :: Slot}
-
+data TxHistory = TxHistory
+    { txIds :: Timeline Slot TxId
+    , txTransfers :: PairMap TxId Address ValueTransfer
+    , tip :: Slot
+    }

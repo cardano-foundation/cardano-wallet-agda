@@ -2,21 +2,20 @@
 
 module Cardano.Wallet.Address.BIP32_Ed25519 where
 
-
-import Data.ByteString
-  ( ByteString
-  )
-import Data.Maybe
-  ( fromJust
-  )
-import Data.Word
-  ( Word32
-  )
-import Data.Word.Odd
-  ( Word31
-  )
 import qualified Cardano.Crypto.Wallet as CC
+import Data.ByteString
+    ( ByteString
+    )
 import qualified Data.ByteString as BS
+import Data.Maybe
+    ( fromJust
+    )
+import Data.Word
+    ( Word32
+    )
+import Data.Word.Odd
+    ( Word31
+    )
 
 -- FIXME: We define type synonyms here so that
 -- they can be exported. Ideally, we would re-export from
@@ -25,50 +24,50 @@ type XPub = CC.XPub
 type XPrv = CC.XPrv
 type XSignature = CC.XSignature
 
-toXPub :: XPrv ->XPub
+toXPub :: XPrv -> XPub
 toXPub = CC.toXPub
 
-sign :: XPrv ->ByteString ->XSignature
+sign :: XPrv -> ByteString -> XSignature
 sign = CC.sign BS.empty
 
-verify :: XPub ->ByteString ->XSignature ->Bool
+verify :: XPub -> ByteString -> XSignature -> Bool
 verify = CC.verify
 
-rawSerialiseXPub :: XPub ->ByteString
+rawSerialiseXPub :: XPub -> ByteString
 rawSerialiseXPub = CC.unXPub
 
-rawSerialiseXPrv :: XPrv ->ByteString
+rawSerialiseXPrv :: XPrv -> ByteString
 rawSerialiseXPrv = CC.unXPrv
 
-rawSerialiseXSignature :: XSignature ->ByteString
+rawSerialiseXSignature :: XSignature -> ByteString
 rawSerialiseXSignature = CC.unXSignature
 
-word32fromWord31 :: Word31 ->Word32
+word32fromWord31 :: Word31 -> Word32
 word32fromWord31 = fromInteger . toInteger
 
-deriveXPubSoft :: XPub ->Word31 ->XPub
+deriveXPubSoft :: XPub -> Word31 -> XPub
 deriveXPubSoft xpub ix =
-  fromJust
-    (CC.deriveXPub
-      CC.DerivationScheme2
-      xpub
-      (word32fromWord31 ix)
-    )
-  -- deriveXPub always returns Just on Word31
+    fromJust
+        ( CC.deriveXPub
+            CC.DerivationScheme2
+            xpub
+            (word32fromWord31 ix)
+        )
 
-deriveXPrvSoft :: XPrv ->Word31 ->XPrv
+-- deriveXPub always returns Just on Word31
+
+deriveXPrvSoft :: XPrv -> Word31 -> XPrv
 deriveXPrvSoft xprv ix =
-  CC.deriveXPrv
-    CC.DerivationScheme2
-    BS.empty
-    xprv
-    (word32fromWord31 ix)
+    CC.deriveXPrv
+        CC.DerivationScheme2
+        BS.empty
+        xprv
+        (word32fromWord31 ix)
 
-deriveXPrvHard :: XPrv ->Word31 ->XPrv
+deriveXPrvHard :: XPrv -> Word31 -> XPrv
 deriveXPrvHard xprv ix =
-  CC.deriveXPrv
-    CC.DerivationScheme2
-    BS.empty
-    xprv
-    (0x80000000 + word32fromWord31 ix)
-
+    CC.deriveXPrv
+        CC.DerivationScheme2
+        BS.empty
+        xprv
+        (0x80000000 + word32fromWord31 ix)
