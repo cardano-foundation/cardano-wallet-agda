@@ -16,4 +16,3 @@ catMaybes (Just x : xs) = x : catMaybes xs
 fromMaybe :: a -> Maybe a -> a
 fromMaybe _ (Just a) = a
 fromMaybe a Nothing = a
-
