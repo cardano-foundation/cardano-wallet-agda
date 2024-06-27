@@ -89,4 +89,4 @@ monus a b =
         (Map.unionWith minus (assets a) (assets b))
   where
     minus :: Quantity -> Quantity -> Quantity
-    minus a b = a - b
+    minus x y = x - y

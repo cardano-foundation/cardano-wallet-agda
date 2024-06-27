@@ -130,7 +130,7 @@ monus a b = record
   }
   where
     minus : Quantity → Quantity → Quantity
-    minus a b = a - b
+    minus x y = x - y
 
 {-# COMPILE AGDA2HS monus #-}
 
