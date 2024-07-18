@@ -84,6 +84,15 @@ toAscList =
     ∘ Map.toAscList
     ∘ eventsByTime
 
+-- | Insert a single item.
+insert
+    : {{_ : Ord time}} {{_ : Ord a}}
+    → time → a → Timeline time a → Timeline time a
+insert t x timeline = record
+    { events = Map.insert x t (events timeline)
+    ; eventsByTime = InverseMap.insert x t (eventsByTime timeline)
+    }
+
 -- | Insert a set of items that all have the same timestamp.
 insertMany
     : {{_ : Ord time}} {{_ : Ord a}}
@@ -166,6 +175,7 @@ restrictRange (from , to) =
 {-# COMPILE AGDA2HS lookupByItem #-}
 {-# COMPILE AGDA2HS getMapTime #-}
 {-# COMPILE AGDA2HS toAscList #-}
+{-# COMPILE AGDA2HS insert #-}
 {-# COMPILE AGDA2HS insertMany #-}
 {-# COMPILE AGDA2HS difference #-}
 {-# COMPILE AGDA2HS takeWhileAntitone #-}

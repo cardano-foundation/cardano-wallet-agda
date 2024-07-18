@@ -17,6 +17,7 @@ import qualified Haskell.Data.Map as Map
 import qualified Haskell.Data.Maps.InverseMap as InverseMap
     ( InverseMap
     , difference
+    , insert
     , insertManyKeys
     )
 import Haskell.Data.Maybe (fromMaybe)
@@ -56,6 +57,17 @@ toAscList =
             )
         . Map.toAscList
         . \r -> eventsByTime r
+
+insert
+    :: (Ord time, Ord a)
+    => time
+    -> a
+    -> Timeline time a
+    -> Timeline time a
+insert t x timeline =
+    Timeline
+        (Map.insert x t (events timeline))
+        (InverseMap.insert x t (eventsByTime timeline))
 
 insertMany
     :: (Ord time, Ord a)
