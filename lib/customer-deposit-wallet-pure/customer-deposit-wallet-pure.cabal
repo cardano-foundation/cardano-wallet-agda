@@ -81,6 +81,7 @@ library
     Cardano.Wallet.Deposit.Read
     Cardano.Wallet.Deposit.Read.Value
     Cardano.Write.Tx.Balance
+    Data.Maps.Timeline
   other-modules:
     Haskell.Data.ByteString
     Haskell.Data.List
