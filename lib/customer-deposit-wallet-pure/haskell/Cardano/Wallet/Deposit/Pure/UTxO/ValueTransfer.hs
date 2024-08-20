@@ -1,6 +1,6 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer where
 
-import Cardano.Wallet.Deposit.Read.Value (Value)
+import Cardano.Wallet.Read.Value (Value)
 
 data ValueTransfer = ValueTransfer
     { spent :: Value

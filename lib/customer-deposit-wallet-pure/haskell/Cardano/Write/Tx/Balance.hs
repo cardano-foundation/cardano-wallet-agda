@@ -8,8 +8,10 @@ import Cardano.Wallet.Deposit.Read
     , TxIn
     , TxOut (TxOutC, value)
     )
-import Cardano.Wallet.Deposit.Read.Value (Value, largerOrEqual, monus)
+import Cardano.Wallet.Read.Value (Value, largerOrEqual, subtract)
 import qualified Haskell.Data.Map as Map (toAscList)
+
+import Prelude hiding (subtract)
 
 data PartialTx = PartialTxC {outputs :: [TxOut]}
 
@@ -25,8 +27,8 @@ coinSelectionGreedy :: Value -> [(TxIn, TxOut)] -> (Value, [TxIn])
 coinSelectionGreedy v [] = (mempty, [])
 coinSelectionGreedy v ((txin, txout) : xs) =
     if largerOrEqual v (value txout)
-        then secondCons txin $ coinSelectionGreedy (monus v (value txout)) xs
-        else (monus (value txout) v, [])
+        then secondCons txin $ coinSelectionGreedy (subtract v (value txout)) xs
+        else (subtract (value txout) v, [])
 
 balanceTransaction
     :: UTxO -> ChangeAddressGen c -> c -> PartialTx -> Maybe TxBody

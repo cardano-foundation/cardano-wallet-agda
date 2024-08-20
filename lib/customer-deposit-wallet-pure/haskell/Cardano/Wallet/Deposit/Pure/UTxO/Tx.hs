@@ -26,7 +26,7 @@ import qualified Cardano.Wallet.Deposit.Read as Read
     , TxIn
     , TxOut (address, value)
     )
-import qualified Cardano.Wallet.Deposit.Read.Value as Read (Value)
+import qualified Cardano.Wallet.Read.Value as Read (Value)
 import Data.Set (Set)
 import qualified Haskell.Data.ByteString (ByteString)
 import qualified Haskell.Data.Map as Map

@@ -83,10 +83,11 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxId
     ; TxIn
     ; TxOut
-    ; Value
     )
-open import Cardano.Wallet.Deposit.Read.Value public using
-    ( largerOrEqual
+open import Cardano.Wallet.Read.Value public using
+    ( Value
+      ; largerOrEqual
+      ; iEqValue
     )
 open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
