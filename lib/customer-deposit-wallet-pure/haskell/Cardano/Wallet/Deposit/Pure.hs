@@ -10,7 +10,7 @@ import Cardano.Wallet.Deposit.Read
     , TxOut (TxOutC)
     , chainPointFromBlock
     )
-import Cardano.Wallet.Deposit.Read.Value (Value)
+import Cardano.Wallet.Read.Value (Value)
 import Cardano.Write.Tx.Balance
     ( ChangeAddressGen
     , PartialTx (PartialTxC)

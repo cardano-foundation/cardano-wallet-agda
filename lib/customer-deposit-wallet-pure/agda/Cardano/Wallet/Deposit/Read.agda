@@ -3,11 +3,11 @@ module Cardano.Wallet.Deposit.Read where
 
 open import Haskell.Prelude
 
-open import Cardano.Wallet.Deposit.Read.Value public
+open import Cardano.Wallet.Read.Value public
 
 {-# FOREIGN AGDA2HS
 -- Working around a limitation in agda2hs.
-import Cardano.Wallet.Deposit.Read.Value 
+import Cardano.Wallet.Read.Value 
     ( Value
     )
 #-}

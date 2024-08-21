@@ -15,6 +15,10 @@ module Cardano.Write.Tx.Balance
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
+{-# FOREIGN AGDA2HS
+import Prelude hiding (subtract)
+#-}
+
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
@@ -25,7 +29,7 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxOut
     ; Value
     ; largerOrEqual
-    ; monus
+    ; subtract
     )
 open import Haskell.Data.List.Prop using ( _∈_ )
 open import Haskell.Data.Maybe using ( isJust )
@@ -77,8 +81,8 @@ coinSelectionGreedy v [] = (mempty , [])
 coinSelectionGreedy v ((txin , txout) ∷ xs) =
     let dv = (TxOut.value txout)
     in  if largerOrEqual v dv
-            then secondCons txin $ coinSelectionGreedy (monus v dv) xs
-            else (monus dv v , [])
+            then secondCons txin $ coinSelectionGreedy (subtract v dv) xs
+            else (subtract dv v , [])
 
 {-# COMPILE AGDA2HS secondCons #-}
 {-# COMPILE AGDA2HS coinSelectionGreedy #-}

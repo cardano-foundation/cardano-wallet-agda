@@ -60,6 +60,9 @@ library
     , deepseq >= 1.4.4 && < 1.6
     , text >= 1.2.4.1 && < 2.2
     , OddWord >= 1.0.1.1 && < 1.1
+    , cardano-ledger-api >= 1.9.2.0 && < 1.10
+    , cardano-ledger-core >= 1.13.1.0 && < 1.14
+    , cardano-ledger-mary >= 1.6.1.0 && < 1.7
   exposed-modules:
     Cardano.Wallet.Address.BIP32
     Cardano.Wallet.Address.BIP32_Ed25519
@@ -79,7 +82,7 @@ library
     Cardano.Wallet.Deposit.Pure.TxHistory.Type
     Cardano.Wallet.Deposit.Pure.TxSummary
     Cardano.Wallet.Deposit.Read
-    Cardano.Wallet.Deposit.Read.Value
+    Cardano.Wallet.Read.Value
     Cardano.Write.Tx.Balance
     Data.Maps.Timeline
   other-modules:

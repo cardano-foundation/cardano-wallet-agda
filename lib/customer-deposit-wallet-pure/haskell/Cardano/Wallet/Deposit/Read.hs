@@ -2,11 +2,12 @@
 
 module Cardano.Wallet.Deposit.Read where
 
+import Cardano.Wallet.Read.Value (Value)
 import qualified Haskell.Data.ByteString as BS (ByteString)
 import Numeric.Natural (Natural)
 
 -- Working around a limitation in agda2hs.
-import Cardano.Wallet.Deposit.Read.Value
+import Cardano.Wallet.Read.Value
     ( Value
     )
 
