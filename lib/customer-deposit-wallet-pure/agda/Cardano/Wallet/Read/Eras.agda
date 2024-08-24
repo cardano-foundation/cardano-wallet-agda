@@ -19,10 +19,10 @@ Conway = ⊤
 postulate
   IsEra : Set → Set
   instance
-    IsEraByron : IsEra Byron
-    IsEraShelley : IsEra Byron
-    IsEraAllegra : IsEra Byron
-    IsEraMary : IsEra Byron
-    IsEraAlonzo : IsEra Byron
-    IsEraBabbage : IsEra Byron
-    IsEraConway : IsEra Byron
+    iIsEraByron : IsEra Byron
+    iIsEraShelley : IsEra Byron
+    iIsEraAllegra : IsEra Byron
+    iIsEraMary : IsEra Byron
+    iIsEraAlonzo : IsEra Byron
+    iIsEraBabbage : IsEra Byron
+    iIsEraConway : IsEra Byron

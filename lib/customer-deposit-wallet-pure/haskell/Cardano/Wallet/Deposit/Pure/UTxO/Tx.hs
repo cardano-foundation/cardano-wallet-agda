@@ -19,48 +19,42 @@ import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
     , fromReceived
     , fromSpent
     )
-import Cardano.Wallet.Deposit.Read (Tx (txbody, txid), TxBody (inputs, outputs))
-import qualified Cardano.Wallet.Deposit.Read as Read
-    ( Addr
-    , Address
-    , TxIn
-    , TxOut (address, value)
+import qualified Cardano.Wallet.Deposit.Read as Read (Addr, Address)
+import Cardano.Wallet.Read.Eras (IsEra)
+import Cardano.Wallet.Read.Tx
+    ( Tx
+    , TxOut
+    , getCompactAddr
+    , getInputs
+    , getValue
+    , utxoFromEraTx
     )
 import qualified Cardano.Wallet.Read.Value as Read (Value)
-import Data.Set (Set)
-import qualified Haskell.Data.ByteString (ByteString)
 import qualified Haskell.Data.Map as Map
     ( Map
     , elems
-    , fromList
     , fromListWith
     , map
     , unionWith
     )
-import qualified Haskell.Data.Set as Set (fromList)
 
-spendTxD :: Tx -> UTxO -> (DeltaUTxO, UTxO)
+spendTxD :: IsEra era => Tx era -> UTxO -> (DeltaUTxO, UTxO)
 spendTxD tx u =
     Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.excludingD
         u
-        inputsToExclude
-  where
-    inputsToExclude :: Set Read.TxIn
-    inputsToExclude = Set.fromList (inputs (txbody tx))
+        (getInputs tx)
 
-utxoFromTxOutputs :: Tx -> UTxO
-utxoFromTxOutputs tx = Map.fromList $ zip txins txouts
-  where
-    n :: Int
-    n = length (outputs (txbody tx))
-    txins :: [(Haskell.Data.ByteString.ByteString, Int)]
-    txins = map (\j -> (txid tx, j)) $ [0 .. n - 1]
-    txouts :: [Read.TxOut]
-    txouts = outputs (txbody tx)
+utxoFromTxOutputs :: IsEra era => Tx era -> UTxO
+utxoFromTxOutputs = utxoFromEraTx
 
 type IsOurs addr = addr -> Bool
 
-applyTx :: IsOurs Read.Addr -> Tx -> UTxO -> (DeltaUTxO, UTxO)
+applyTx
+    :: IsEra era
+    => IsOurs Read.Addr
+    -> Tx era
+    -> UTxO
+    -> (DeltaUTxO, UTxO)
 applyTx isOurs tx u0 =
     if UTxO.null (UTxO.filterByAddress isOurs (utxoFromTxOutputs tx))
         && Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.null
@@ -80,19 +74,17 @@ applyTx isOurs tx u0 =
                 )
             )
 
-data ResolvedTx = ResolvedTx
-    { resolvedTx :: Tx
+data ResolvedTx era = ResolvedTx
+    { resolvedTx :: Tx era
     , resolvedInputs :: UTxO
     }
 
-resolveInputs :: UTxO -> Tx -> ResolvedTx
+resolveInputs :: IsEra era => UTxO -> Tx era -> ResolvedTx era
 resolveInputs utxo tx =
-    ResolvedTx
-        tx
-        (UTxO.restrictedBy utxo (Set.fromList (inputs (txbody tx))))
+    ResolvedTx tx (UTxO.restrictedBy utxo (getInputs tx))
 
-pairFromTxOut :: Read.TxOut -> (Read.Address, Read.Value)
-pairFromTxOut = \txout -> (Read.address txout, Read.value txout)
+pairFromTxOut :: TxOut -> (Read.Address, Read.Value)
+pairFromTxOut = \txout -> (getCompactAddr txout, getValue txout)
 
 groupByAddress :: UTxO -> Map.Map Read.Address Read.Value
 groupByAddress =
@@ -110,7 +102,7 @@ valueTransferFromDeltaUTxO u0 du = Map.unionWith (<>) ins outs
     outs = Map.map fromReceived (groupByAddress (received du))
 
 valueTransferFromResolvedTx
-    :: ResolvedTx -> Map.Map Read.Address ValueTransfer
+    :: IsEra era => ResolvedTx era -> Map.Map Read.Address ValueTransfer
 valueTransferFromResolvedTx tx = valueTransferFromDeltaUTxO u0 du
   where
     u0 :: UTxO

@@ -27,6 +27,10 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxBody
     ; TxIn
     ; TxOut
+      ; getCompactAddr
+      ; getValue
+      ; mkBasicTxOut
+      ; prop-getCompactAddr-mkBasicTxOut
     ; Value
     ; largerOrEqual
     ; subtract
@@ -50,7 +54,7 @@ record PartialTx : Set where
 open PartialTx public
 
 totalOut : PartialTx → Value
-totalOut = mconcat ∘ map TxOut.value ∘ PartialTx.outputs
+totalOut = mconcat ∘ map getValue ∘ PartialTx.outputs
 
 {-# COMPILE AGDA2HS PartialTx #-}
 {-# COMPILE AGDA2HS totalOut #-}
@@ -79,7 +83,7 @@ coinSelectionGreedy
     : Value → List (TxIn × TxOut) → (Value × List TxIn)
 coinSelectionGreedy v [] = (mempty , [])
 coinSelectionGreedy v ((txin , txout) ∷ xs) =
-    let dv = (TxOut.value txout)
+    let dv = getValue txout
     in  if largerOrEqual v dv
             then secondCons txin $ coinSelectionGreedy (subtract v dv) xs
             else (subtract dv v , [])
@@ -101,10 +105,8 @@ balanceTransaction
     → Maybe TxBody
 balanceTransaction utxo newAddress c0 partialTx =
     let (changeValue , ins) = coinSelectionGreedy target (Map.toAscList utxo)
-        changeOutput = record
-            { address = fst (newAddress c0)
-            ; value = changeValue
-            }
+        changeOutput =
+          mkBasicTxOut (fst (newAddress c0)) changeValue
     in
     if largerOrEqual target (UTxO.balance utxo)
         then Nothing
@@ -135,15 +137,17 @@ lemma-balanceTransaction-addresses
       (c0 : c)
       (tx : TxBody)
   → balanceTransaction u new c0 partialTx ≡ Just tx 
-  → map TxOut.address (TxBody.outputs tx)
-    ≡ fst (new c0) ∷ map TxOut.address (PartialTx.outputs partialTx)
+  → map getCompactAddr (TxBody.outputs tx)
+    ≡ fst (new c0) ∷ map getCompactAddr (PartialTx.outputs partialTx)
 lemma-balanceTransaction-addresses u partialTx new c0 tx balance
   with largerOrEqual (totalOut partialTx) (UTxO.balance u)
 ...  | True = magic (unequal tx balance)
 ...  | False = begin
-          map TxOut.address (TxBody.outputs tx)
-        ≡⟨ cong (λ x → map TxOut.address (TxBody.outputs x)) (sym (unJust balance)) ⟩
-          fst (new c0) ∷ map TxOut.address (PartialTx.outputs partialTx)
+          map getCompactAddr (TxBody.outputs tx)
+        ≡⟨ cong (λ x → map getCompactAddr (TxBody.outputs x)) (sym (unJust balance)) ⟩
+          getCompactAddr (mkBasicTxOut (fst (new c0)) _) ∷ map getCompactAddr (PartialTx.outputs partialTx)
+        ≡⟨ cong (λ x → x ∷ _) (prop-getCompactAddr-mkBasicTxOut (fst (new c0)) _) ⟩
+          fst (new c0) ∷ map getCompactAddr (PartialTx.outputs partialTx)
         ∎
 
 lemma-isChange-c0
@@ -171,9 +175,9 @@ prop-balanceTransaction-addresses
       (tx : TxBody)
   → balanceTransaction u new c0 partialTx ≡ Just tx
   → ∀ (addr : Address)
-    → addr ∈ map TxOut.address (TxBody.outputs tx)
+    → addr ∈ map getCompactAddr (TxBody.outputs tx)
     → isChange new addr
-        ⋁ addr ∈ map TxOut.address (PartialTx.outputs partialTx)
+        ⋁ addr ∈ map getCompactAddr (PartialTx.outputs partialTx)
 
 prop-balanceTransaction-addresses u partialTx new c0 tx balance addr el
     = onLeft lemma2 (prop-||-⋁ (sym lemma1))
@@ -182,17 +186,17 @@ prop-balanceTransaction-addresses u partialTx new c0 tx balance addr el
       begin
         True
       ≡⟨ sym el ⟩
-        elem addr (map TxOut.address $ TxBody.outputs tx)
+        elem addr (map getCompactAddr $ TxBody.outputs tx)
       ≡⟨ cong (elem addr) (lemma-balanceTransaction-addresses u partialTx new c0 tx balance) ⟩
-        elem addr (fst (new c0) ∷ map TxOut.address (PartialTx.outputs partialTx))
+        elem addr (fst (new c0) ∷ map getCompactAddr (PartialTx.outputs partialTx))
       ≡⟨⟩
         ((addr == fst (new c0))
-            || (elem addr $ map TxOut.address $ PartialTx.outputs partialTx))
+            || (elem addr $ map getCompactAddr $ PartialTx.outputs partialTx))
       ∎
 
     b1 b2 : Bool
     b1 = (addr == fst (new c0))
-    b2 = (elem addr $ map TxOut.address $ PartialTx.outputs partialTx)
+    b2 = (elem addr $ map getCompactAddr $ PartialTx.outputs partialTx)
 
     lemma2
       : (addr == fst (new c0)) ≡ True

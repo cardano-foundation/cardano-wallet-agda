@@ -8,7 +8,7 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
     , null
     , union
     )
-import Cardano.Wallet.Deposit.Read (TxIn)
+import Cardano.Wallet.Read.Tx (TxIn)
 import Data.Set (Set)
 import qualified Haskell.Data.Map as Map (empty, keysSet)
 import qualified Haskell.Data.Set as Set (difference, empty, null, union)

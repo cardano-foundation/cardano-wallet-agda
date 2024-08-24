@@ -17,7 +17,13 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ; fromSpent
     )
 open import Cardano.Wallet.Deposit.Read using
-    ( Tx
+    ( IsEra
+    ; Tx
+      ; utxoFromEraTx
+      ; getInputs
+    ; TxOut
+      ; getCompactAddr
+      ; getValue
     ; TxBody
     )
 
@@ -31,19 +37,12 @@ import Haskell.Data.Set as Set
     UTxO utilities
 ------------------------------------------------------------------------------}
 -- | Remove unspent outputs that are consumed by the given transaction.
-spendTxD : Read.Tx -> UTxO -> (DeltaUTxO × UTxO)
-spendTxD tx u =
-    DeltaUTxO.excludingD u inputsToExclude
-  where
-    inputsToExclude = Set.fromList (TxBody.inputs (Tx.txbody tx))
+spendTxD : ∀{era} → {{IsEra era}} → Read.Tx era -> UTxO -> (DeltaUTxO × UTxO)
+spendTxD tx u = DeltaUTxO.excludingD u (getInputs tx)
 
 -- | Convert the transaction outputs into a 'UTxO' set.
-utxoFromTxOutputs : Read.Tx → UTxO
-utxoFromTxOutputs tx = Map.fromList $ zip txins txouts
-  where
-    n = length (TxBody.outputs (Tx.txbody tx))
-    txins = map (λ j → (Tx.txid tx , j)) $ enumFromTo 0 (n - 1)
-    txouts = TxBody.outputs (Tx.txbody tx)
+utxoFromTxOutputs : ∀{era} → {{IsEra era}} → Read.Tx era → UTxO
+utxoFromTxOutputs = utxoFromEraTx
 
 {-# COMPILE AGDA2HS spendTxD #-}
 {-# COMPILE AGDA2HS utxoFromTxOutputs #-}
@@ -58,7 +57,11 @@ IsOurs addr = addr -> Bool
 --
 -- Returns both a delta and the new value.
 applyTx
-    : IsOurs Read.Addr -> Read.Tx -> UTxO -> (DeltaUTxO × UTxO)
+    : ∀ {era} → {{IsEra era}}
+    → IsOurs Read.Addr
+    -> Read.Tx era
+    -> UTxO
+    -> (DeltaUTxO × UTxO)
 applyTx isOurs tx u0 =
     let (du10 , u1)  = spendTxD tx u0
         receivedUTxO = UTxO.filterByAddress isOurs (utxoFromTxOutputs tx)
@@ -86,21 +89,21 @@ applyTx isOurs tx u0 =
     Resolve Inputs
 ------------------------------------------------------------------------------}
 -- | A transaction whose inputs have been partially resolved.
-record ResolvedTx : Set where
+record ResolvedTx era : Set where
   field
-    resolvedTx : Read.Tx
+    resolvedTx : Read.Tx era
     resolvedInputs : UTxO
 
 open ResolvedTx public
 
-resolveInputs : UTxO → Read.Tx → ResolvedTx
+resolveInputs : ∀{era} → {{IsEra era}} → UTxO → Read.Tx era → ResolvedTx era
 resolveInputs utxo tx =
   record
     { resolvedTx = tx
     ; resolvedInputs =
         UTxO.restrictedBy
             utxo
-            (Set.fromList (TxBody.inputs (Tx.txbody tx)))
+            (getInputs tx)
     }
 
 {-# COMPILE AGDA2HS ResolvedTx #-}
@@ -112,7 +115,7 @@ resolveInputs utxo tx =
 -- Helper function
 pairFromTxOut : Read.TxOut → (Read.Address × Read.Value)
 pairFromTxOut =
-    λ txout → (Read.TxOut.address txout , Read.TxOut.value txout)
+    λ txout → (getCompactAddr txout , getValue txout)
 
 -- | Compute how much 'Value' a 'UTxO' set contains at each address.
 groupByAddress : UTxO → Map.Map Read.Address Read.Value
@@ -139,7 +142,8 @@ valueTransferFromDeltaUTxO u0 du =
 -- Spent transaction outputs that have not been resolved will not
 -- be considered.
 valueTransferFromResolvedTx
-    : ResolvedTx → Map.Map Read.Address ValueTransfer
+    : ∀{era} → {{IsEra era}}
+    → ResolvedTx era → Map.Map Read.Address ValueTransfer
 valueTransferFromResolvedTx tx =
     valueTransferFromDeltaUTxO u0 du
   where

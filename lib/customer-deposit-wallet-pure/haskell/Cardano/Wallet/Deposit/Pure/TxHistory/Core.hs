@@ -10,10 +10,11 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx
     , valueTransferFromResolvedTx
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
-import Cardano.Wallet.Deposit.Read (Address, Slot, TxId, WithOrigin (At, Origin))
+import Cardano.Wallet.Deposit.Read (Address, Slot, WithOrigin (At, Origin))
 import Cardano.Wallet.Read.Block (SlotNo)
+import Cardano.Wallet.Read.Eras (IsEra)
+import Cardano.Wallet.Read.Tx (TxId)
 import Data.Set (Set)
-import qualified Haskell.Data.ByteString (ByteString)
 import Haskell.Data.List (foldl', sortOn)
 import Haskell.Data.Map (Map)
 import qualified Haskell.Data.Map as Map
@@ -89,7 +90,11 @@ getValueTransfers range history =
             (toList txs1)
 
 rollForward
-    :: SlotNo -> [(TxId, ResolvedTx)] -> TxHistory -> TxHistory
+    :: IsEra era
+    => SlotNo
+    -> [(TxId, ResolvedTx era)]
+    -> TxHistory
+    -> TxHistory
 rollForward new txs history =
     if At new <= getTip history
         then history
@@ -104,8 +109,9 @@ rollForward new txs history =
     txids :: Set TxId
     txids = Set.fromList (map (\r -> fst r) txs)
     insertValueTransfer
-        :: PairMap.PairMap TxId Address ValueTransfer
-        -> (TxId, ResolvedTx)
+        :: IsEra era1
+        => PairMap.PairMap TxId Address ValueTransfer
+        -> (TxId, ResolvedTx era1)
         -> PairMap.PairMap TxId Address ValueTransfer
     insertValueTransfer m0 (txid, tx) =
         foldl' (uncurry . fun) m0 (Map.toAscList mv)
@@ -113,16 +119,10 @@ rollForward new txs history =
         mv :: Map Address ValueTransfer
         mv = valueTransferFromResolvedTx tx
         fun
-            :: PairMap.PairMap
-                Haskell.Data.ByteString.ByteString
-                Address
-                ValueTransfer
+            :: PairMap.PairMap TxId Address ValueTransfer
             -> Address
             -> ValueTransfer
-            -> PairMap.PairMap
-                Haskell.Data.ByteString.ByteString
-                Address
-                ValueTransfer
+            -> PairMap.PairMap TxId Address ValueTransfer
         fun = \m addr v -> PairMap.insert txid addr v m
 
 rollBackward :: Slot -> TxHistory -> TxHistory
