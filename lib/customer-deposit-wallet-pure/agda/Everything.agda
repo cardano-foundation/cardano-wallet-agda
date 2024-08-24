@@ -18,6 +18,7 @@ import Cardano.Wallet.Deposit.Implementation
 import Specification
 
 import Cardano.Wallet.Read.Block
+import Cardano.Wallet.Read.Chain
 import Cardano.Wallet.Read.Eras
 import Cardano.Wallet.Read.Value
 
