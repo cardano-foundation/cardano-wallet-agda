@@ -2,9 +2,14 @@
 
 module Cardano.Wallet.Deposit.Read where
 
+import Cardano.Wallet.Read.Block (Block, SlotNo)
+import Cardano.Wallet.Read.Chain
+    ( ChainPoint (BlockPoint, GenesisPoint)
+    , getChainPoint
+    )
+import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Value (Value)
 import qualified Haskell.Data.ByteString as BS (ByteString)
-import Numeric.Natural (Natural)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Read.Value
@@ -27,8 +32,6 @@ data TxBody = TxBodyC {inputs :: [TxIn], outputs :: [TxOut]}
 
 data Tx = TxC {txid :: TxId, txbody :: TxBody}
 
-type SlotNo = Natural
-
 data WithOrigin a
     = Origin
     | At a
@@ -39,47 +42,11 @@ deriving instance (Ord a) => Ord (WithOrigin a)
 
 type Slot = WithOrigin SlotNo
 
-type BlockNo = Natural
+getEraTransactions :: IsEra era => Block era -> [Tx]
+getEraTransactions block = []
 
-type HashHeader = ()
-
-type HashBBody = ()
-
-data BHBody = BHBody
-    { prev :: Maybe HashHeader
-    , blockno :: BlockNo
-    , slot :: SlotNo
-    , bhash :: HashBBody
-    }
-
-dummyBHBody :: BHBody
-dummyBHBody = BHBody Nothing 128 42 ()
-
-type Sig = ()
-
-data BHeader = BHeader
-    { blockHeaderBody :: BHBody
-    , blockHeaderSignature :: Sig
-    }
-
-bhHash :: BHeader -> HashHeader
-bhHash _ = ()
-
-dummyBHeader :: BHeader
-dummyBHeader = BHeader dummyBHBody ()
-
-data Block = Block {blockHeader :: BHeader, transactions :: [Tx]}
-
-data ChainPoint
-    = GenesisPoint
-    | BlockPoint SlotNo HashHeader
-
-chainPointFromBlock :: Block -> ChainPoint
-chainPointFromBlock block =
-    BlockPoint (slot (blockHeaderBody bh)) (bhHash bh)
-  where
-    bh :: BHeader
-    bh = blockHeader block
+chainPointFromBlock :: IsEra era => Block era -> ChainPoint
+chainPointFromBlock = getChainPoint
 
 slotFromChainPoint :: ChainPoint -> Slot
 slotFromChainPoint GenesisPoint = Origin

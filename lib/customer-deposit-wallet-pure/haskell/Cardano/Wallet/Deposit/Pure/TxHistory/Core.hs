@@ -10,13 +10,8 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx
     , valueTransferFromResolvedTx
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
-import Cardano.Wallet.Deposit.Read
-    ( Address
-    , Slot
-    , SlotNo
-    , TxId
-    , WithOrigin (At, Origin)
-    )
+import Cardano.Wallet.Deposit.Read (Address, Slot, TxId, WithOrigin (At, Origin))
+import Cardano.Wallet.Read.Block (SlotNo)
 import Data.Set (Set)
 import qualified Haskell.Data.ByteString (ByteString)
 import Haskell.Data.List (foldl', sortOn)
@@ -45,7 +40,6 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , restrictRange
     )
 import qualified Haskell.Data.Set as Set (fromList)
-import Numeric.Natural (Natural)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.TxHistory.Type
@@ -105,7 +99,7 @@ rollForward new txs history =
                 (foldl' insertValueTransfer (txTransfers history) txs)
                 (At new)
   where
-    slot :: WithOrigin Natural
+    slot :: WithOrigin SlotNo
     slot = At new
     txids :: Set TxId
     txids = Set.fromList (map (\r -> fst r) txs)

@@ -3,7 +3,8 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
-import Cardano.Wallet.Deposit.Read (Slot, SlotNo, TxIn)
+import Cardano.Wallet.Deposit.Read (Slot, TxIn)
+import Cardano.Wallet.Read.Block (SlotNo)
 import Haskell.Data.Maps.Timeline (Timeline)
 
 data Pruned
