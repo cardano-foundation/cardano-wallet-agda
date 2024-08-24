@@ -1,7 +1,8 @@
 module Cardano.Wallet.Deposit.Pure.TxSummary where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
-import Cardano.Wallet.Deposit.Read (ChainPoint (GenesisPoint), Tx (txid), TxId)
+import Cardano.Wallet.Deposit.Read (Tx (txid), TxId)
+import Cardano.Wallet.Read.Chain (ChainPoint (GenesisPoint))
 
 data TxSummary = TxSummary
     { summarizedTx :: TxId

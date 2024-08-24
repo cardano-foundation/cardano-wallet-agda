@@ -75,8 +75,10 @@ open import Cardano.Wallet.Deposit.Pure.TxSummary using
 open import Cardano.Wallet.Deposit.Read using
     ( Address
     ; Block
+      ; getEraTransactions
     ; ChainPoint
       ; chainPointFromBlock
+    ; IsEra
     ; Slot
     ; Tx
     ; TxBody
@@ -293,11 +295,12 @@ applyTx tx s0 = s1
 {-# COMPILE AGDA2HS applyTx #-}
 
 -- | Roll the 'WalletState' forward by one block.
-rollForwardOne : Block → WalletState → WalletState
+rollForwardOne
+  : ∀ {era} → {{IsEra era}} → Block era → WalletState → WalletState
 rollForwardOne block s0 =
     record s1 { localTip = chainPointFromBlock block }
   where
-    s1 = foldl (λ s tx → applyTx tx s) s0 (Block.transactions block)
+    s1 = foldl (λ s tx → applyTx tx s) s0 (getEraTransactions block)
 
 {-# COMPILE AGDA2HS rollForwardOne #-}
 

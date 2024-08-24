@@ -3,6 +3,9 @@ module Cardano.Wallet.Deposit.Read where
 
 open import Haskell.Prelude
 
+open import Cardano.Wallet.Read.Eras public
+open import Cardano.Wallet.Read.Block public
+open import Cardano.Wallet.Read.Chain public
 open import Cardano.Wallet.Read.Value public
 
 {-# FOREIGN AGDA2HS
@@ -90,9 +93,6 @@ open Tx public
 {-----------------------------------------------------------------------------
     Slot
 ------------------------------------------------------------------------------}
-SlotNo = Nat
-
-{-# COMPILE AGDA2HS SlotNo #-}
 
 data WithOrigin (a : Set) : Set where
   Origin : WithOrigin a
@@ -121,88 +121,19 @@ Slot = WithOrigin SlotNo
 {-# COMPILE AGDA2HS Slot #-}
 
 {-----------------------------------------------------------------------------
-    Blocks
+    Block
 ------------------------------------------------------------------------------}
-BlockNo = Nat
+getEraTransactions : {{IsEra era}} → Block era → List Tx
+getEraTransactions block = []
 
-{-# COMPILE AGDA2HS BlockNo #-}
-
-HashHeader = ⊤
-HashBBody = ⊤
-
-{-# COMPILE AGDA2HS HashHeader #-}
-{-# COMPILE AGDA2HS HashBBody #-}
-
-record BHBody : Set where
-  field
-    prev    : Maybe HashHeader
-    blockno : BlockNo
-    slot    : SlotNo
-    bhash   : HashBBody
-open BHBody public
-
-{-# COMPILE AGDA2HS BHBody #-}
-
-dummyBHBody : BHBody
-dummyBHBody = record
-  { prev = Nothing
-  ; blockno = 128
-  ; slot = 42
-  ; bhash = tt
-  }
-
-{-# COMPILE AGDA2HS dummyBHBody #-}
-
-Sig = ⊤
-
-{-# COMPILE AGDA2HS Sig #-}
-
-record BHeader : Set where
-  field
-    blockHeaderBody      : BHBody
-    blockHeaderSignature : Sig
-open BHeader public
-
-bhHash : BHeader → HashHeader
-bhHash _ = tt
-
-{-# COMPILE AGDA2HS bhHash #-}
-
--- postulate
--- bHeaderSize : BHeader → Nat
-
-{-# COMPILE AGDA2HS BHeader #-}
-
-dummyBHeader : BHeader
-dummyBHeader = record
-  { blockHeaderBody = dummyBHBody
-  ; blockHeaderSignature = tt
-  }
-
-{-# COMPILE AGDA2HS dummyBHeader #-}
-
-record Block : Set where
-  field
-    blockHeader  : BHeader
-    transactions : List Tx
-open Block public
-
-{-# COMPILE AGDA2HS Block #-}
+{-# COMPILE AGDA2HS getEraTransactions #-}
 
 {-----------------------------------------------------------------------------
     ChainPoint
 ------------------------------------------------------------------------------}
-data ChainPoint : Set where
-  GenesisPoint : ChainPoint
-  BlockPoint   : SlotNo → HashHeader → ChainPoint
 
-{-# COMPILE AGDA2HS ChainPoint #-}
-
-chainPointFromBlock : Block → ChainPoint
-chainPointFromBlock block =
-    BlockPoint (slot (blockHeaderBody bh)) (bhHash bh)
-  where
-    bh = blockHeader block
+chainPointFromBlock : {{IsEra era}} → Block era → ChainPoint
+chainPointFromBlock = getChainPoint
 
 {-# COMPILE AGDA2HS chainPointFromBlock #-}
 
