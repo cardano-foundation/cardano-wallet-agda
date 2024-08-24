@@ -82,6 +82,7 @@ library
     Cardano.Wallet.Deposit.Pure.TxHistory.Type
     Cardano.Wallet.Deposit.Pure.TxSummary
     Cardano.Wallet.Deposit.Read
+    Cardano.Wallet.Read.Eras
     Cardano.Wallet.Read.Value
     Cardano.Write.Tx.Balance
     Data.Maps.Timeline

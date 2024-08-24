@@ -17,6 +17,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
 import Cardano.Wallet.Deposit.Implementation
 import Specification
 
+import Cardano.Wallet.Read.Eras
 import Cardano.Wallet.Read.Value
 
 import Haskell.Data.List
