@@ -85,6 +85,7 @@ library
     Cardano.Wallet.Read.Block
     Cardano.Wallet.Read.Chain
     Cardano.Wallet.Read.Eras
+    Cardano.Wallet.Read.Tx
     Cardano.Wallet.Read.Value
     Cardano.Write.Tx.Balance
     Data.Maps.Timeline
