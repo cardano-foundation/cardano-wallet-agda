@@ -3,6 +3,7 @@
 module Haskell.Data.Word
     {-
     ; Word8
+    ; Word16
     -}
     where
 
@@ -13,7 +14,7 @@ open import Haskell.Prim.Integer
 open import Agda.Builtin.Word public using (Word64; primWord64FromNat)
 
 {-----------------------------------------------------------------------------
-    Word
+    Word8
 ------------------------------------------------------------------------------}
 2⁸ : Nat
 2⁸ = 256
@@ -50,3 +51,43 @@ instance
 
   iEnumWord8 : Enum Word8
   iEnumWord8 = boundedEnumViaInteger integerFromWord8 word8FromInteger
+
+
+{-----------------------------------------------------------------------------
+    Word16
+------------------------------------------------------------------------------}
+2¹⁶ : Nat
+2¹⁶ = 256 * 256
+
+data Word16 : Set where
+    Word16C : Word64 → Word16
+
+instance
+  iNumberWord16 : Number Word16
+  iNumberWord16 .Number.Constraint n = IsTrue (ltNat n 2¹⁶)
+  iNumberWord16 .fromNat n = Word16C (n2w n)
+
+word16FromNat : Nat → Word16
+word16FromNat n = Word16C (primWord64FromNat n)
+
+word16FromInteger : Integer → Word16
+word16FromInteger n = Word16C (integerToWord n)
+
+integerFromWord16 : Word16 → Integer
+integerFromWord16 (Word16C n) = wordToInteger n
+
+instance
+  iEqWord16 : Eq Word16
+  iEqWord16 ._==_ (Word16C x) (Word16C y) = eqWord x y
+
+  iOrdWord16 : Ord Word16
+  iOrdWord16 = ordFromLessThan (λ {(Word16C x) (Word16C y) → ltWord x y})
+
+  iBoundedBelowWord16 : BoundedBelow Word16
+  iBoundedBelowWord16 .minBound = 0
+
+  iBoundedAboveWord16 : BoundedAbove Word16
+  iBoundedAboveWord16 .maxBound = Word16C (primWord64FromNat (2⁸ - 1))
+
+  iEnumWord16 : Enum Word16
+  iEnumWord16 = boundedEnumViaInteger integerFromWord16 word16FromInteger
