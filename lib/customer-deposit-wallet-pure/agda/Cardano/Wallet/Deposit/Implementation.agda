@@ -25,6 +25,10 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxOut
     ; Value
     )
+open import Cardano.Wallet.Read.Eras using
+    ( Conway
+      ; iIsEraConway
+    )
 
 import Cardano.Wallet.Deposit.Pure as Wallet
 import Cardano.Wallet.Deposit.Read as Read
@@ -36,7 +40,7 @@ module DepositWallet =
     Specification.DepositWallet
         WalletState
         Address
-        Tx
+        (Tx Conway)
         TxBody
         TxId
         Slot
@@ -65,7 +69,7 @@ operations = record
   { listCustomers = Wallet.listCustomers
   ; createAddress = Wallet.createAddress
   ; availableBalance = Wallet.availableBalance
-  ; applyTx = Wallet.applyTx
+  ; applyTx = Wallet.applyTx {{iIsEraConway}}
   ; getCustomerHistory = λ customer →
     map fromTxSummary ∘ Wallet.getCustomerHistory customer
   ; createPayment = λ destinations tt s →
@@ -78,7 +82,7 @@ operations = record
 -- Helper function
 pairFromTxOut : Read.TxOut → (Read.Address × Read.Value)
 pairFromTxOut =
-    λ txout → (Read.TxOut.address txout , Read.TxOut.value txout)
+    λ txout → (Read.getCompactAddr txout , Read.getValue txout)
 
 @0 properties : DepositWallet.Properties operations
 properties = record
@@ -107,5 +111,5 @@ properties = record
     lem1
       : ∀ (xs : List TxOut)
       → map fst (map pairFromTxOut xs)
-      ≡ map Read.address xs
+      ≡ map Read.getCompactAddr xs
     lem1 xs = sym (map-∘ fst pairFromTxOut xs)

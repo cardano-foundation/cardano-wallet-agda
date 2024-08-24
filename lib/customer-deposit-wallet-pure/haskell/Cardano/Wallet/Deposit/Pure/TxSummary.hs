@@ -1,8 +1,9 @@
 module Cardano.Wallet.Deposit.Pure.TxSummary where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
-import Cardano.Wallet.Deposit.Read (Tx (txid), TxId)
 import Cardano.Wallet.Read.Chain (ChainPoint (GenesisPoint))
+import Cardano.Wallet.Read.Eras (IsEra)
+import Cardano.Wallet.Read.Tx (Tx, TxId, getTxId)
 
 data TxSummary = TxSummary
     { summarizedTx :: TxId
@@ -10,6 +11,6 @@ data TxSummary = TxSummary
     , transfer :: ValueTransfer
     }
 
-mkTxSummary :: Tx -> ValueTransfer -> TxSummary
+mkTxSummary :: IsEra era => Tx era -> ValueTransfer -> TxSummary
 mkTxSummary =
-    \tx transfer' -> TxSummary (txid tx) GenesisPoint transfer'
+    \tx transfer' -> TxSummary (getTxId tx) GenesisPoint transfer'

@@ -6,7 +6,9 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ( ValueTransfer
     )
 open import Cardano.Wallet.Deposit.Read using
-    ( Tx
+    ( IsEra
+    ; Tx
+      ; getTxId
     ; TxId
     ; ChainPoint
     )
@@ -26,9 +28,9 @@ record TxSummary : Set where
 open TxSummary public
 
 -- This is a mock summary for now
-mkTxSummary : Tx → ValueTransfer → TxSummary
+mkTxSummary : ∀ {era} → {{IsEra era}} → Tx era → ValueTransfer → TxSummary
 mkTxSummary = λ tx transfer' → record
-    { summarizedTx = Tx.txid tx
+    { summarizedTx = getTxId tx
     ; point = ChainPoint.GenesisPoint
     ; transfer = transfer'
     }

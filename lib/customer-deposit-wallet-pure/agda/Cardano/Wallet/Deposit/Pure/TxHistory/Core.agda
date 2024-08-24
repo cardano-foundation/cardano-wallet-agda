@@ -11,6 +11,7 @@ open import Cardano.Wallet.Deposit.Read using
     ; SlotNo
     ; TxId
     ; WithOrigin
+    ; IsEra
     )
 open import Cardano.Wallet.Deposit.Pure.TxHistory.Type using
     ( TxHistory
@@ -106,8 +107,10 @@ getValueTransfers range history =
     Operations
 ------------------------------------------------------------------------------}
 
-rollForward : SlotNo → List (TxId × ResolvedTx) → TxHistory → TxHistory
-rollForward new txs history =
+rollForward
+  : ∀{era} → {{IsEra era}}
+  → SlotNo → List (TxId × ResolvedTx era) → TxHistory → TxHistory
+rollForward {era} new txs history =
     if WithOrigin.At new <= getTip history
     then history
     else record
@@ -122,8 +125,9 @@ rollForward new txs history =
     txids = Set.fromList (map fst txs)
 
     insertValueTransfer
-      : PairMap.PairMap TxId Address ValueTransfer
-      → TxId × ResolvedTx
+      : ∀{era1} → {{IsEra era1}}
+      → PairMap.PairMap TxId Address ValueTransfer
+      → TxId × ResolvedTx era1
       → PairMap.PairMap TxId Address ValueTransfer
     insertValueTransfer m0 (txid , tx) =
         foldl' (uncurry ∘ fun) m0 (Map.toAscList mv)

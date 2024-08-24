@@ -21,6 +21,8 @@ open import Cardano.Wallet.Deposit.Read using
     ( Address
     ; TxIn
     ; TxOut
+      ; getCompactAddr
+      ; getValue
     ; Value
     )
 open import Haskell.Data.Maybe using
@@ -47,7 +49,7 @@ dom : UTxO → Set.ℙ TxIn
 dom = Map.keysSet
 
 balance : UTxO → Value
-balance = foldMap TxOut.value
+balance = foldMap getValue
 
 -- | Left-biased union.
 union : UTxO → UTxO → UTxO
@@ -64,7 +66,7 @@ excludingS : Set.ℙ TxIn → UTxO → Set.ℙ TxIn
 excludingS s utxo = Set.filter (not ∘ (λ txin → Map.member txin utxo)) s
 
 filterByAddress : (Address → Bool) → UTxO → UTxO
-filterByAddress p = Map.filter (p ∘ TxOut.address)
+filterByAddress p = Map.filter (p ∘ getCompactAddr)
 
 {-# COMPILE AGDA2HS UTxO #-}
 {-# COMPILE AGDA2HS null #-}
@@ -117,19 +119,19 @@ prop-filterByAddress-filters
         (utxo : UTxO) (txin : TxIn) (txout : TxOut)
     → Map.lookup txin utxo ≡ Just txout
     → Map.member txin (filterByAddress p utxo)
-        ≡ p (TxOut.address txout)
+        ≡ p (getCompactAddr txout)
 --
 prop-filterByAddress-filters p u key x eq =
     begin
         isJust (Map.lookup key (filterByAddress p u))
     ≡⟨ cong isJust (Map.prop-lookup-filterWithKey-Just key x u q eq) ⟩
-        isJust (if p (TxOut.address x) then Just x else Nothing)
+        isJust (if p (getCompactAddr x) then Just x else Nothing)
     ≡⟨ lem2 _ _ ⟩
-        p (TxOut.address x)
+        p (getCompactAddr x)
     ∎
   where
     q : TxIn → _
-    q k = p ∘ TxOut.address
+    q k = p ∘ getCompactAddr
 
     lem2
       : ∀ {a : Set} (b : Bool) (x : a)

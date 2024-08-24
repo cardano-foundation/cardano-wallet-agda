@@ -1,6 +1,7 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxO where
 
-import Cardano.Wallet.Deposit.Read (Address, TxIn, TxOut (address, value))
+import Cardano.Wallet.Deposit.Read (Address)
+import Cardano.Wallet.Read.Tx (TxIn, TxOut, getCompactAddr, getValue)
 import Cardano.Wallet.Read.Value (Value)
 import Data.Set (Set)
 import qualified Haskell.Data.Map as Map
@@ -28,7 +29,7 @@ dom :: UTxO -> Set TxIn
 dom = Map.keysSet
 
 balance :: UTxO -> Value
-balance = foldMap (\r -> value r)
+balance = foldMap getValue
 
 union :: UTxO -> UTxO -> UTxO
 union = Map.unionWith (\x y -> x)
@@ -44,4 +45,4 @@ excludingS s utxo =
     Set.filter (not . \txin -> Map.member txin utxo) s
 
 filterByAddress :: (Address -> Bool) -> UTxO -> UTxO
-filterByAddress p = Map.filter (p . \r -> address r)
+filterByAddress p = Map.filter (p . getCompactAddr)

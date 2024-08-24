@@ -8,7 +8,7 @@ import Cardano.Wallet.Read.Chain
     , getChainPoint
     )
 import Cardano.Wallet.Read.Eras (IsEra)
-import Cardano.Wallet.Read.Value (Value)
+import Cardano.Wallet.Read.Tx (Tx, TxIn, TxOut)
 import qualified Haskell.Data.ByteString as BS (ByteString)
 
 -- Working around a limitation in agda2hs.
@@ -20,17 +20,7 @@ type Addr = BS.ByteString
 
 type Address = Addr
 
-type TxId = BS.ByteString
-
-type Ix = Int
-
-type TxIn = (TxId, Ix)
-
-data TxOut = TxOutC {address :: Address, value :: Value}
-
 data TxBody = TxBodyC {inputs :: [TxIn], outputs :: [TxOut]}
-
-data Tx = TxC {txid :: TxId, txbody :: TxBody}
 
 data WithOrigin a
     = Origin
@@ -42,7 +32,7 @@ deriving instance (Ord a) => Ord (WithOrigin a)
 
 type Slot = WithOrigin SlotNo
 
-getEraTransactions :: IsEra era => Block era -> [Tx]
+getEraTransactions :: IsEra era => Block era -> [Tx era]
 getEraTransactions block = []
 
 chainPointFromBlock :: IsEra era => Block era -> ChainPoint

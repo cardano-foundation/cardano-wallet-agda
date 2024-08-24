@@ -85,6 +85,10 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxId
     ; TxIn
     ; TxOut
+      ; getCompactAddr
+      ; getValue
+      ; mkBasicTxOut
+      ; prop-getCompactAddr-mkBasicTxOut
     )
 open import Cardano.Wallet.Read.Value public using
     ( Value
@@ -227,7 +231,9 @@ prop-changeAddress-not-Customer s addr =
     Tracking incoming funds
 ------------------------------------------------------------------------------}
 
-summarizeTx : WalletState → Tx → Map.Map Address ValueTransfer
+summarizeTx
+  : ∀ {era} → {{IsEra era}}
+  → WalletState → Tx era → Map.Map Address ValueTransfer
 summarizeTx s tx =
     UTxO.valueTransferFromDeltaUTxO (utxo s) du
   where
@@ -281,7 +287,7 @@ availableBalance = UTxO.balance ∘ utxo
 {-# COMPILE AGDA2HS availableBalance #-}
 
 -- Specification
-applyTx : Tx → WalletState → WalletState
+applyTx : ∀{era} → {{IsEra era}} → Tx era → WalletState → WalletState
 applyTx tx s0 = s1
   where
     s1 : WalletState
@@ -309,7 +315,12 @@ rollForwardOne block s0 =
 ------------------------------------------------------------------------------}
 
 txOutFromPair : Address × Value → TxOut
-txOutFromPair (x , y) = record { address = x ; value = y }
+txOutFromPair (x , y) = mkBasicTxOut x y
+
+prop-getCompactAddr-txOutFromPair
+  : (getCompactAddr ∘ txOutFromPair) ≡ fst
+prop-getCompactAddr-txOutFromPair =
+  ext (λ { (x , y) → prop-getCompactAddr-mkBasicTxOut x y })
 
 -- Specification
 createPayment
@@ -358,7 +369,7 @@ prop-createPayment-success = λ s destinations x → {!   !}
   → ∀ (address : Address)
     → knownCustomerAddress address s ≡ True
     → ¬ (address ∈ map fst destinations)
-    → ¬ (address ∈ map TxOut.address (TxBody.outputs tx))
+    → ¬ (address ∈ map getCompactAddr (TxBody.outputs tx))
 --
 prop-createPayment-not-known s destinations tx created addr known ¬dest =
   λ outs →
@@ -374,24 +385,24 @@ prop-createPayment-not-known s destinations tx created addr known ¬dest =
 
     lem1 =
       begin
-        map TxOut.address (PartialTx.outputs partialTx)
+        map getCompactAddr (PartialTx.outputs partialTx)
       ≡⟨⟩
-        map TxOut.address (map txOutFromPair destinations)
+        map getCompactAddr (map txOutFromPair destinations)
       ≡⟨ sym (map-∘ _ _ destinations) ⟩
-        map (TxOut.address ∘ txOutFromPair) destinations
+        map (getCompactAddr ∘ txOutFromPair) destinations
       ≡⟨⟩
-        map (λ x → TxOut.address (txOutFromPair x)) destinations
-      ≡⟨⟩
+        map (λ x → getCompactAddr (txOutFromPair x)) destinations
+      ≡⟨ cong (λ f → map f destinations) prop-getCompactAddr-txOutFromPair ⟩
         map (λ x → fst x) destinations
       ∎
     
-    lem2 : ¬(addr ∈ map TxOut.address (PartialTx.outputs partialTx))
+    lem2 : ¬(addr ∈ map getCompactAddr (PartialTx.outputs partialTx))
     lem2 p rewrite lem1 = ¬dest p
 
     changeOrPartial
-      : addr ∈ map TxOut.address (TxBody.outputs tx)
+      : addr ∈ map getCompactAddr (TxBody.outputs tx)
       → isChange new addr
-        ⋁ addr ∈ map TxOut.address (PartialTx.outputs partialTx)
+        ⋁ addr ∈ map getCompactAddr (PartialTx.outputs partialTx)
     changeOrPartial =
       prop-balanceTransaction-addresses
         (utxo s) partialTx (newChangeAddress s) tt tx created addr

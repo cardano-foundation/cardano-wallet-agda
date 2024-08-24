@@ -3,15 +3,14 @@ module Cardano.Wallet.Deposit.Pure where
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub)
 import Cardano.Wallet.Deposit.Read
     ( Address
-    , Tx
     , TxBody
-    , TxOut (TxOutC)
     , chainPointFromBlock
     , getEraTransactions
     )
 import Cardano.Wallet.Read.Block (Block)
 import Cardano.Wallet.Read.Chain (ChainPoint)
 import Cardano.Wallet.Read.Eras (IsEra)
+import Cardano.Wallet.Read.Tx (Tx, TxOut, mkBasicTxOut)
 import Cardano.Wallet.Read.Value (Value)
 import Cardano.Write.Tx.Balance
     ( ChangeAddressGen
@@ -76,7 +75,7 @@ getCustomerHistory s c = concat (Map.lookup c (txSummaries s))
 availableBalance :: WalletState -> Value
 availableBalance = UTxO.balance . \r -> utxo r
 
-applyTx :: Tx -> WalletState -> WalletState
+applyTx :: IsEra era => Tx era -> WalletState -> WalletState
 applyTx tx s0 = s1
   where
     s1 :: WalletState
@@ -100,7 +99,7 @@ rollForwardOne block s0 =
     s1 = foldl (\s tx -> applyTx tx s) s0 (getEraTransactions block)
 
 txOutFromPair :: (Address, Value) -> TxOut
-txOutFromPair (x, y) = TxOutC x y
+txOutFromPair (x, y) = mkBasicTxOut x y
 
 createPayment :: [(Address, Value)] -> WalletState -> Maybe TxBody
 createPayment destinations s =

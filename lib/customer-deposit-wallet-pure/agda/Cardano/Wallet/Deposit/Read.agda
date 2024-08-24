@@ -6,6 +6,7 @@ open import Haskell.Prelude
 open import Cardano.Wallet.Read.Eras public
 open import Cardano.Wallet.Read.Block public
 open import Cardano.Wallet.Read.Chain public
+open import Cardano.Wallet.Read.Tx public
 open import Cardano.Wallet.Read.Value public
 
 {-# FOREIGN AGDA2HS
@@ -42,30 +43,6 @@ instance
     Transactions
 ------------------------------------------------------------------------------}
 
-TxId = BS.ByteString
-
-instance
-  iEqTxId : Eq TxId
-  iEqTxId = BS.iEqByteString
-
-  iOrdTxId : Ord TxId
-  iOrdTxId = BS.iOrdByteString
-
-  iLawfulEqTxId : IsLawfulEq TxId
-  iLawfulEqTxId = BS.iLawfulEqByteString
-
-Ix = Int
-
-TxIn = TxId × Ix
-
-record TxOut : Set where
-  constructor TxOutC
-  field
-    address : Address
-    value   : Value
-
-open TxOut public
-
 record TxBody : Set where
   constructor TxBodyC
   field
@@ -74,21 +51,7 @@ record TxBody : Set where
 
 open TxBody public
 
-record Tx : Set where
-  constructor TxC
-  field
-    txid   : TxId
-    txbody : TxBody
-
-open Tx public
-
-{-# COMPILE AGDA2HS TxId #-}
-{-# COMPILE AGDA2HS Ix #-}
-{-# COMPILE AGDA2HS TxIn #-}
-{-# COMPILE AGDA2HS TxOut #-}
 {-# COMPILE AGDA2HS TxBody #-}
-{-# COMPILE AGDA2HS Tx #-}
-
 
 {-----------------------------------------------------------------------------
     Slot
@@ -123,7 +86,7 @@ Slot = WithOrigin SlotNo
 {-----------------------------------------------------------------------------
     Block
 ------------------------------------------------------------------------------}
-getEraTransactions : {{IsEra era}} → Block era → List Tx
+getEraTransactions : {{IsEra era}} → Block era → List (Tx era)
 getEraTransactions block = []
 
 {-# COMPILE AGDA2HS getEraTransactions #-}
