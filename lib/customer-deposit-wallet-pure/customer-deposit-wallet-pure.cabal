@@ -91,6 +91,7 @@ library
     Data.Maps.Timeline
   other-modules:
     Haskell.Data.ByteString
+    Haskell.Data.ByteString.Short
     Haskell.Data.List
     Haskell.Data.Map
     Haskell.Data.Maps.InverseMap
