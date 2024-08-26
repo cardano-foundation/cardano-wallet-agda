@@ -21,10 +21,19 @@ steps:
     env:
       TMPDIR: "/tmp"
 
-  - label: "Build agda2hs"
+  - label: "Build .agda .hs"
     depends_on: linux-nix
     command: |
-      ${nix} --command bash -c 'just ci'
+      ${nix} --command bash -c 'just ci-build'
+    agents:
+      system: ${linux}
+    env:
+      TMPDIR: "/tmp"
+  
+  - label: "Check unit tests"
+    depends_on: linux-nix
+    command: |
+      ${nix} --command bash -c 'just ci-check'
     agents:
       system: ${linux}
     env:

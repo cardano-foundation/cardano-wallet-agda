@@ -40,7 +40,7 @@
           inherit (inputs.haskellNix) config;
         };
 
-        indexState = "2024-03-15T17:07:52Z";
+        indexState = "2024-08-20T21:35:22Z";
 
         # ... and construct a flake from the cabal.project file.
         # We use cabalProject' to ensure we don't build the plan for
@@ -48,14 +48,14 @@
         flake = (nixpkgs.haskell-nix.cabalProject' rec {
           src = ./.;
           name = "customer-deposit-wallet-pure";
-          compiler-nix-name = "ghc964";
+          compiler-nix-name = "ghc966";
 
           inputMap = { "https://chap.intersectmbo.org/" = inputs.CHaP; };
 
           # tools we want in our shell
           shell.tools = {
             cabal = {
-              version = "3.10.2.1";
+              version = "3.12.1.0";
               index-state = indexState;
             };
             fourmolu = "0.14.1.0";
