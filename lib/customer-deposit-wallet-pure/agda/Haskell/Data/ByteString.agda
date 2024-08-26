@@ -41,12 +41,12 @@ singleton : Word8 → ByteString
 singleton x = pack (x ∷ [])
 
 instance
-  iSemigroupDeltaUTxO : Semigroup ByteString
-  iSemigroupDeltaUTxO = record { _<>_ = append }
+  iSemigroupByteString : Semigroup ByteString
+  iSemigroupByteString = record { _<>_ = append }
 
 instance
-  iMonoidDeltaUTxO : Monoid ByteString
-  iMonoidDeltaUTxO =
+  iMonoidByteString : Monoid ByteString
+  iMonoidByteString =
     record {DefaultMonoid (λ where .DefaultMonoid.mempty → empty)}
 
 {-----------------------------------------------------------------------------
