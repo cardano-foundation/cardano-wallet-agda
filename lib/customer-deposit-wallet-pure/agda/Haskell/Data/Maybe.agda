@@ -25,3 +25,9 @@ fromMaybe a Nothing = a
 {-# COMPILE AGDA2HS isJust #-}
 {-# COMPILE AGDA2HS catMaybes #-}
 {-# COMPILE AGDA2HS fromMaybe #-}
+
+prop-Just-injective
+  : ∀ {a : Set} (x y : a)
+  → Just x ≡ Just y
+  → x ≡ y
+prop-Just-injective _ _ refl = refl
