@@ -14,13 +14,15 @@ open import Haskell.Data.Set using
 open import Haskell.Data.Word using
     ( Word16
     )
+open import Cardano.Wallet.Read.Address using
+    ( CompactAddr
+    )
 open import Cardano.Wallet.Read.Eras using
     ( IsEra
     )
 open import Cardano.Wallet.Read.Value using
     ( Value
     )
-import Haskell.Data.ByteString as BS
 
 {-----------------------------------------------------------------------------
     TxId
@@ -73,7 +75,6 @@ postulate instance
 {-----------------------------------------------------------------------------
     TxOut
 ------------------------------------------------------------------------------}
-CompactAddr = BS.ByteString
 
 postulate
   TxOut : Set

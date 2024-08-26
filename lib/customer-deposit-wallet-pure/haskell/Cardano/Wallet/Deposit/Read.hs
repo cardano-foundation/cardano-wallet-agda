@@ -2,6 +2,7 @@
 
 module Cardano.Wallet.Deposit.Read where
 
+import Cardano.Wallet.Read.Address (CompactAddr)
 import Cardano.Wallet.Read.Block (Block, SlotNo)
 import Cardano.Wallet.Read.Chain
     ( ChainPoint (BlockPoint, GenesisPoint)
@@ -9,14 +10,13 @@ import Cardano.Wallet.Read.Chain
     )
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (Tx, TxIn, TxOut)
-import qualified Haskell.Data.ByteString as BS (ByteString)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Read.Value
     ( Value
     )
 
-type Addr = BS.ByteString
+type Addr = CompactAddr
 
 type Address = Addr
 
