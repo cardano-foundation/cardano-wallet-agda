@@ -63,6 +63,7 @@ library
     , cardano-ledger-api >= 1.9.2.0 && < 1.10
     , cardano-ledger-core >= 1.13.1.0 && < 1.14
     , cardano-ledger-mary >= 1.6.1.0 && < 1.7
+    , transformers >= 0.6.1.0 && < 0.7
   exposed-modules:
     Cardano.Wallet.Address.BIP32
     Cardano.Wallet.Address.BIP32_Ed25519
@@ -82,6 +83,7 @@ library
     Cardano.Wallet.Deposit.Pure.TxHistory.Type
     Cardano.Wallet.Deposit.Pure.TxSummary
     Cardano.Wallet.Deposit.Read
+    Cardano.Wallet.Read.Address
     Cardano.Wallet.Read.Block
     Cardano.Wallet.Read.Chain
     Cardano.Wallet.Read.Eras
