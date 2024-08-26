@@ -1,52 +1,62 @@
 {-# OPTIONS --erasure #-}
 
-module Haskell.Data.ByteString
+module Haskell.Data.ByteString.Short
     {-
     ; ByteString
     -}
     where
 
 open import Haskell.Prelude hiding (lookup; null; map)
+
 open import Haskell.Data.Word using
     ( Word8
     )
+
+import Haskell.Data.ByteString as BS
 
 {-----------------------------------------------------------------------------
     ByteString
 ------------------------------------------------------------------------------}
 
 postulate
-  ByteString : Set
+  ShortByteString : Set
 
 postulate
-  pack   : List Word8 → ByteString
-  unpack : ByteString → List Word8
+  pack   : List Word8 → ShortByteString
+  unpack : ShortByteString → List Word8
 
   instance
-    iEqByteString  : Eq ByteString
+    iEqShortByteString  : Eq ShortByteString
   
-  iOrdByteString₀ : Ord ByteString
+  iOrdShortByteString₀ : Ord ShortByteString
 
 instance
-  iOrdByteString : Ord ByteString
-  iOrdByteString = record iOrdByteString₀ { super = iEqByteString }
+  iOrdShortByteString : Ord ShortByteString
+  iOrdShortByteString =
+      record iOrdShortByteString₀ { super = iEqShortByteString }
 
-empty : ByteString
+empty : ShortByteString
 empty = pack []
 
-append : ByteString → ByteString → ByteString
-append x y = pack (unpack x ++ unpack y)
-
-singleton : Word8 → ByteString
+singleton : Word8 → ShortByteString
 singleton x = pack (x ∷ [])
 
-instance
-  iSemigroupByteString : Semigroup ByteString
-  iSemigroupByteString = record { _<>_ = append }
+fromShort : ShortByteString → BS.ByteString
+fromShort = BS.pack ∘ unpack
+
+toShort : BS.ByteString → ShortByteString
+toShort = pack ∘ BS.unpack
+
+append : ShortByteString → ShortByteString → ShortByteString
+append x y = pack (unpack x ++ unpack y)
 
 instance
-  iMonoidByteString : Monoid ByteString
-  iMonoidByteString =
+  iSemigroupShortByteString : Semigroup ShortByteString
+  iSemigroupShortByteString = record { _<>_ = append }
+
+instance
+  iMonoidShortByteString : Monoid ShortByteString
+  iMonoidShortByteString =
     record {DefaultMonoid (λ where .DefaultMonoid.mempty → empty)}
 
 {-----------------------------------------------------------------------------
@@ -55,7 +65,7 @@ instance
 
 postulate
   prop-pack-∘-unpack
-    : ∀ (x : ByteString)
+    : ∀ (x : ShortByteString)
     → pack (unpack x) ≡ x
 
   prop-unpack-∘-pack
@@ -63,7 +73,12 @@ postulate
     → unpack (pack x) ≡ x
   
   instance
-    iLawfulEqByteString : IsLawfulEq ByteString
+    iLawfulEqShortByteString : IsLawfulEq ShortByteString
+
+{-----------------------------------------------------------------------------
+    Properties
+    Injectivity
+------------------------------------------------------------------------------}
 
 prop-pack-injective
   : ∀ (x y : List Word8)
@@ -81,7 +96,7 @@ prop-pack-injective x y eq =
   ∎
 
 prop-unpack-injective
-  : ∀ (x y : ByteString)
+  : ∀ (x y : ShortByteString)
   → unpack x ≡ unpack y
   → x ≡ y
 prop-unpack-injective x y eq =
@@ -94,6 +109,27 @@ prop-unpack-injective x y eq =
   ≡⟨ prop-pack-∘-unpack y ⟩
     y
   ∎
+
+prop-fromShort-injective
+  : ∀ (x y : ShortByteString)
+  → fromShort x ≡ fromShort y
+  → x ≡ y
+prop-fromShort-injective x y =
+  prop-unpack-injective _ _
+  ∘ BS.prop-pack-injective _ _
+
+prop-toShort-injective
+  : ∀ (x y : BS.ByteString)
+  → toShort x ≡ toShort y
+  → x ≡ y
+prop-toShort-injective x y =
+  BS.prop-unpack-injective _ _
+  ∘ prop-pack-injective _ _
+
+{-----------------------------------------------------------------------------
+    Properties
+    Semigroup morphisms
+------------------------------------------------------------------------------}
 
 prop-pack-morphism
   : ∀ (x y : List Word8)
@@ -110,7 +146,7 @@ prop-pack-morphism x y =
   ∎
 
 prop-unpack-morphism
-  : ∀ (x y : ByteString)
+  : ∀ (x y : ShortByteString)
   → unpack (x <> y) ≡ unpack x ++ unpack y
 prop-unpack-morphism x y =
   begin
@@ -122,7 +158,7 @@ prop-unpack-morphism x y =
   ∎
 
 prop-<>-cancel-left
-  : ∀ (x y z : ByteString)
+  : ∀ (x y z : ShortByteString)
   → x <> y ≡ x <> z
   → y ≡ z
 prop-<>-cancel-left x y z =

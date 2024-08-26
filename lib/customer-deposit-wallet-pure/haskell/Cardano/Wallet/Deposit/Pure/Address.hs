@@ -7,9 +7,9 @@ import Cardano.Wallet.Address.BIP32
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft)
 import Cardano.Wallet.Address.Encoding (mkEnterpriseAddress)
 import Cardano.Wallet.Deposit.Read (Address)
+import qualified Cardano.Wallet.Read.Address (CompactAddr)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word.Odd (Word31)
-import qualified Haskell.Data.ByteString as BS (ByteString)
 import qualified Haskell.Data.Map as Map (Map, empty, insert, lookup, toAscList)
 import Haskell.Data.Maybe (isJust)
 
@@ -97,7 +97,8 @@ createAddress c s0 = (addr, s1)
     xpub = stateXPub s0
     addr :: Address
     addr = deriveCustomerAddress xpub c
-    addresses1 :: Map.Map BS.ByteString Word31
+    addresses1
+        :: Map.Map Cardano.Wallet.Read.Address.CompactAddr Word31
     addresses1 = Map.insert addr c (addresses s0)
     s1 :: AddressState
     s1 = AddressStateC (stateXPub s0) addresses1 (change s0)

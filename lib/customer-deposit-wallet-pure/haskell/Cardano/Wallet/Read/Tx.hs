@@ -16,6 +16,9 @@ module Cardano.Wallet.Read.Tx
 
 import Prelude
 
+import Cardano.Wallet.Read.Address
+    ( CompactAddr
+    )
 import Cardano.Wallet.Read.Eras
     ( IsEra
     )
@@ -59,8 +62,6 @@ data TxIn = TxInC
 {-----------------------------------------------------------------------------
     TxOut
 ------------------------------------------------------------------------------}
-type CompactAddr = ByteString
-
 data TxOut = TxOutC
     { getCompactAddr :: CompactAddr
     , getValue :: Value

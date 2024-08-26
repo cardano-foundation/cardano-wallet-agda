@@ -19,12 +19,22 @@ open import Cardano.Wallet.Address.Hash using
   ; prop-blake2b'224-injective
   )
 open import Cardano.Wallet.Deposit.Read using
-  ( Addr
+  ( CompactAddr
+    ; fromShortByteString
+    ; prop-fromShortByteString-partially-injective
   )
-open import Haskell.Data.ByteString using
-  ( ByteString
-  ; singleton
-  ; prop-<>-cancel-left
+open import Haskell.Data.ByteString.Short using
+  ( ShortByteString
+    ; singleton
+    ; toShort
+    ; prop-toShort-injective
+    ; prop-<>-cancel-left
+  )
+open import Haskell.Data.Maybe using
+  ( fromJust
+  ; isJust
+  ; prop-Just-injective
+  ; prop-fromJust-injective
   )
 open import Haskell.Data.Word using
   ( Word8
@@ -42,9 +52,23 @@ tagEnterprise = 0b01100001
 
 {-# COMPILE AGDA2HS tagEnterprise #-}
 
-mkEnterpriseAddress : XPub → Addr
+mkEnterpriseAddressBytes : XPub → ShortByteString
+mkEnterpriseAddressBytes xpub =
+    singleton tagEnterprise <>
+      toShort (blake2b'224 (rawSerialiseXPub xpub))
+
+{-# COMPILE AGDA2HS mkEnterpriseAddressBytes #-}
+
+postulate
+  prop-mkEnterpriseAddress-isJust
+    : ∀ (xpub : XPub)
+    → isJust (fromShortByteString (mkEnterpriseAddressBytes xpub)) ≡ True
+
+mkEnterpriseAddress : XPub → CompactAddr
 mkEnterpriseAddress xpub =
-    singleton tagEnterprise <> blake2b'224 (rawSerialiseXPub xpub)
+  fromJust
+    (fromShortByteString (mkEnterpriseAddressBytes xpub))
+    {prop-mkEnterpriseAddress-isJust xpub}
 
 {-# COMPILE AGDA2HS mkEnterpriseAddress #-}
 
@@ -52,11 +76,22 @@ mkEnterpriseAddress xpub =
     Properties
 ------------------------------------------------------------------------------}
 
-prop-mkEnterpriseAddress-injective
+prop-mkEnterpriseAddressBytes-injective
+  : ∀ (x y : XPub)
+  → mkEnterpriseAddressBytes x ≡ mkEnterpriseAddressBytes y
+  → x ≡ y
+prop-mkEnterpriseAddressBytes-injective x y =
+  prop-rawSerialiseXPub-injective _ _
+    ∘ prop-blake2b'224-injective _ _
+    ∘ prop-toShort-injective _ _
+    ∘ prop-<>-cancel-left (singleton tagEnterprise) _ _
+
+@0 prop-mkEnterpriseAddress-injective
   : ∀ (x y : XPub)
   → mkEnterpriseAddress x ≡ mkEnterpriseAddress y
   → x ≡ y
 prop-mkEnterpriseAddress-injective x y =
-  prop-rawSerialiseXPub-injective _ _
-    ∘ prop-blake2b'224-injective _ _
-    ∘ prop-<>-cancel-left (singleton tagEnterprise) _ _
+  prop-mkEnterpriseAddressBytes-injective _ _
+  ∘ prop-fromShortByteString-partially-injective _ _
+      (prop-mkEnterpriseAddress-isJust x)
+  ∘ prop-fromJust-injective _ _

@@ -3,6 +3,7 @@ module Cardano.Wallet.Deposit.Read where
 
 open import Haskell.Prelude
 
+open import Cardano.Wallet.Read.Address public
 open import Cardano.Wallet.Read.Eras public
 open import Cardano.Wallet.Read.Block public
 open import Cardano.Wallet.Read.Chain public
@@ -16,25 +17,14 @@ import Cardano.Wallet.Read.Value
     )
 #-}
 
-import Haskell.Data.ByteString as BS
 import Haskell.Data.Map as Map
 
 {-----------------------------------------------------------------------------
     Address
 ------------------------------------------------------------------------------}
 
-Addr = BS.ByteString
+Addr = CompactAddr
 Address = Addr
-
-instance
-  iEqAddress : Eq Address
-  iEqAddress = BS.iEqByteString
-
-  iOrdAddress : Ord Address
-  iOrdAddress = BS.iOrdByteString
-
-  iLawfulEqAddress : IsLawfulEq Address
-  iLawfulEqAddress = BS.iLawfulEqByteString
 
 {-# COMPILE AGDA2HS Addr #-}
 {-# COMPILE AGDA2HS Address #-}
