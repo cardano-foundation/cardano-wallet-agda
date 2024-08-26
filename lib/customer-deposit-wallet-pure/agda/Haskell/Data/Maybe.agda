@@ -36,3 +36,10 @@ prop-Just-injective
   → Just x ≡ Just y
   → x ≡ y
 prop-Just-injective _ _ refl = refl
+
+prop-fromJust-injective
+  : ∀ {a} (x y : Maybe a)
+  → {@0 px : isJust x ≡ True} → {@0 py : isJust y ≡ True}
+  → fromJust x {px} ≡ fromJust y {py}
+  → x ≡ y
+prop-fromJust-injective (Just a) (Just b) refl = refl
