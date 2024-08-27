@@ -17,9 +17,11 @@ module Cardano.Wallet.Read
     , module Cardano.Wallet.Read.Chain
     , module Cardano.Wallet.Read.Eras
     , module Cardano.Wallet.Read.Tx
+    , module Cardano.Wallet.Read.Value
     ) where
 
 import Cardano.Wallet.Read.Block
 import Cardano.Wallet.Read.Chain
 import Cardano.Wallet.Read.Eras
 import Cardano.Wallet.Read.Tx
+import Cardano.Wallet.Read.Value
