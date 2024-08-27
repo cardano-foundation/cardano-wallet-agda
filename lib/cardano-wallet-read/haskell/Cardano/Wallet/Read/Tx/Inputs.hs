@@ -19,7 +19,7 @@ import Cardano.Wallet.Read.Eras
     , Era (..)
     , IsEra (..)
     )
-import Cardano.Wallet.Read.Tx
+import Cardano.Wallet.Read.Tx.Tx
     ( Tx
     )
 import Cardano.Wallet.Read.Tx.TxId

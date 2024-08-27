@@ -27,13 +27,13 @@ import Cardano.Read.Ledger.Tx.CBOR
     ( deserializeTx
     , serializeTx
     )
-import Cardano.Read.Ledger.Tx.Tx
-    ( Tx
-    )
 import Cardano.Wallet.Read.Eras
     ( EraValue (..)
     , K (..)
     , applyEraFunValue
+    )
+import Cardano.Wallet.Read.Tx.Tx
+    ( Tx
     )
 import Data.ByteArray.Encoding
     ( Base (Base16)
