@@ -46,11 +46,6 @@ import Data.Coerce
 import Data.Text
     ( Text
     )
-import Test.Cardano.Crypto.CBOR
-    ( getBytes
-    )
-import Test.Cardano.Ledger.Alonzo.AlonzoEraGen
-    ()
 
 import qualified Cardano.Chain.Block as Byron
 import qualified Cardano.Chain.Common as Byron
@@ -63,6 +58,7 @@ import qualified Cardano.Chain.Update as Byron.Update
 import qualified Cardano.Chain.UTxO as Byron
 import qualified Cardano.Crypto.Signing as S
 import qualified Cardano.Crypto.Wallet as CC
+import qualified Data.ByteString as BS
 import qualified Ouroboros.Consensus.Byron.Ledger as O
 
 mkByronBlock :: BlockParameters Byron -> O.ByronBlock
@@ -132,6 +128,18 @@ someSigningKeys offset count = map (toKey . (* offset)) [0 .. count - 1]
     toKey start = case CC.xprv (getBytes start 128) of
         Left err -> error $ "exampleSigningKeys: " <> show err
         Right sk -> SigningKey sk
+
+getBytes :: Int -> Int -> BS.ByteString
+getBytes offset len = BS.take len $ BS.drop offset constantByteString
+
+constantByteString :: BS.ByteString
+constantByteString =
+  "Kmyw4lDSE5S4fSH6etNouiXezCyEjKc3tG4ja0kFjO8qzai26ZMPUEJfEy15ox5kJ0uKD\
+  \bi7i6dLXkuesVZ9JfHgjrctsLFt2NvovXnchsOvX05Y6LohlTNt5mkPFhUoXu1EZSJTIy\
+  \3fTU53b412r4AEusD7tcdRgH47yTr5hMO63bJnYBbmNperLHfiT1lP0MLQLh1J1DfoYBs\
+  \auoJOzvtAgvjHo6UFttnK6vZ3Cknpuob6uMS2MkJKmuoQsqsAYcRDWbJ2Rgw4bm2ndTM4\
+  \zFfuRDKvdrL6sDkuPNPYqxMWlqnXjSbU0eLtceZuKgXLHR8cdvsEvywt4JaZUQhnbq3Vl\
+  \7nZqcXdoi4XGTCgSGcGp8N0SDVhvkVh0QF1RVpWPnOMyYISJvuaHfo1zXMdq9tEdtJfID"
 
 delegationCertificate :: Byron.Certificate
 delegationCertificate =
