@@ -102,7 +102,7 @@ import Control.Monad.Trans.Writer
     , execWriterT
     , tell
     )
-import Data.Either.Extra
+import Data.Either
     ( partitionEithers
     )
 import Data.Functor

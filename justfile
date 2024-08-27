@@ -13,6 +13,9 @@ build:
 build0:
     cabal build -v0 -O0 -j all
 
+test:
+    cabal test -v0 -O0 -j all
+
 ci-build:
     just haskell && git diff --exit-code && just build0
 
