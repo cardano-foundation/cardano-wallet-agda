@@ -30,7 +30,7 @@ import Cardano.Ledger.Hashes
 import Cardano.Ledger.Shelley.API.ByronTranslation
     ( translateTxIdByronToShelley
     )
-import Cardano.Wallet.Read
+import Cardano.Wallet.Read.Tx.Tx
     ( Tx
     )
 import Cardano.Wallet.Read.Eras

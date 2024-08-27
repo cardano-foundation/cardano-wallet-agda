@@ -56,14 +56,11 @@ library
     , bytestring >= 0.10.12.0 && < 0.13
     , cardano-crypto >= 1.1.2 && < 1.2
     , cardano-crypto-class >= 2.1.1.0 && < 2.2
+    , cardano-wallet-read == 0.2024.8.27
     , containers >= 0.6.6 && < 0.8
     , deepseq >= 1.4.4 && < 1.6
     , text >= 1.2.4.1 && < 2.2
     , OddWord >= 1.0.1.1 && < 1.1
-    , cardano-ledger-api >= 1.9.2.0 && < 1.10
-    , cardano-ledger-core >= 1.13.1.0 && < 1.14
-    , cardano-ledger-mary >= 1.6.1.0 && < 1.7
-    , transformers >= 0.6.1.0 && < 0.7
   exposed-modules:
     Cardano.Wallet.Address.BIP32
     Cardano.Wallet.Address.BIP32_Ed25519
@@ -83,12 +80,6 @@ library
     Cardano.Wallet.Deposit.Pure.TxHistory.Type
     Cardano.Wallet.Deposit.Pure.TxSummary
     Cardano.Wallet.Deposit.Read
-    Cardano.Wallet.Read.Address
-    Cardano.Wallet.Read.Block
-    Cardano.Wallet.Read.Chain
-    Cardano.Wallet.Read.Eras
-    Cardano.Wallet.Read.Tx
-    Cardano.Wallet.Read.Value
     Cardano.Write.Tx.Balance
     Data.Maps.Timeline
   other-modules:

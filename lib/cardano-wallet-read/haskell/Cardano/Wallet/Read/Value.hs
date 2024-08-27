@@ -4,31 +4,31 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-{- |
-Copyright: © 2024 Cardano Foundation
-License: Apache-2.0
-
-'Value' — ADA and native assets.
--}
+-- |
+-- Copyright: © 2024 Cardano Foundation
+-- License: Apache-2.0
+--
+-- 'Value' — ADA and native assets.
 module Cardano.Wallet.Read.Value
     ( -- * Coin
       Coin (CoinC, unCoin)
 
-    -- * MultiAsset
+      -- * MultiAsset
     , MultiAsset
     , AssetName
     , PolicyID
     , AssetID (..)
     , Quantity
 
-    -- * Value
-    , Value (ValueC,getCoin,getAssets)
+      -- * Value
+    , Value (ValueC, getCoin, getAssets)
     , lookupAssetID
     , injectCoin
     , valueFromList
     , add
     , subtract
     , lessOrEqual
+    , largerOrEqual
 
     -- * Internal
     , fromEraValue
@@ -43,7 +43,7 @@ import Cardano.Ledger.Api
     ( StandardCrypto
     )
 import Cardano.Ledger.Coin
-    ( Coin
+    ( Coin (Coin)
     )
 import Cardano.Ledger.Val
     ( pointwise
@@ -64,7 +64,7 @@ import qualified Cardano.Read.Ledger.Value as L
 ------------------------------------------------------------------------------}
 {-# COMPLETE CoinC #-}
 pattern CoinC :: Integer -> Coin
-pattern CoinC{unCoin} = L.Coin unCoin
+pattern CoinC{unCoin} = Coin unCoin
 
 {-----------------------------------------------------------------------------
     MultiAssets
@@ -89,8 +89,17 @@ type MultiAsset = MA.MultiAsset StandardCrypto
 {-----------------------------------------------------------------------------
     Value
 ------------------------------------------------------------------------------}
+
 -- | Monetary values, representing both ADA and native assets/tokens.
 newtype Value = Value (MA.MaryValue StandardCrypto)
+
+-- | Internal: Convert from ledger 'MaryValue'.
+fromMaryValue :: MA.MaryValue StandardCrypto -> Value
+fromMaryValue = Value
+
+-- | Internal: Convert to ledger 'MaryValue'.
+toMaryValue :: Value -> MA.MaryValue StandardCrypto
+toMaryValue (Value v) = v
 
 instance Eq Value where
     (Value x) == (Value y) = x == y
@@ -100,7 +109,22 @@ instance Show Value where
 
 {-# COMPLETE ValueC #-}
 pattern ValueC :: Coin -> MultiAsset -> Value
-pattern ValueC{getCoin,getAssets} = Value (MA.MaryValue getCoin getAssets)
+pattern ValueC{getCoin, getAssets} = Value (MA.MaryValue getCoin getAssets)
+
+-- | Internal: Convert from era-indexed 'L.Value'.
+fromEraValue :: forall era. IsEra era => L.Value era -> Value
+fromEraValue = fromMaryValue . case theEra :: Era era of
+    Byron -> onValue L.maryValueFromByronValue
+    Shelley -> onValue L.maryValueFromShelleyValue
+    Allegra -> onValue L.maryValueFromShelleyValue
+    Mary -> onValue id
+    Alonzo -> onValue id
+    Babbage -> onValue id
+    Conway -> onValue id
+
+-- Helper function for type inference.
+onValue :: (L.ValueType era -> t) -> L.Value era -> t
+onValue f (L.Value x) = f x
 
 -- | Look up the quantity corresponding to an 'AssetID'.
 lookupAssetID :: AssetID -> Value -> Quantity
@@ -145,28 +169,9 @@ lessOrEqual :: Value -> Value -> Bool
 lessOrEqual (Value value1) (Value value2) =
     pointwise (<=) value1 value2
 
-{-----------------------------------------------------------------------------
-    Conversions from Eras
-------------------------------------------------------------------------------}
--- | Internal: Convert from ledger 'MaryValue'.
-fromMaryValue :: MA.MaryValue StandardCrypto -> Value
-fromMaryValue = Value
-
--- | Internal: Convert to ledger 'MaryValue'.
-toMaryValue :: Value -> MA.MaryValue StandardCrypto
-toMaryValue (Value v) = v
-
--- | Internal: Convert from era-indexed 'L.Value'.
-fromEraValue :: forall era. IsEra era => L.Value era -> Value
-fromEraValue = fromMaryValue . case theEra :: Era era of
-    Byron -> onValue L.maryValueFromByronValue
-    Shelley -> onValue L.maryValueFromShelleyValue
-    Allegra -> onValue L.maryValueFromShelleyValue
-    Mary -> onValue id
-    Alonzo -> onValue id
-    Babbage -> onValue id
-    Conway -> onValue id
-
--- Helper function for type inference.
-onValue :: (L.ValueType era -> t) -> L.Value era -> t
-onValue f (L.Value x) = f x
+-- | Check whether all assets in the first argument
+-- are present in larger or equal quantity
+-- than the assets in the second argument.
+largerOrEqual :: Value -> Value -> Bool
+largerOrEqual (Value value1) (Value value2) =
+    pointwise (>=) value1 value2

@@ -70,7 +70,7 @@ import Cardano.Wallet.Read.Eras
     , indexOfEra
     , parseEraIndex
     )
-import Cardano.Wallet.Read.Tx
+import Cardano.Wallet.Read.Tx.Tx
     ( Tx (..)
     )
 import Cardano.Wallet.Read.Tx.TxIn
