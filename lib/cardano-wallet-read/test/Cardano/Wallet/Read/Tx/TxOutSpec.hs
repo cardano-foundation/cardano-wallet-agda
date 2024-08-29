@@ -37,7 +37,7 @@ import Cardano.Wallet.Read.Eras
 import Cardano.Wallet.Read.Hash
     ( hashFromBytesAsHex
     )
-import Cardano.Wallet.Read.Tx.TxOut
+import Cardano.Wallet.Read.Tx
     ( TxOut
     , getValue
     , mkEraTxOut

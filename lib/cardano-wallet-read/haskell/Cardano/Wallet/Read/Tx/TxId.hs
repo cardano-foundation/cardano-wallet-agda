@@ -24,6 +24,9 @@ module Cardano.Wallet.Read.Tx.TxId
 
 import Prelude
 
+import Cardano.Ledger.Api
+    ( StandardCrypto
+    )
 import Cardano.Ledger.Hashes
     ( EraIndependentTxBody
     )
@@ -36,7 +39,6 @@ import Cardano.Wallet.Read.Tx.Tx
 import Cardano.Wallet.Read.Eras
     ( Era (..)
     , IsEra (..)
-    , Shelley
     )
 import Cardano.Wallet.Read.Hash
     ( Blake2b_256
@@ -58,7 +60,7 @@ import qualified Cardano.Read.Ledger.Tx.TxId as L
 -- coercion between @Set TxId@ and @Set L.TxIdType Shelley@.
 -- Unfortunately, 'Set' expects a nominal role.
 -- (See the design literature on 'Data.Coercible'.)
-type TxId = L.TxIdType Shelley
+type TxId = SH.TxIn.TxId StandardCrypto
 
 {-# COMPLETE TxId #-}
 pattern TxId :: Hash Blake2b_256 EraIndependentTxBody -> TxId

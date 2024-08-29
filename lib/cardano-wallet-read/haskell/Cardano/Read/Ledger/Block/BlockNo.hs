@@ -54,7 +54,7 @@ getEraBlockNo = case theEra @era of
     k = BlockNo . fromIntegral . O.unBlockNo
 
 newtype BlockNo = BlockNo {unBlockNo :: Natural}
-    deriving (Eq, Ord, Show, Generic, Enum)
+    deriving (Eq, Ord, Show, Generic, Enum, Num)
 
 instance NoThunks BlockNo
 

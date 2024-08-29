@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -53,7 +54,7 @@ getEraSlotNo = case theEra @era of
     k = SlotNo . fromIntegral . O.unSlotNo
 
 newtype SlotNo = SlotNo {unSlotNo :: Natural}
-    deriving (Eq, Ord, Show, Generic)
+    deriving (Eq, Ord, Show, Generic, Enum, Num)
 
 instance NoThunks SlotNo
 
