@@ -15,9 +15,7 @@ import Cardano.Wallet.Read.Hash
     )
 import Cardano.Wallet.Read.Tx
     ( Tx
-    )
-import Cardano.Wallet.Read.Tx.TxId
-    ( TxId
+    , TxId
     , getTxId
     , txIdFromHash
     )
