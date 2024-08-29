@@ -209,8 +209,8 @@ deserializeTxOut bytes
 utxoFromEraTx :: forall era. IsEra era => Tx era -> Map.Map TxIn TxOut
 utxoFromEraTx tx =
     case Read.getScriptValidity tx of
-        Read.IsValid True -> utxoFromEraTxCollateralOutputs tx
-        Read.IsValid False -> utxoFromEraTxOutputs tx
+        Read.IsValid True -> utxoFromEraTxOutputs tx
+        Read.IsValid False -> utxoFromEraTxCollateralOutputs tx
 
 {-# INLINEABLE utxoFromEraTxOutputs #-}
 -- | UTxO corresponding to the ordinary outputs of a transaction.
