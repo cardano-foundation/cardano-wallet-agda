@@ -38,3 +38,20 @@ steps:
       system: ${linux}
     env:
       TMPDIR: "/tmp"
+      
+  - block: Cabal Build
+    if: |
+      build.branch !~ /^gh-readonly-queue\/master/
+          && build.branch != "master"
+    depends_on:
+      - linux-nix
+    key: cabal-release-block
+
+  - label: Cabal Build (linux)
+    key: cabal-release
+    depends_on: cabal-release-block
+    command: |
+      ${nix} -c cabal update
+      ${nix} -c cabal build all -frelease
+    agents:
+      system: ${linux}
