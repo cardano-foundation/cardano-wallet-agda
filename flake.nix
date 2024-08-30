@@ -55,10 +55,17 @@
           # tools we want in our shell
           shell.tools = {
             cabal = {
-              version = "3.12.1.0";
               index-state = indexState;
             };
-            fourmolu = "0.14.1.0";
+            cabal-fmt = { index-state = indexState; };
+            haskell-language-server = {
+              index-state = indexState;
+              version = "latest";
+            };
+            hoogle = {
+              index-state = indexState;
+              version = "latest";
+            };
           };
           shell.withHoogle = true;
 
@@ -67,6 +74,9 @@
             nixpkgs.gitAndTools.git
             nixpkgs.haskellPackages.ghcid
             nixpkgs.haskellPackages.hlint
+            nixpkgs.haskellPackages.fourmolu
+            nixpkgs.haskellPackages.ghcid
+            nixpkgs.haskellPackages.stylish-haskell
 
             inputs.agda-tools.packages.${system}.agda
             inputs.agda-tools.packages.${system}.agda2hs
