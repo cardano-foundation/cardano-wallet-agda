@@ -104,5 +104,6 @@ postulate
 
   getTxId : ∀{era} → {{IsEra era}} → Tx era → TxId
   getInputs : ∀{era} → {{IsEra era}} → Tx era → ℙ TxIn
+  getCollateralInputs : ∀{era} → {{IsEra era}} → Tx era → ℙ TxIn
   getScriptValidity : ∀{era} → {{IsEra era}} → Tx era → IsValid
   utxoFromEraTx : ∀{era} → {{IsEra era}} → Tx era → Map TxIn TxOut
