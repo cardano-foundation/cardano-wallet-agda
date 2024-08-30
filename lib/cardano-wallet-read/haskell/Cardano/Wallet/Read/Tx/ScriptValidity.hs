@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {- |
@@ -8,14 +9,14 @@ License: Apache-2.0
 Script validity of a transaction.
 -}
 module Cardano.Wallet.Read.Tx.ScriptValidity
-    ( IsValid (IsValid)
+    ( IsValid (IsValidC)
     , getScriptValidity
     ) where
 
 import Prelude
 
 import Cardano.Ledger.Alonzo.Tx
-    ( IsValid (..)
+    ( IsValid (IsValid)
     )
 import Cardano.Read.Ledger.Tx.ScriptValidity
     ( ScriptValidity (..)
@@ -29,6 +30,9 @@ import Cardano.Wallet.Read.Eras
 import Cardano.Wallet.Read.Tx.Tx
     ( Tx (..)
     )
+
+pattern IsValidC :: Bool -> IsValid
+pattern IsValidC x = IsValid x
 
 {-# INLINABLE getScriptValidity #-}
 getScriptValidity :: forall era. IsEra era => Tx era -> IsValid
