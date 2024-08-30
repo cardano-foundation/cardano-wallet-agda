@@ -31,6 +31,7 @@ import Cardano.Wallet.Read.Tx.Tx
     ( Tx (..)
     )
 
+{-# COMPLETE IsValidC #-}
 pattern IsValidC :: Bool -> IsValid
 pattern IsValidC x = IsValid x
 
