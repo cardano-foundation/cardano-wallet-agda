@@ -13,7 +13,7 @@ module Cardano.Wallet.Read.Tx
     , Tx (..)
     , getInputs
     , getCollateralInputs
-    , IsValid (IsValid)
+    , IsValid (IsValidC)
     , getScriptValidity
 
     -- * TxIn
@@ -49,7 +49,7 @@ import Cardano.Wallet.Read.Tx.Inputs
     ( getInputs
     )
 import Cardano.Wallet.Read.Tx.ScriptValidity
-    ( IsValid (IsValid)
+    ( IsValid (IsValidC)
     , getScriptValidity
     )
 import Cardano.Read.Ledger.Tx.Tx

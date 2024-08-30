@@ -89,6 +89,14 @@ postulate
     → getCompactAddr (mkBasicTxOut addr value) ≡ addr
 
 {-----------------------------------------------------------------------------
+    ScriptValidity
+------------------------------------------------------------------------------}
+data IsValid : Set where
+  IsValidC : Bool → IsValid
+
+open IsValid public
+
+{-----------------------------------------------------------------------------
     Tx
 ------------------------------------------------------------------------------}
 postulate
@@ -96,4 +104,6 @@ postulate
 
   getTxId : ∀{era} → {{IsEra era}} → Tx era → TxId
   getInputs : ∀{era} → {{IsEra era}} → Tx era → ℙ TxIn
+  getCollateralInputs : ∀{era} → {{IsEra era}} → Tx era → ℙ TxIn
+  getScriptValidity : ∀{era} → {{IsEra era}} → Tx era → IsValid
   utxoFromEraTx : ∀{era} → {{IsEra era}} → Tx era → Map TxIn TxOut

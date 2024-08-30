@@ -18,9 +18,14 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     )
 open import Cardano.Wallet.Deposit.Read using
     ( IsEra
+    ; IsValid
+      ; IsValidC
     ; Tx
       ; utxoFromEraTx
       ; getInputs
+      ; getCollateralInputs
+      ; getScriptValidity
+    ; TxIn
     ; TxOut
       ; getCompactAddr
       ; getValue
@@ -37,8 +42,16 @@ import Haskell.Data.Set as Set
     UTxO utilities
 ------------------------------------------------------------------------------}
 -- | Remove unspent outputs that are consumed by the given transaction.
-spendTxD : ∀{era} → {{IsEra era}} → Read.Tx era -> UTxO -> (DeltaUTxO × UTxO)
-spendTxD tx u = DeltaUTxO.excludingD u (getInputs tx)
+spendTxD : ∀{era} → {{IsEra era}} → Read.Tx era → UTxO → (DeltaUTxO × UTxO)
+spendTxD tx u =
+    DeltaUTxO.excludingD u inputsToExclude
+  where
+    inputsToExclude : Set.ℙ TxIn
+    inputsToExclude =
+        case (getScriptValidity tx) of λ
+          { (IsValidC True) → getInputs tx
+          ; (IsValidC False) → getCollateralInputs tx
+          }
 
 -- | Convert the transaction outputs into a 'UTxO' set.
 utxoFromTxOutputs : ∀{era} → {{IsEra era}} → Read.Tx era → UTxO
