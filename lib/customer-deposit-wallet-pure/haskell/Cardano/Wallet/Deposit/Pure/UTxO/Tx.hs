@@ -22,14 +22,19 @@ import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
 import qualified Cardano.Wallet.Deposit.Read as Read (Addr, Address)
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx
-    ( Tx
+    ( IsValid (IsValidC)
+    , Tx
+    , TxIn
     , TxOut
+    , getCollateralInputs
     , getCompactAddr
     , getInputs
+    , getScriptValidity
     , getValue
     , utxoFromEraTx
     )
 import qualified Cardano.Wallet.Read.Value as Read (Value)
+import Data.Set (Set)
 import qualified Haskell.Data.Map as Map
     ( Map
     , elems
@@ -42,7 +47,13 @@ spendTxD :: IsEra era => Tx era -> UTxO -> (DeltaUTxO, UTxO)
 spendTxD tx u =
     Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.excludingD
         u
-        (getInputs tx)
+        inputsToExclude
+  where
+    inputsToExclude :: Set TxIn
+    inputsToExclude =
+        case getScriptValidity tx of
+            IsValidC True -> getInputs tx
+            IsValidC False -> getCollateralInputs tx
 
 utxoFromTxOutputs :: IsEra era => Tx era -> UTxO
 utxoFromTxOutputs = utxoFromEraTx
