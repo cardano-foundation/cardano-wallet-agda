@@ -33,9 +33,6 @@ import Cardano.Ledger.Hashes
 import Cardano.Ledger.Shelley.API.ByronTranslation
     ( translateTxIdByronToShelley
     )
-import Cardano.Wallet.Read.Tx.Tx
-    ( Tx
-    )
 import Cardano.Wallet.Read.Eras
     ( Era (..)
     , IsEra (..)
@@ -43,6 +40,9 @@ import Cardano.Wallet.Read.Eras
 import Cardano.Wallet.Read.Hash
     ( Blake2b_256
     , Hash
+    )
+import Cardano.Wallet.Read.Tx.Tx
+    ( Tx
     )
 
 import qualified Cardano.Ledger.SafeHash as SafeHash
