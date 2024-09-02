@@ -8,7 +8,7 @@ haskell:
     cd lib/customer-deposit-wallet-pure/ && ./generate-haskell.sh
 
 build:
-    cabal build -v0 -O -j all
+    cabal build -O -j all
 
 build0:
     cabal build -v0 -O0 -j all
@@ -16,8 +16,11 @@ build0:
 test:
     cabal test -v0 -O0 -j all
 
-ci-build:
-    just haskell && git diff --exit-code && just build0
+ci-build-agda:
+    just haskell && git diff --exit-code
+
+ci-build-hs:
+    cabal update && cabal build -v0 -j all -frelease
 
 ci-check:
     # We do not rebuild the .hs files,
