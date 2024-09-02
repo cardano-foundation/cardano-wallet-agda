@@ -52,15 +52,15 @@ library
   hs-source-dirs:
     haskell
   build-depends:
-    , base >= 4.14.3.0 && < 4.20
-    , bytestring >= 0.10.12.0 && < 0.13
-    , cardano-crypto >= 1.1.2 && < 1.2
-    , cardano-crypto-class >= 2.1.1.0 && < 2.2
+    , base
+    , bytestring
+    , cardano-crypto
+    , cardano-crypto-class
     , cardano-wallet-read == 0.2024.8.27
-    , containers >= 0.6.6 && < 0.8
-    , deepseq >= 1.4.4 && < 1.6
-    , text >= 1.2.4.1 && < 2.2
-    , OddWord >= 1.0.1.1 && < 1.1
+    , containers
+    , deepseq
+    , text
+    , OddWord
   exposed-modules:
     Cardano.Wallet.Address.BIP32
     Cardano.Wallet.Address.BIP32_Ed25519
