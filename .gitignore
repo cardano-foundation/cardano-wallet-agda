@@ -27,4 +27,7 @@ hie.yaml
 
 ## Agda
 *.agdai
+
+## Env
 .envrc
+.direnv
