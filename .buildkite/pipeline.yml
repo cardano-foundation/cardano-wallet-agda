@@ -29,7 +29,7 @@ steps:
       system: ${linux}
     env:
       TMPDIR: "/tmp"
-  
+
   - label: "Check unit tests"
     depends_on: linux-nix
     command: |
@@ -38,3 +38,33 @@ steps:
       system: ${linux}
     env:
       TMPDIR: "/tmp"
+
+  - group: Code quality
+    depends_on: linux-nix
+    steps:
+
+    - label: Check Code Format
+      key: code-format
+      depends_on: []
+      command: |
+        ${nix} --command scripts/buildkite/main/check-code-format.sh
+      agents:
+        system: ${linux}
+
+    - label: Check HLint
+      key: hlint
+      depends_on: []
+      command:
+        ${nix} --command bash -c "echo +++ HLint ; hlint lib/cardano-wallet-read"
+      agents:
+        system: ${linux}
+
+    - label: Check HLS Works
+      key: hls
+      depends_on: []
+      command:
+          ${nix} --command bash -c "haskell-language-server lib/cardano-wallet-read/haskell/Cardano/Wallet/Read.hs"
+      agents:
+        system: ${linux}
+      env:
+        TMPDIR: "/cache"

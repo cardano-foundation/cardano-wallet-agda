@@ -42,6 +42,10 @@ module Cardano.Wallet.Read.Tx
     , mkEraTxOut
     ) where
 
+import Cardano.Read.Ledger.Tx.Tx
+    ( Tx (..)
+    , TxT
+    )
 import Cardano.Wallet.Read.Tx.CollateralInputs
     ( getCollateralInputs
     )
@@ -51,10 +55,6 @@ import Cardano.Wallet.Read.Tx.Inputs
 import Cardano.Wallet.Read.Tx.ScriptValidity
     ( IsValid (IsValidC)
     , getScriptValidity
-    )
-import Cardano.Read.Ledger.Tx.Tx
-    ( Tx (..)
-    , TxT
     )
 import Cardano.Wallet.Read.Tx.TxId
     ( TxId
