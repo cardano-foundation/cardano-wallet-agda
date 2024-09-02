@@ -7,7 +7,7 @@ env:
   MAIN_PIPELINE_DIR: "./scripts/buildkite/main"
 
   # Per-host variables - shared across containers on host
-  macos: "x86_64-darwin"
+  macos: "aarch64-darwin"
   linux: "x86_64-linux"
   nix: "nix develop --accept-flake-config --allow-import-from-derivation"
 
@@ -31,6 +31,25 @@ steps:
       system: ${linux}
     env:
       system: ${linux}
+
+  - label: Check Nix (macOS)
+    key: macos-nix
+    commands: |
+      ${nix} --command bash -c "echo +++ nix develop"
+    agents:
+      system: ${macos}
+    env:
+      TMPDIR: "/tmp"
+
+  - label: Dev Shell Attic Cache (macos)
+    depends_on:
+      - macos-nix
+    commands:
+      - ${nix} path:$MAIN_PIPELINE_DIR -c $MAIN_PIPELINE_DIR/attic-cache.sh
+    agents:
+      system: ${macos}
+    env:
+      system: ${macos}
 
   - group: "Build artifacts"
     depends_on: linux-nix
