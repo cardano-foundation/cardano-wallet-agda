@@ -27,3 +27,4 @@ hie.yaml
 
 ## Agda
 *.agdai
+.envrc
