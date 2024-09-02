@@ -20,7 +20,7 @@ ci-build-agda:
     just haskell && git diff --exit-code
 
 ci-build-hs:
-    cabal update && cabal build -v0 -j all
+    cabal update && cabal build -v0 -j all -frelease
 
 ci-check:
     # We do not rebuild the .hs files,
