@@ -68,6 +68,7 @@ library
     Cardano.Wallet.Address.Hash
     Cardano.Wallet.Deposit.Pure
     Cardano.Wallet.Deposit.Pure.Address
+    Cardano.Wallet.Deposit.Pure.RollbackWindow
     Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     Cardano.Wallet.Deposit.Pure.UTxO.Tx
     Cardano.Wallet.Deposit.Pure.UTxO.UTxO
