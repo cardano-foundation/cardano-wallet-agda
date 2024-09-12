@@ -1,15 +1,20 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core where
 
+import qualified Cardano.Wallet.Deposit.Pure.RollbackWindow as RollbackWindow
+    ( MaybeRollback (Future, Past, Present)
+    , RollbackWindow (tip)
+    , prune
+    , rollBackward
+    , rollForward
+    , singleton
+    )
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     ( DeltaUTxO (excluded, received)
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO, dom, excluding)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (union)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
-    ( Pruned (NotPruned, PrunedUpTo)
-    , UTxOHistory (boot, created, finality, history, spent, tip)
+    ( UTxOHistory (boot, created, history, spent, window)
     )
 import Cardano.Wallet.Deposit.Read (Slot, WithOrigin (At, Origin))
 import Cardano.Wallet.Read.Block (SlotNo)
@@ -26,7 +31,6 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , insertMany
     , takeWhileAntitone
     )
-import Haskell.Data.Maybe (fromMaybe)
 import qualified Haskell.Data.Set as Set (difference, intersection)
 
 -- Working around a limitation in agda2hs.
@@ -44,8 +48,7 @@ empty utxo =
         utxo
         (Timeline.insertMany Origin (dom utxo) Timeline.empty)
         Timeline.empty
-        Origin
-        NotPruned
+        (RollbackWindow.singleton Origin)
         utxo
 
 getUTxO :: UTxOHistory -> UTxO
@@ -54,45 +57,12 @@ getUTxO us =
         (history us)
         (Map.keysSet (Timeline.getMapTime (spent us)))
 
-getTip :: UTxOHistory -> Slot
-getTip = \r -> tip r
-
-getFinality :: UTxOHistory -> Pruned
-getFinality = \r -> finality r
+getRollbackWindow
+    :: UTxOHistory -> RollbackWindow.RollbackWindow Slot
+getRollbackWindow x = window x
 
 getSpent :: UTxOHistory -> Map TxIn SlotNo
 getSpent = Timeline.getMapTime . \r -> spent r
-
-constrainingAppendBlock :: a -> UTxOHistory -> SlotNo -> a -> a
-constrainingAppendBlock noop us newTip f =
-    if At newTip <= tip us then noop else f
-
-constrainingRollback
-    :: a -> UTxOHistory -> Slot -> (Maybe Slot -> a) -> a
-constrainingRollback noop us newTip f =
-    if newTip >= tip us
-        then noop
-        else
-            f
-                ( case finality us of
-                    NotPruned -> Just newTip
-                    PrunedUpTo finality' ->
-                        if newTip >= At finality'
-                            then Just newTip
-                            else Nothing
-                )
-
-constrainingPrune
-    :: a -> UTxOHistory -> SlotNo -> (SlotNo -> a) -> a
-constrainingPrune noop us newFinality f =
-    fromMaybe noop
-        $ do
-            case finality us of
-                NotPruned -> pure ()
-                PrunedUpTo finality' -> guard $ newFinality > finality'
-            case tip us of
-                Origin -> Nothing
-                At tip' -> pure $ f $ min newFinality tip'
 
 data DeltaUTxOHistory
     = AppendBlock SlotNo DeltaUTxO
@@ -100,72 +70,74 @@ data DeltaUTxOHistory
     | Prune SlotNo
 
 appendBlock :: SlotNo -> DeltaUTxO -> UTxOHistory -> UTxOHistory
-appendBlock newTip delta noop =
-    constrainingAppendBlock
-        noop
-        noop
-        newTip
-        ( UTxOHistory
-            (UTxO.union (history noop) (received delta))
-            (Timeline.insertMany (At newTip) receivedTxIns (created noop))
-            (Timeline.insertMany newTip excludedTxIns (spent noop))
-            (At newTip)
-            (finality noop)
-            (boot noop)
-        )
+appendBlock newTip delta old =
+    case RollbackWindow.rollForward (At newTip) (window old) of
+        Nothing -> old
+        Just window' ->
+            UTxOHistory
+                (UTxO.union (history old) (received delta))
+                (Timeline.insertMany (At newTip) receivedTxIns (created old))
+                (Timeline.insertMany newTip excludedTxIns (spent old))
+                window'
+                (boot old)
   where
     receivedTxIns :: Set TxIn
     receivedTxIns =
-        Set.difference (dom (received delta)) (dom (history noop))
+        Set.difference (dom (received delta)) (dom (history old))
     excludedTxIns :: Set TxIn
     excludedTxIns =
         Set.difference
-            (Set.intersection (excluded delta) (dom (history noop)))
-            (Map.keysSet (Timeline.getMapTime (spent noop)))
+            (Set.intersection (excluded delta) (dom (history old)))
+            (Map.keysSet (Timeline.getMapTime (spent old)))
 
 rollback :: Slot -> UTxOHistory -> UTxOHistory
-rollback newTip noop =
-    constrainingRollback
-        noop
-        noop
-        newTip
-        ( \case
-            Just newTip' ->
-                UTxOHistory
-                    ( excluding
-                        (history noop)
-                        (fst (Timeline.deleteAfter newTip' (created noop)))
-                    )
-                    (snd (Timeline.deleteAfter newTip' (created noop)))
-                    ( case newTip' of
-                        Origin -> Timeline.empty
-                        At slot'' ->
-                            snd
-                                ( Timeline.takeWhileAntitone
-                                    (<= slot'')
-                                    (spent noop)
-                                )
-                    )
-                    newTip'
-                    (finality noop)
-                    (boot noop)
-            Nothing -> empty (boot noop)
-        )
-
-prune :: SlotNo -> UTxOHistory -> UTxOHistory
-prune newFinality noop =
-    constrainingPrune noop noop newFinality
-        $ \newFinality' ->
+rollback newTip old =
+    case RollbackWindow.rollBackward newTip (window old) of
+        RollbackWindow.Future -> old
+        RollbackWindow.Past -> empty (boot old)
+        RollbackWindow.Present window' ->
             UTxOHistory
                 ( excluding
-                    (history noop)
-                    (fst (Timeline.dropWhileAntitone (<= newFinality') (spent noop)))
+                    (history old)
+                    ( fst
+                        ( Timeline.deleteAfter
+                            (RollbackWindow.tip window')
+                            (created old)
+                        )
+                    )
+                )
+                ( snd
+                    ( Timeline.deleteAfter
+                        (RollbackWindow.tip window')
+                        (created old)
+                    )
+                )
+                ( case RollbackWindow.tip window' of
+                    Origin -> Timeline.empty
+                    At slot'' ->
+                        snd
+                            ( Timeline.takeWhileAntitone
+                                (<= slot'')
+                                (spent old)
+                            )
+                )
+                window'
+                (boot old)
+
+prune :: SlotNo -> UTxOHistory -> UTxOHistory
+prune newFinality old =
+    case RollbackWindow.prune (At newFinality) (window old) of
+        Nothing -> old
+        Just window' ->
+            UTxOHistory
+                ( excluding
+                    (history old)
+                    (fst (Timeline.dropWhileAntitone (<= newFinality) (spent old)))
                 )
                 ( Timeline.difference
-                    (created noop)
-                    (fst (Timeline.dropWhileAntitone (<= newFinality') (spent noop)))
+                    (created old)
+                    (fst (Timeline.dropWhileAntitone (<= newFinality) (spent old)))
                 )
-                (snd (Timeline.dropWhileAntitone (<= newFinality') (spent noop)))
-                (tip noop)
-                (PrunedUpTo newFinality')
-                (boot noop)
+                (snd (Timeline.dropWhileAntitone (<= newFinality) (spent old)))
+                window'
+                (boot old)
