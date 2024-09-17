@@ -30,17 +30,6 @@ import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
-    Helper functions
-------------------------------------------------------------------------------}
---
-prop-reflect-&& 
-  : ∀ (x y : Bool)
-  → (x && y) ≡ True
-  → (x ≡ True) ⋀ (y ≡ True)
---
-prop-reflect-&& True y refl = refl `and` refl
-
-{-----------------------------------------------------------------------------
     DeltaUTxO
 ------------------------------------------------------------------------------}
 record DeltaUTxO : Set where
@@ -132,10 +121,10 @@ prop-null-empty du eq =
       (Map.prop-null-empty (received du) lem2)
   where
     lem1 : Set.null (excluded du) ≡ True
-    lem1 = projl (prop-reflect-&& _ _ eq)
+    lem1 = projl (prop-&&-⋀ eq)
 
     lem2 : Map.null (received du) ≡ True
-    lem2 = projr (prop-reflect-&& _ _ eq)
+    lem2 = projr (prop-&&-⋀ eq)
 
 --
 @0 prop-apply-empty
