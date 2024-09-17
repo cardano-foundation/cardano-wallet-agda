@@ -43,6 +43,9 @@ instance
   iOrdSlotNo : Ord SlotNo
   iOrdSlotNo = ordFromCompare (λ x y → compare (unSlotNo x) (unSlotNo y))
 
+postulate instance
+  iIsLawfulOrdSlotNo : IsLawfulOrd SlotNo
+
 {-----------------------------------------------------------------------------
     HeaderHash
 ------------------------------------------------------------------------------}

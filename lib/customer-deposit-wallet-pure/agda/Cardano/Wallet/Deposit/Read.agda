@@ -64,6 +64,10 @@ instance
     (At _) Origin → GT
     (At x) (At y) → compare x y
 
+postulate instance
+  iIsLawfulOrdWithOrigin
+    : {{_ : Ord a}} → {{IsLawfulOrd a}} → IsLawfulOrd (WithOrigin a)
+
 {-# COMPILE AGDA2HS WithOrigin #-}
 {-# COMPILE AGDA2HS iEqWithOrigin derive #-}
 {-# COMPILE AGDA2HS iOrdWithOrigin derive #-}

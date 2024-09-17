@@ -11,3 +11,4 @@ for an extended description of how to use these modules.
 
 open import Haskell.Reasoning.Core public
 open import Haskell.Reasoning.Bool public
+open import Haskell.Reasoning.Ord public

@@ -5,7 +5,6 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core
     {-
       -- * Types
       UTxOHistory
-    , Pruned (..)
     , Spent (..)
 
       -- * Observations
@@ -39,8 +38,7 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ; excluding
     )
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type using
-    ( Pruned
-    ; UTxOHistory
+    ( UTxOHistory
     )
 open import Cardano.Wallet.Deposit.Read using
     ( Slot
@@ -61,6 +59,7 @@ open import Haskell.Data.Set using
     ( ℙ
     )
 
+import Cardano.Wallet.Deposit.Pure.RollbackWindow as RollbackWindow
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Haskell.Data.Map as Map
 import Haskell.Data.Maps.Timeline as Timeline
@@ -99,8 +98,7 @@ empty utxo =
             Timeline.insertMany WithOrigin.Origin (dom utxo)
             (Timeline.empty)
         ; spent = Timeline.empty
-        ; tip = WithOrigin.Origin
-        ; finality = Pruned.NotPruned
+        ; window = RollbackWindow.singleton WithOrigin.Origin
         ; boot = utxo
         }
 
@@ -113,69 +111,17 @@ getUTxO us =
   where
     open UTxOHistory us
 
--- | Returns the tip slot.
-getTip : UTxOHistory → Slot
-getTip = UTxOHistory.tip
-
--- | Returns the finality slot.
-getFinality : UTxOHistory → Pruned
-getFinality = UTxOHistory.finality
+-- | Returns the 'RollbackWindow' slot.
+getRollbackWindow : UTxOHistory → RollbackWindow.RollbackWindow Slot
+getRollbackWindow x = UTxOHistory.window x
 
 -- | Returns the spent TxIns that can be rolled back.
 getSpent : UTxOHistory → Map TxIn SlotNo
 getSpent = Timeline.getMapTime ∘ UTxOHistory.spent
 
 {-# COMPILE AGDA2HS getUTxO #-}
-{-# COMPILE AGDA2HS getTip #-}
-{-# COMPILE AGDA2HS getFinality #-}
+{-# COMPILE AGDA2HS getRollbackWindow #-}
 {-# COMPILE AGDA2HS getSpent #-}
-
-{-----------------------------------------------------------------------------
-    Helper functions
-------------------------------------------------------------------------------}
-
--- | Helper to constraint the slot of an AppendBlock.
-constrainingAppendBlock : a → UTxOHistory → SlotNo → a → a
-constrainingAppendBlock noop us newTip f =
-    if WithOrigin.At newTip <= UTxOHistory.tip us
-    then noop
-    else f
-
-{-# COMPILE AGDA2HS constrainingAppendBlock #-}
-
--- | Helper to constrain the slot of a Rollback.
-constrainingRollback : a → UTxOHistory → Slot → (Maybe Slot → a) → a
-constrainingRollback noop us newTip f =
-    if newTip >= tip
-    then noop
-    else f (case finality of λ
-        { Pruned.NotPruned → Just newTip
-        ; (Pruned.PrunedUpTo finality') → 
-            if newTip >= WithOrigin.At finality'
-                then Just newTip
-                else Nothing
-        })
-  where
-    open UTxOHistory us
-
-{-# COMPILE AGDA2HS constrainingRollback #-}
-
--- | Helper to constraint the slot of a Prune.
-constrainingPrune : a → UTxOHistory → SlotNo → (SlotNo → a) → a
-constrainingPrune noop us newFinality f =
-    fromMaybe noop $ do
-        case finality of λ
-            { Pruned.NotPruned → pure tt
-            ; (Pruned.PrunedUpTo finality') → guard $ newFinality > finality'
-            }
-        case tip of λ
-            { WithOrigin.Origin → Nothing
-            ; (WithOrigin.At tip') → pure $ f $ min newFinality tip'
-            }
-  where
-    open UTxOHistory us
-
-{-# COMPILE AGDA2HS constrainingPrune #-}
 
 {-----------------------------------------------------------------------------
     DeltaUTxOHistory
@@ -193,8 +139,10 @@ data DeltaUTxOHistory : Set where
 {-# COMPILE AGDA2HS DeltaUTxOHistory #-}
 
 appendBlock : SlotNo → DeltaUTxO → UTxOHistory → UTxOHistory
-appendBlock newTip delta noop =
-    constrainingAppendBlock noop noop newTip
+appendBlock newTip delta old =
+  case RollbackWindow.rollForward (WithOrigin.At newTip) window of λ
+    { Nothing → old
+    ; (Just window') →
       record
         { history = UTxO.union history (DeltaUTxO.received delta)
         ; created =
@@ -203,12 +151,12 @@ appendBlock newTip delta noop =
         ; spent =
             Timeline.insertMany
                 newTip excludedTxIns spent
-        ; tip = WithOrigin.At newTip
-        ; finality = finality
+        ; window = window'
         ; boot = boot
         }
+    }
   where
-    open UTxOHistory noop
+    open UTxOHistory old
     receivedTxIns =
         Set.difference
             (dom (DeltaUTxO.received delta))
@@ -221,10 +169,13 @@ appendBlock newTip delta noop =
 {-# COMPILE AGDA2HS appendBlock #-}
 
 rollback : Slot → UTxOHistory → UTxOHistory
-rollback newTip noop =
-  constrainingRollback noop noop newTip λ
-    { (Just newTip') →
+rollback newTip old =
+  case RollbackWindow.rollBackward newTip window of λ
+    { RollbackWindow.Future → old
+    ; RollbackWindow.Past → empty boot
+    ; (RollbackWindow.Present window') →
         let
+            newTip' = RollbackWindow.tip window'
             (rolledCreated , created') =
                 Timeline.deleteAfter newTip' created
         in
@@ -236,34 +187,34 @@ rollback newTip noop =
                     ; (WithOrigin.At slot'') →
                         snd (Timeline.takeWhileAntitone (_<= slot'') spent)
                     }
-                ; tip = newTip'
-                ; finality = finality
+                ; window = window'
                 ; boot = boot
                 }
-    ; Nothing → empty boot
     }
   where
-    open UTxOHistory noop
+    open UTxOHistory old
 
 {-# COMPILE AGDA2HS rollback #-}
 
 prune : SlotNo → UTxOHistory → UTxOHistory
-prune newFinality noop =
-  constrainingPrune noop noop newFinality $ \newFinality' →
-    let
-        (prunedTxIns , spent') =
-            Timeline.dropWhileAntitone (_<= newFinality') spent
-    in
-        record
-            { history = excluding history prunedTxIns
-            ; created = Timeline.difference created prunedTxIns
-            ; spent = spent'
-            ; tip = tip
-            ; finality = Pruned.PrunedUpTo newFinality'
-            ; boot = boot
-            }
+prune newFinality old =
+  case RollbackWindow.prune (WithOrigin.At newFinality) window of λ
+    { Nothing → old
+    ; (Just window') →
+        let
+            (prunedTxIns , spent') =
+                Timeline.dropWhileAntitone (_<= newFinality) spent
+        in
+            record
+                { history = excluding history prunedTxIns
+                ; created = Timeline.difference created prunedTxIns
+                ; spent = spent'
+                ; window = window'
+                ; boot = boot
+                }
+    }
   where
-    open UTxOHistory noop
+    open UTxOHistory old
 
 {-# COMPILE AGDA2HS prune #-}
 

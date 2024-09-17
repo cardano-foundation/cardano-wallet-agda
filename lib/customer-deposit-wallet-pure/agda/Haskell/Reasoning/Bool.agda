@@ -8,7 +8,6 @@ open import Haskell.Reasoning.Core
 {-----------------------------------------------------------------------------
     Relate (≡ True) to logical connectives
 ------------------------------------------------------------------------------}
-
 -- Logical conjunction
 prop-&&-⋀
   : ∀ {x y : Bool}
@@ -59,6 +58,21 @@ prop-¬-not
 --
 prop-¬-not {False} contra = refl
 prop-¬-not {True} contra = case contra refl of λ ()
+
+{-----------------------------------------------------------------------------
+    Logical connectives and constants
+------------------------------------------------------------------------------}
+prop-x-&&-True
+  : ∀ (x : Bool)
+  → (x && True) ≡ x
+prop-x-&&-True True = refl
+prop-x-&&-True False = refl
+
+prop-x-&&-False
+  : ∀ (x : Bool)
+  → (x && False) ≡ False
+prop-x-&&-False True = refl
+prop-x-&&-False False = refl
 
 {-----------------------------------------------------------------------------
     Properties of if_then_else
