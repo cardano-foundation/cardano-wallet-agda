@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO, dom)
@@ -14,6 +16,8 @@ import qualified Haskell.Data.Map as Map (empty)
 import qualified Haskell.Data.Set as Set (empty, intersection, null, union)
 
 data DeltaUTxO = DeltaUTxO {excluded :: Set TxIn, received :: UTxO}
+
+deriving instance Show DeltaUTxO
 
 null :: DeltaUTxO -> Bool
 null du = Set.null (excluded du) && UTxO.null (received du)

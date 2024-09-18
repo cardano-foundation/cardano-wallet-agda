@@ -45,6 +45,12 @@ record DeltaUTxO : Set where
 
 open DeltaUTxO public
 
+postulate
+  instance
+    iShowDeltaUTxO : Show DeltaUTxO
+
+{-# COMPILE AGDA2HS iShowDeltaUTxO derive #-}
+
 null : DeltaUTxO → Bool
 null du = Set.null (excluded du) && UTxO.null (received du)
 
