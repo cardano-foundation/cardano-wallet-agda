@@ -51,3 +51,6 @@ append x y =
     excluded'x = UTxO.excludingS (excluded x) (received y)
     received'y :: UTxO
     received'y = UTxO.excluding (received y) (excluded x)
+
+concat :: [DeltaUTxO] -> DeltaUTxO
+concat = foldr append empty
