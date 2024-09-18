@@ -37,19 +37,13 @@ receiveD old new = (du, UTxO.union old new)
     du :: DeltaUTxO
     du = DeltaUTxO Set.empty new
 
-appendDeltaUTxO :: DeltaUTxO -> DeltaUTxO -> DeltaUTxO
-appendDeltaUTxO da db =
+append :: DeltaUTxO -> DeltaUTxO -> DeltaUTxO
+append x y =
     DeltaUTxO
-        (Set.union (excluded da) excluded'db)
-        (UTxO.union received'da (received db))
+        (Set.union excluded'x (excluded y))
+        (UTxO.union (received x) received'y)
   where
-    received'da :: UTxO
-    received'da = UTxO.excluding (received da) (excluded db)
-    excluded'db :: Set TxIn
-    excluded'db = UTxO.excludingS (excluded db) (received da)
-
-instance Semigroup DeltaUTxO where
-    (<>) = appendDeltaUTxO
-
-instance Monoid DeltaUTxO where
-    mempty = empty
+    excluded'x :: Set TxIn
+    excluded'x = UTxO.excludingS (excluded x) (received y)
+    received'y :: UTxO
+    received'y = UTxO.excluding (received y) (excluded x)

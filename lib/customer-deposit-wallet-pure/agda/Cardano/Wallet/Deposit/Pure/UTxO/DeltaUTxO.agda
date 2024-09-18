@@ -70,23 +70,15 @@ receiveD old new =
       ; received = new
       }
 
-appendDeltaUTxO : DeltaUTxO → DeltaUTxO → DeltaUTxO
-appendDeltaUTxO da db = record
-    { excluded = Set.union (excluded da) (excluded'db)
-    ; received = UTxO.union (received'da) (received db)
+-- | Apply `x` *after* `y`.
+append : DeltaUTxO → DeltaUTxO → DeltaUTxO
+append x y = record
+    { excluded = Set.union (excluded'x) (excluded y)
+    ; received = UTxO.union (received x) (received'y)
     }
   where
-    received'da = UTxO.excluding (received da) (excluded db)
-    excluded'db = UTxO.excludingS (excluded db) (received da)
-
-instance
-  iSemigroupDeltaUTxO : Semigroup DeltaUTxO
-  iSemigroupDeltaUTxO = record { _<>_ = appendDeltaUTxO }
-
-instance
-  iMonoidDeltaUTxO : Monoid DeltaUTxO
-  iMonoidDeltaUTxO =
-    record {DefaultMonoid (λ where .DefaultMonoid.mempty → empty)}
+    excluded'x = UTxO.excludingS (excluded x) (received y)
+    received'y = UTxO.excluding (received y) (excluded x)
 
 {-# COMPILE AGDA2HS DeltaUTxO #-}
 {-# COMPILE AGDA2HS null #-}
@@ -94,9 +86,7 @@ instance
 {-# COMPILE AGDA2HS apply #-}
 {-# COMPILE AGDA2HS excludingD #-}
 {-# COMPILE AGDA2HS receiveD #-}
-{-# COMPILE AGDA2HS appendDeltaUTxO #-}
-{-# COMPILE AGDA2HS iSemigroupDeltaUTxO #-}
-{-# COMPILE AGDA2HS iMonoidDeltaUTxO #-}
+{-# COMPILE AGDA2HS append #-}
 
 {-----------------------------------------------------------------------------
     Properties
