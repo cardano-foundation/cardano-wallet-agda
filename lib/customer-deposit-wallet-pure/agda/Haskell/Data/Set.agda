@@ -56,6 +56,11 @@ module _ {a : Set} {{_ : Ord a}} where
       → null s ≡ True
       → s ≡ empty
 
+    prop-equality
+      : ∀ {s1 s2 : ℙ a}
+      → (∀ (x : a) → member x s1 ≡ member x s2)
+      → s1 ≡ s2
+
     prop-member-empty
       : ∀ (x : a)
       → member x empty ≡ False

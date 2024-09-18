@@ -84,6 +84,11 @@ module _ {k a : Set} {{_ : Ord k}} where
       → null m ≡ True
       → m ≡ empty
 
+    prop-equality
+      : ∀ {m1 m2 : Map k a}
+      → (∀ (key : k) → lookup key m1 ≡ lookup key m2)
+      → m1 ≡ m2
+
     prop-lookup-eq
       : ∀ (key1 key2 : k) (m : Map k a)
       → (key1 == key2) ≡ True
