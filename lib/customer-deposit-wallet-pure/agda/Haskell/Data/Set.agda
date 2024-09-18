@@ -16,6 +16,8 @@ module Haskell.Data.Set
     where
 
 open import Haskell.Prelude hiding (null; map; filter)
+open import Haskell.Reasoning
+
 import Haskell.Prelude as L using (map)
 
 {-----------------------------------------------------------------------------
@@ -121,3 +123,42 @@ instance
 
   iSetMonoid : {{Ord a}} → Monoid (ℙ a)
   iSetMonoid = record {DefaultMonoid (record {mempty = empty})}
+
+module _ {a : Set} {{_ : Ord a}} where
+  prop-union-sym
+    : ∀ {s1 s2 : ℙ a}
+    → union s1 s2 ≡ union s2 s1
+  prop-union-sym {s1} {s2} =
+      prop-equality eq
+    where
+      eq = λ x →
+        begin
+          member x (union s1 s2)
+        ≡⟨ prop-member-union _ _ _ ⟩
+          (member x s1 || member x s2)
+        ≡⟨ prop-||-sym (member x s1) (member x s2) ⟩
+          (member x s2 || member x s1)
+        ≡⟨ sym (prop-member-union _ _ _) ⟩
+          member x (union s2 s1)
+        ∎
+
+  prop-union-assoc
+    : ∀ {s1 s2 s3 : ℙ a}
+    → union (union s1 s2) s3 ≡ union s1 (union s2 s3)
+  prop-union-assoc {s1} {s2} {s3} =
+      prop-equality eq
+    where
+      eq = λ x →
+        begin
+          member x (union (union s1 s2) s3)
+        ≡⟨ prop-member-union _ _ _ ⟩
+          (member x (union s1 s2) || member x s3)
+        ≡⟨ cong (λ o → o || _) (prop-member-union _ _ _) ⟩
+          ((member x s1 || member x s2) || member x s3)
+        ≡⟨ prop-||-assoc (member x s1) (member x s2) (member x s3) ⟩
+          (member x s1 || (member x s2 || member x s3))
+        ≡⟨ sym (cong (λ o → _ || o) (prop-member-union _ _ _)) ⟩
+          (member x s1 || member x (union s2 s3))
+        ≡⟨ sym (prop-member-union _ _ _) ⟩
+          member x (union s1 (union s2 s3))
+        ∎
