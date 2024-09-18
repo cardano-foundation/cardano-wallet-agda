@@ -125,17 +125,3 @@ prop-null-empty du eq =
 
     lem2 : Map.null (received du) ≡ True
     lem2 = projr (prop-&&-⋀ eq)
-
---
-@0 prop-apply-empty
-  : ∀ (u : UTxO) (key : TxIn)
-  → Map.lookup key (apply empty u) ≡ Map.lookup key u 
---
-prop-apply-empty u key =
-  begin
-    Map.lookup key (apply empty u)
-  ≡⟨ UTxO.prop-union-empty key _ ⟩
-    Map.lookup key (UTxO.excluding u (excluded empty))
-  ≡⟨ UTxO.prop-excluding-empty key u ⟩
-    Map.lookup key u 
-  ∎
