@@ -23,7 +23,7 @@ empty = DeltaUTxO Set.empty Map.empty
 
 apply :: DeltaUTxO -> UTxO -> UTxO
 apply du utxo =
-    UTxO.union (UTxO.excluding utxo (excluded du)) (received du)
+    UTxO.union (received du) (UTxO.excluding utxo (excluded du))
 
 excludingD :: UTxO -> Set TxIn -> (DeltaUTxO, UTxO)
 excludingD utxo txins = (du, UTxO.excluding utxo txins)

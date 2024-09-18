@@ -50,7 +50,7 @@ empty = record
 
 apply : DeltaUTxO → UTxO → UTxO
 apply du utxo =
-   UTxO.union (UTxO.excluding utxo (excluded du)) (received du)
+   UTxO.union (received du) (UTxO.excluding utxo (excluded du))
 
 excludingD : UTxO → Set.ℙ TxIn → (DeltaUTxO × UTxO)
 excludingD utxo txins =
@@ -115,3 +115,17 @@ prop-null-empty du eq =
 
     lem2 : Map.null (received du) ≡ True
     lem2 = projr (prop-&&-⋀ eq)
+
+--
+@0 prop-apply-empty
+  : ∀ (utxo : UTxO)
+  → apply empty utxo ≡ utxo
+--
+prop-apply-empty utxo =
+  begin
+    apply empty utxo
+  ≡⟨ UTxO.prop-union-empty-left ⟩
+    UTxO.excluding utxo (excluded empty)
+  ≡⟨ UTxO.prop-excluding-empty utxo ⟩
+    utxo
+  ∎
