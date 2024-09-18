@@ -20,9 +20,15 @@ open import Haskell.Reasoning
 
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
+      ; dom
+      ; _∪_
+      ; _⋪_
     )
 open import Cardano.Wallet.Deposit.Read using
     ( TxIn
+    )
+open import Haskell.Data.Set using
+    ( ℙ
     )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
@@ -129,3 +135,47 @@ prop-apply-empty utxo =
   ≡⟨ UTxO.prop-excluding-empty utxo ⟩
     utxo
   ∎
+
+--
+-- This is the most important property:
+-- The semigroup operation `_<>_` is an application of `apply`.
+prop-apply-append
+  : ∀ (x y : DeltaUTxO) (utxo : UTxO)
+  → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
+  → apply (append x y) utxo ≡ apply x (apply y utxo)
+prop-apply-append x y utxo cond =
+    begin
+      apply (append x y) utxo
+    ≡⟨⟩
+      received (append x y) ∪ (excluded (append x y) ⋪ utxo)
+    ≡⟨⟩
+      (received x ∪ (excluded x ⋪ received y))
+        ∪ (excluded (append x y) ⋪ utxo)
+    ≡⟨ UTxO.prop-union-assoc ⟩
+      received x ∪ ((excluded x ⋪ received y)
+        ∪ (excluded (append x y) ⋪ utxo))
+    ≡⟨ cong (λ o → received x ∪ ((excluded x ⋪ received y) ∪ o)) lem1 ⟩
+      received x ∪ ((excluded x ⋪ received y)
+        ∪ (excluded x ⋪ (excluded y ⋪ utxo)))
+    ≡⟨ cong (λ o → received x ∪ o) (sym (UTxO.prop-excluding-union (excluded x) _ _)) ⟩
+      received x ∪ (excluded x ⋪ (received y ∪ (excluded y ⋪ utxo)))
+    ≡⟨⟩
+      apply x (received y ∪ (excluded y ⋪ utxo))
+    ≡⟨⟩
+      apply x (apply y utxo)
+    ∎
+  where
+    lem1 =
+      begin
+        excluded (append x y) ⋪ utxo
+      ≡⟨⟩
+        Set.union (UTxO.excludingS (excluded x) (received y)) (excluded y) ⋪ utxo
+      ≡⟨ cong (λ o → o ⋪ utxo) Set.prop-union-sym ⟩
+        Set.union (excluded y) (UTxO.excludingS (excluded x) (received y)) ⋪ utxo
+      ≡⟨ sym UTxO.prop-excluding-excluding ⟩
+        excluded y ⋪ (UTxO.excludingS (excluded x) (received y) ⋪ utxo)
+      ≡⟨ cong (λ o → excluded y ⋪ o) (UTxO.prop-excluding-excludingS cond) ⟩
+        excluded y ⋪ (excluded x ⋪ utxo)
+      ≡⟨ UTxO.prop-excluding-sym ⟩
+        excluded x ⋪ (excluded y ⋪ utxo)
+      ∎
