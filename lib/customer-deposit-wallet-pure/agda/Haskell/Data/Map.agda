@@ -106,16 +106,10 @@ module _ {k a : Set} {{_ : Ord k}} where
       → lookup key (unionWith f m n)
         ≡ Maybe.unionWith f (lookup key m) (lookup key n)
 
-    prop-lookup-filterWithKey-Just
-      : ∀ (key : k) (x : a) (m : Map k a) (p : k → a → Bool)
-      → lookup key m ≡ Just x
-      → lookup key (filterWithKey p m)
-        ≡ (if p key x then Just x else Nothing)
-    
-    prop-lookup-filterWithKey-Nothing
+    prop-lookup-filterWithKey
       : ∀ (key : k) (m : Map k a) (p : k → a → Bool)
-      → lookup key m ≡ Nothing
-      → lookup key (filterWithKey p m) ≡ Nothing
+      → lookup key (filterWithKey p m)
+        ≡ Maybe.filter (p key) (lookup key m)
 
     prop-lookup-takeWhileAntitone
       : ∀ (p : k → Bool) → AntitonicPred p
@@ -295,38 +289,54 @@ module _ {k a : Set} {{_ : Ord k}} where
           lookup key (union ma (union mb mc))
         ∎
 
+  -- 
+  prop-lookup-filter
+    : ∀ {k a} {{_ : Ord k}}
+      (key : k) (m : Map k a) (p : a → Bool)
+    → lookup key (filter p m)
+      ≡ Maybe.filter p (lookup key m)
+  --
+  prop-lookup-filter key m p =
+    prop-lookup-filterWithKey key m (λ _ x → p x)
+
+  --
+  prop-lookup-filterWithKey-Just
+    : ∀ (key : k) (x : a) (m : Map k a) (p : k → a → Bool)
+    → lookup key m ≡ Just x
+    → lookup key (filterWithKey p m)
+      ≡ (if p key x then Just x else Nothing)
+  --
+  prop-lookup-filterWithKey-Just key x m p eq =
+    begin
+      lookup key (filterWithKey p m)
+    ≡⟨ prop-lookup-filterWithKey key m p ⟩
+      Maybe.filter (p key) (lookup key m)
+    ≡⟨ cong (Maybe.filter (p key)) eq ⟩    
+      Maybe.filter (p key) (Just x)
+    ≡⟨⟩
+      (if p key x then Just x else Nothing)
+    ∎
+
+  --
+  prop-lookup-filterWithKey-Nothing
+    : ∀ (key : k) (m : Map k a) (p : k → a → Bool)
+    → lookup key m ≡ Nothing
+    → lookup key (filterWithKey p m) ≡ Nothing
+  --
+  prop-lookup-filterWithKey-Nothing key m p eq =
+    begin
+      lookup key (filterWithKey p m)
+    ≡⟨ prop-lookup-filterWithKey key m p ⟩
+      Maybe.filter (p key) (lookup key m)
+    ≡⟨ cong (Maybe.filter (p key)) eq ⟩    
+      Maybe.filter (p key) Nothing
+    ≡⟨⟩
+      Nothing
+    ∎
+
 {-----------------------------------------------------------------------------
     Test proofs
 ------------------------------------------------------------------------------}
-
---
-@0 prop-lookup-filter
-  : ∀ {k a} {{_ : Ord k}}
-      (key : k) (p : a → Bool) (m : Map k a) 
-  → lookup key (filter p m)
-    ≡ Maybe.filter p (lookup key m)
---
-prop-lookup-filter key p m = case lookup key m of λ where
-  (Just x) {{eq}} →
-    begin
-      lookup key (filter p m)
-    ≡⟨ prop-lookup-filterWithKey-Just key x m (λ _ x → p x) eq ⟩
-      (if p x then Just x else Nothing)
-    ≡⟨⟩
-      Maybe.filter p (Just x)
-    ≡⟨ cong (Maybe.filter p) (sym eq) ⟩
-      Maybe.filter p (lookup key m)
-    ∎
-  Nothing {{eq}} →
-    begin
-      lookup key (filter p m)
-    ≡⟨ prop-lookup-filterWithKey-Nothing key m (λ _ x → p x) eq ⟩
-      Nothing
-    ≡⟨⟩
-      Maybe.filter p Nothing
-    ≡⟨ cong (Maybe.filter p) (sym eq) ⟩
-      Maybe.filter p (lookup key m)
-    ∎
 
 --
 @0 prop-withoutKeys-empty
