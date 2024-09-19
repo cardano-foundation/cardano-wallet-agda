@@ -96,6 +96,14 @@ prop-||-assoc
 prop-||-assoc False b c = refl
 prop-||-assoc True b c = refl
 
+--
+prop-deMorgan-not-&&
+  : ∀ (a b : Bool)
+  → not (a && b) ≡ (not a || not b)
+--
+prop-deMorgan-not-&& False b = refl
+prop-deMorgan-not-&& True b = refl
+
 {-----------------------------------------------------------------------------
     Properties of if_then_else
 ------------------------------------------------------------------------------}

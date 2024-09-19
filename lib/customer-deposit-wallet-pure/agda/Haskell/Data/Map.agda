@@ -2,6 +2,7 @@
 
 module Haskell.Data.Map where
 
+open import Haskell.Reasoning
 open import Haskell.Prelude hiding (lookup; null; map; filter)
 import Haskell.Prelude as L using (map)
 
@@ -334,6 +335,70 @@ module _ {k a : Set} {{_ : Ord k}} where
       Nothing
     ∎
 
+  --
+  @0 prop-withoutKeys-intersection
+    : ∀ (m : Map k a) (ka kb : Set.ℙ k)
+    → withoutKeys m (Set.intersection ka kb)
+      ≡ union (withoutKeys m ka) (withoutKeys m kb)
+  prop-withoutKeys-intersection m ka kb =
+      prop-equality eq-key
+    where
+      pIntersection : k → a → Bool
+      pIntersection = λ kx _ → not (Set.member kx (Set.intersection ka kb))
+
+      pPlainA : k → a → Bool
+      pPlainA = λ kx _ → not (Set.member kx ka)
+
+      pPlainB : k → a → Bool
+      pPlainB = λ kx _ → not (Set.member kx kb)
+
+      lem1 = λ key x →
+        begin
+          pIntersection key x
+        ≡⟨⟩
+          not (Set.member key (Set.intersection ka kb))
+        ≡⟨ cong not (Set.prop-member-intersection key ka kb) ⟩
+          not ((Set.member key ka) && (Set.member key kb))
+        ≡⟨ prop-deMorgan-not-&& (Set.member key ka) (Set.member key kb) ⟩
+          (not (Set.member key ka) || not (Set.member key kb))
+        ≡⟨⟩
+          (pPlainA key x || pPlainB key x)
+        ∎
+
+      lem2 = λ key ma →
+        begin
+          Maybe.filter (pIntersection key) ma
+        ≡⟨ cong (λ o → Maybe.filter o ma) (ext (lem1 key)) ⟩
+          Maybe.filter (λ x → pPlainA key x || pPlainB key x) ma
+        ≡⟨ Maybe.prop-filter-|| {_} {ma} {pPlainA key} {pPlainB key}⟩
+          Maybe.union
+            (Maybe.filter (pPlainA key) ma)
+            (Maybe.filter (pPlainB key) ma)
+        ∎
+
+      eq-key = λ key → 
+        begin
+          lookup key (withoutKeys m (Set.intersection ka kb))
+        ≡⟨⟩
+          lookup key (filterWithKey pIntersection m)
+        ≡⟨ prop-lookup-filterWithKey key m pIntersection ⟩
+          Maybe.filter (pIntersection key) (lookup key m)
+       ≡⟨ lem2 key (lookup key m) ⟩
+          Maybe.union
+            (Maybe.filter (pPlainA key) (lookup key m))
+            (Maybe.filter (pPlainB key) (lookup key m))
+        ≡⟨ cong (λ o → Maybe.union o (Maybe.filter (pPlainB key) (lookup key m))) (sym (prop-lookup-filterWithKey key m pPlainA)) ⟩
+          Maybe.union
+            (lookup key (filterWithKey pPlainA m))
+            (Maybe.filter (pPlainB key) (lookup key m))
+        ≡⟨ cong (λ o → Maybe.union (lookup key (filterWithKey pPlainA m)) o) (sym (prop-lookup-filterWithKey key m pPlainB)) ⟩
+          Maybe.union
+            (lookup key (filterWithKey pPlainA m))
+            (lookup key (filterWithKey pPlainB m))
+        ≡⟨ sym (prop-lookup-union key _ _) ⟩
+          lookup key (union (withoutKeys m ka) (withoutKeys m kb))
+        ∎
+
 {-----------------------------------------------------------------------------
     Test proofs
 ------------------------------------------------------------------------------}
@@ -368,3 +433,4 @@ prop-withoutKeys-empty {k} {a} key m =
   where
     p : k → a → Bool
     p = λ k _ → not (Set.member k Set.empty)
+ 

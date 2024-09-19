@@ -49,16 +49,79 @@ intersectionWith _ _ _ = Nothing
     Properties
 ------------------------------------------------------------------------------}
 
+--
 prop-union-empty-right
   : ∀ {ma : Maybe a}
   → union ma Nothing ≡ ma
+--
 prop-union-empty-right {_} {Nothing} = refl
 prop-union-empty-right {_} {Just x} = refl
 
+--
 prop-union-assoc
   : ∀ {ma mb mc : Maybe a}
   → union (union ma mb) mc ≡ union ma (union mb mc)
+--
 prop-union-assoc {_} {Nothing} {mb} {mc} = refl
 prop-union-assoc {_} {Just x} {Nothing} {mc} = refl
 prop-union-assoc {_} {Just x} {Just y} {Nothing} = refl
 prop-union-assoc {_} {Just x} {Just y} {Just z} = refl
+
+--
+prop-union-left
+  : ∀ (x : a) (mb : Maybe a)
+  → union (Just x) mb ≡ Just x
+--
+prop-union-left x Nothing = refl
+prop-union-left x (Just y) = refl
+
+--
+@0 prop-filter-||
+  : ∀ {ma : Maybe a} {p q : a → Bool}
+  → filter (λ x → p x || q x) ma
+    ≡ union (filter p ma) (filter q ma)
+--
+prop-filter-|| {_} {Nothing} {p} {q} = refl
+prop-filter-|| {_} {Just x} {p} {q} =
+    case p x of λ
+    { True {{eq}} →
+      begin
+        (if p x || q x then Just x else Nothing)
+      ≡⟨ cong (λ o → if (o || q x) then _ else Nothing) eq ⟩
+        (if True || q x then Just x else Nothing)
+      ≡⟨⟩
+        Just x
+      ≡⟨ sym (prop-union-left x (if q x then Just x else Nothing))⟩
+        union
+          (Just x)
+          (if q x then Just x else Nothing)
+      ≡⟨⟩
+        union 
+          (if True then Just x else Nothing)
+          (if q x then Just x else Nothing)
+      ≡⟨ cong (λ o → union (if o then Just x else Nothing) _) (sym eq) ⟩
+        union 
+          (if p x then Just x else Nothing)
+          (if q x then Just x else Nothing)
+      ∎
+    ; False {{eq}} →
+      begin
+        (if p x || q x then Just x else Nothing)
+      ≡⟨ cong (λ o → if (o || q x) then _ else Nothing) eq ⟩
+        (if False || q x then Just x else Nothing)
+      ≡⟨⟩
+        (if q x then Just x else Nothing)
+      ≡⟨⟩
+        union
+          Nothing
+          (if q x then Just x else Nothing)
+      ≡⟨⟩
+        union 
+          (if False then Just x else Nothing)
+          (if q x then Just x else Nothing)
+      ≡⟨ cong (λ o → union (if o then Just x else Nothing) _) (sym eq) ⟩
+        union 
+          (if p x then Just x else Nothing)
+          (if q x then Just x else Nothing)
+      ∎
+    }
