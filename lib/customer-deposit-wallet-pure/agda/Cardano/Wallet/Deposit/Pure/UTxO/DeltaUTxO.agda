@@ -63,7 +63,7 @@ excludingD utxo txins =
     (du , UTxO.excluding utxo txins)
   where
     du = record
-      { excluded = Set.difference (Map.keysSet utxo) txins
+      { excluded = Set.intersection txins (dom utxo)
       ; received = UTxO.empty
       }
 
@@ -135,6 +135,48 @@ prop-apply-empty utxo =
   ≡⟨ UTxO.prop-excluding-empty utxo ⟩
     utxo
   ∎
+
+--
+lemma-excluding-intersection-dom
+  : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
+  → (Set.intersection x (dom utxo)) ⋪ utxo ≡ x ⋪ utxo
+--
+lemma-excluding-intersection-dom {x} {utxo} =
+  begin
+    (Set.intersection x (dom utxo)) ⋪ utxo
+  ≡⟨ UTxO.prop-excluding-intersection ⟩
+    (x ⋪ utxo) ∪ (dom utxo ⋪ utxo)
+  ≡⟨ cong (λ o → (x ⋪ utxo) ∪ o) UTxO.prop-excluding-dom ⟩
+    (x ⋪ utxo) ∪ UTxO.empty
+  ≡⟨ UTxO.prop-union-empty-right ⟩
+    (x ⋪ utxo)
+  ∎
+
+-- | The 'UTxO' returned by 'excludingD' agrees
+-- with the application of the delta to the input 'UTxO'.
+--
+prop-apply-excludingD
+  : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+  → let (du , u1) = excludingD u0 txins
+    in  apply du u0 ≡ u1
+--
+prop-apply-excludingD {txins} {u0} =
+  begin
+    apply du u0
+  ≡⟨⟩
+    (received du) ∪ (excluded du ⋪ u0)
+  ≡⟨ UTxO.prop-union-empty-left ⟩
+    excluded du ⋪ u0
+  ≡⟨⟩
+    Set.intersection txins (dom u0) ⋪ u0
+  ≡⟨ lemma-excluding-intersection-dom ⟩
+    txins ⋪ u0
+  ≡⟨⟩
+    u1
+  ∎
+  where
+    du = fst (excludingD u0 txins)
+    u1 = snd (excludingD u0 txins)
 
 --
 -- This is the most important property:

@@ -1,6 +1,6 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO where
 
-import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO, dom)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
     ( empty
     , excluding
@@ -10,8 +10,8 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
     )
 import Cardano.Wallet.Read.Tx (TxIn)
 import Data.Set (Set)
-import qualified Haskell.Data.Map as Map (empty, keysSet)
-import qualified Haskell.Data.Set as Set (difference, empty, null, union)
+import qualified Haskell.Data.Map as Map (empty)
+import qualified Haskell.Data.Set as Set (empty, intersection, null, union)
 
 data DeltaUTxO = DeltaUTxO {excluded :: Set TxIn, received :: UTxO}
 
@@ -29,7 +29,7 @@ excludingD :: UTxO -> Set TxIn -> (DeltaUTxO, UTxO)
 excludingD utxo txins = (du, UTxO.excluding utxo txins)
   where
     du :: DeltaUTxO
-    du = DeltaUTxO (Set.difference (Map.keysSet utxo) txins) UTxO.empty
+    du = DeltaUTxO (Set.intersection txins (dom utxo)) UTxO.empty
 
 receiveD :: UTxO -> UTxO -> (DeltaUTxO, UTxO)
 receiveD old new = (du, UTxO.union old new)
