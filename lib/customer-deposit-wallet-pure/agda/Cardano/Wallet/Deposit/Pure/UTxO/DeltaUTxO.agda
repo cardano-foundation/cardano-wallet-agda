@@ -149,7 +149,7 @@ prop-apply-empty utxo =
   ∎
 
 --
-lemma-excluding-intersection-dom
+@0 lemma-excluding-intersection-dom
   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
   → (Set.intersection x (dom utxo)) ⋪ utxo ≡ x ⋪ utxo
 --
@@ -167,7 +167,7 @@ lemma-excluding-intersection-dom {x} {utxo} =
 -- | The 'UTxO' returned by 'excludingD' agrees
 -- with the application of the delta to the input 'UTxO'.
 --
-prop-apply-excludingD
+@0 prop-apply-excludingD
   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
   → let (du , u1) = excludingD u0 txins
     in  apply du u0 ≡ u1
