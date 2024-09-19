@@ -1,13 +1,6 @@
 {-# OPTIONS --erasure #-}
 
-module Haskell.Data.Map
-    {-
-    ; Map
-      ; lookup
-      ; null
-      ; insert
-    -}
-    where
+module Haskell.Data.Map where
 
 open import Haskell.Prelude hiding (lookup; null; map; filter)
 import Haskell.Prelude as L using (map)
@@ -17,6 +10,7 @@ open import Haskell.Data.Maybe using
     )
 
 import Haskell.Prelude as List using (map)
+import Haskell.Data.Maps.Maybe as Maybe
 import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
@@ -25,40 +19,6 @@ import Haskell.Data.Set as Set
 AntitonicPred : {a : Set} → {{Ord a}} → (a → Bool) → Set
 AntitonicPred {a} p =
   ∀ {x y : a} → ((x <= y) ≡ True) → ((p x >= p y) ≡ True)
-
-{-----------------------------------------------------------------------------
-    Data.Maybe
-------------------------------------------------------------------------------}
-
-unionWithMaybe : (a → a → a) → Maybe a → Maybe a → Maybe a
-unionWithMaybe f Nothing my = my
-unionWithMaybe f (Just x) Nothing = Just x
-unionWithMaybe f (Just x) (Just y) = Just (f x y)
-
-unionMaybe : Maybe a → Maybe a → Maybe a
-unionMaybe = unionWithMaybe (λ x y → x)
-
-intersectionWithMaybe : (a → b → c) → Maybe a → Maybe b → Maybe c
-intersectionWithMaybe f (Just x) (Just y) = Just (f x y)
-intersectionWithMaybe _ _ _ = Nothing
-
-updateMaybe : (a → Maybe a) → Maybe a → Maybe a
-updateMaybe f Nothing = Nothing
-updateMaybe f (Just x) = f x
-
-prop-unionMaybe-empty-right
-  : ∀ {ma : Maybe a}
-  → unionMaybe ma Nothing ≡ ma
-prop-unionMaybe-empty-right {_} {Nothing} = refl
-prop-unionMaybe-empty-right {_} {Just x} = refl
-
-prop-unionMaybe-assoc
-  : ∀ {ma mb mc : Maybe a}
-  → unionMaybe (unionMaybe ma mb) mc ≡ unionMaybe ma (unionMaybe mb mc)
-prop-unionMaybe-assoc {_} {Nothing} {mb} {mc} = refl
-prop-unionMaybe-assoc {_} {Just x} {Nothing} {mc} = refl
-prop-unionMaybe-assoc {_} {Just x} {Just x₁} {Nothing} = refl
-prop-unionMaybe-assoc {_} {Just x} {Just x₁} {Just x₂} = refl
 
 {-----------------------------------------------------------------------------
     Data.Map
@@ -144,7 +104,7 @@ module _ {k a : Set} {{_ : Ord k}} where
     prop-lookup-unionWith
       : ∀ (key : k) (m n : Map k a) (f : a → a → a)
       → lookup key (unionWith f m n)
-        ≡ unionWithMaybe f (lookup key m) (lookup key n)
+        ≡ Maybe.unionWith f (lookup key m) (lookup key n)
 
     prop-lookup-filterWithKey-Just
       : ∀ (key : k) (x : a) (m : Map k a) (p : k → a → Bool)
@@ -264,7 +224,7 @@ module _ {k a b c : Set} {{_ : Ord k}} where
       : ∀ (key : k) (ma : Map k a) (mb : Map k b)
           (f : a → b → c)
       → lookup key (intersectionWith f ma mb)
-        ≡ intersectionWithMaybe f (lookup key ma) (lookup key mb)
+        ≡ Maybe.intersectionWith f (lookup key ma) (lookup key mb)
 
 {-----------------------------------------------------------------------------
     Proofs
@@ -274,57 +234,63 @@ module _ {k a : Set} {{_ : Ord k}} where
   prop-lookup-union
     : ∀ (key : k) (m n : Map k a)
     → lookup key (union m n)
-      ≡ unionMaybe (lookup key m) (lookup key n)
+      ≡ Maybe.union (lookup key m) (lookup key n)
   prop-lookup-union key m n = prop-lookup-unionWith key m n (λ x y → x)
 
+  --
   prop-union-empty-left
     : ∀ {ma : Map k a}
     → union empty ma ≡ ma
+  --
   prop-union-empty-left {ma} = prop-equality eq-key
     where
       eq-key = λ key →
         begin
           lookup key (union empty ma)
         ≡⟨ prop-lookup-union key empty ma ⟩
-          unionMaybe (lookup key empty) (lookup key ma)
-        ≡⟨ cong (λ o → unionMaybe o (lookup key ma)) (prop-lookup-empty key) ⟩
-          unionMaybe Nothing (lookup key ma)
+          Maybe.union (lookup key empty) (lookup key ma)
+        ≡⟨ cong (λ o → Maybe.union o (lookup key ma)) (prop-lookup-empty key) ⟩
+          Maybe.union Nothing (lookup key ma)
         ≡⟨⟩
           lookup key ma
         ∎
 
+  --
   prop-union-empty-right
     : ∀ {ma : Map k a}
     → union ma empty ≡ ma
+  --
   prop-union-empty-right {ma} = prop-equality eq-key
     where
       eq-key = λ key →
         begin
           lookup key (union ma empty)
         ≡⟨ prop-lookup-union key ma empty ⟩
-          unionMaybe (lookup key ma) (lookup key empty)
-        ≡⟨ cong (λ o → unionMaybe (lookup key ma) o) (prop-lookup-empty key) ⟩
-          unionMaybe (lookup key ma) Nothing
-        ≡⟨ prop-unionMaybe-empty-right ⟩
+          Maybe.union (lookup key ma) (lookup key empty)
+        ≡⟨ cong (λ o → Maybe.union (lookup key ma) o) (prop-lookup-empty key) ⟩
+          Maybe.union (lookup key ma) Nothing
+        ≡⟨ Maybe.prop-union-empty-right ⟩
           lookup key ma
         ∎
 
+  --
   prop-union-assoc
     : ∀ {ma mb mc : Map k a}
     → union (union ma mb) mc ≡ union ma (union mb mc)
+  --
   prop-union-assoc {ma} {mb} {mc} = prop-equality eq-key
     where
       eq-key = λ key →
         begin
           lookup key (union (union ma mb) mc)
         ≡⟨ prop-lookup-union key _ _ ⟩
-          unionMaybe (lookup key (union ma mb)) (lookup key mc)
-        ≡⟨ cong (λ o → unionMaybe o (lookup key mc)) (prop-lookup-union key _ _) ⟩
-          unionMaybe (unionMaybe (lookup key ma) (lookup key mb)) (lookup key mc)
-        ≡⟨ prop-unionMaybe-assoc {_} {lookup key ma} {_} {_} ⟩
-          unionMaybe (lookup key ma) (unionMaybe (lookup key mb) (lookup key mc))
-        ≡⟨ cong (λ o → unionMaybe (lookup key ma) o) (sym (prop-lookup-union key _ _)) ⟩
-          unionMaybe (lookup key ma) (lookup key (union mb mc))
+          Maybe.union (lookup key (union ma mb)) (lookup key mc)
+        ≡⟨ cong (λ o → Maybe.union o (lookup key mc)) (prop-lookup-union key _ _) ⟩
+          Maybe.union (Maybe.union (lookup key ma) (lookup key mb)) (lookup key mc)
+        ≡⟨ Maybe.prop-union-assoc {_} {lookup key ma} {_} {_} ⟩
+          Maybe.union (lookup key ma) (Maybe.union (lookup key mb) (lookup key mc))
+        ≡⟨ cong (λ o → Maybe.union (lookup key ma) o) (sym (prop-lookup-union key _ _)) ⟩
+          Maybe.union (lookup key ma) (lookup key (union mb mc))
         ≡⟨ sym (prop-lookup-union key _ _) ⟩
           lookup key (union ma (union mb mc))
         ∎
@@ -333,16 +299,13 @@ module _ {k a : Set} {{_ : Ord k}} where
     Test proofs
 ------------------------------------------------------------------------------}
 
-filterMaybe
-  : ∀ {a : Set} → (a → Bool) → Maybe a → Maybe a
-filterMaybe p Nothing = Nothing
-filterMaybe p (Just x) = if p x then Just x else Nothing
-
+--
 @0 prop-lookup-filter
   : ∀ {k a} {{_ : Ord k}}
       (key : k) (p : a → Bool) (m : Map k a) 
   → lookup key (filter p m)
-    ≡ filterMaybe p (lookup key m)
+    ≡ Maybe.filter p (lookup key m)
+--
 prop-lookup-filter key p m = case lookup key m of λ where
   (Just x) {{eq}} →
     begin
@@ -350,9 +313,9 @@ prop-lookup-filter key p m = case lookup key m of λ where
     ≡⟨ prop-lookup-filterWithKey-Just key x m (λ _ x → p x) eq ⟩
       (if p x then Just x else Nothing)
     ≡⟨⟩
-      filterMaybe p (Just x)
-    ≡⟨ cong (filterMaybe p) (sym eq) ⟩
-      filterMaybe p (lookup key m)
+      Maybe.filter p (Just x)
+    ≡⟨ cong (Maybe.filter p) (sym eq) ⟩
+      Maybe.filter p (lookup key m)
     ∎
   Nothing {{eq}} →
     begin
@@ -360,9 +323,9 @@ prop-lookup-filter key p m = case lookup key m of λ where
     ≡⟨ prop-lookup-filterWithKey-Nothing key m (λ _ x → p x) eq ⟩
       Nothing
     ≡⟨⟩
-      filterMaybe p Nothing
-    ≡⟨ cong (filterMaybe p) (sym eq) ⟩
-      filterMaybe p (lookup key m)
+      Maybe.filter p Nothing
+    ≡⟨ cong (Maybe.filter p) (sym eq) ⟩
+      Maybe.filter p (lookup key m)
     ∎
 
 --
