@@ -79,7 +79,7 @@ applyTx isOurs tx u0 =
     let (du10 , u1)  = spendTxD tx u0
         receivedUTxO = UTxO.filterByAddress isOurs (utxoFromTxOutputs tx)
         (du21 , u2)  = DeltaUTxO.receiveD u1 receivedUTxO
-        (du , u) = (du21 <> du10 , u2)
+        (du , u) = (DeltaUTxO.append du21 du10 , u2)
     
         -- NOTE: Performance.
         -- 'applyTx' is part of a tight loop that inspects all transactions
@@ -92,7 +92,7 @@ applyTx isOurs tx u0 =
         --   isUnchangedUTxO =  mempty == du
 
     in  if isUnchangedUTxO
-          then (mempty , u0)
+          then (DeltaUTxO.empty , u0)
           else (du , u)
 
 {-# COMPILE AGDA2HS IsOurs #-}

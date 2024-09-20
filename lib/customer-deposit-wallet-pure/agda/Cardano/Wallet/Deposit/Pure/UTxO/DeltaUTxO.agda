@@ -20,9 +20,15 @@ open import Haskell.Reasoning
 
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
+      ; dom
+      ; _∪_
+      ; _⋪_
     )
 open import Cardano.Wallet.Deposit.Read using
     ( TxIn
+    )
+open import Haskell.Data.Set using
+    ( ℙ
     )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
@@ -50,7 +56,7 @@ empty = record
 
 apply : DeltaUTxO → UTxO → UTxO
 apply du utxo =
-   UTxO.union (UTxO.excluding utxo (excluded du)) (received du)
+   UTxO.union (received du) (UTxO.excluding utxo (excluded du))
 
 excludingD : UTxO → Set.ℙ TxIn → (DeltaUTxO × UTxO)
 excludingD utxo txins =
@@ -70,23 +76,15 @@ receiveD old new =
       ; received = new
       }
 
-appendDeltaUTxO : DeltaUTxO → DeltaUTxO → DeltaUTxO
-appendDeltaUTxO da db = record
-    { excluded = Set.union (excluded da) (excluded'db)
-    ; received = UTxO.union (received'da) (received db)
+-- | Apply `x` *after* `y`.
+append : DeltaUTxO → DeltaUTxO → DeltaUTxO
+append x y = record
+    { excluded = Set.union (excluded'x) (excluded y)
+    ; received = UTxO.union (received x) (received'y)
     }
   where
-    received'da = UTxO.excluding (received da) (excluded db)
-    excluded'db = UTxO.excludingS (excluded db) (received da)
-
-instance
-  iSemigroupDeltaUTxO : Semigroup DeltaUTxO
-  iSemigroupDeltaUTxO = record { _<>_ = appendDeltaUTxO }
-
-instance
-  iMonoidDeltaUTxO : Monoid DeltaUTxO
-  iMonoidDeltaUTxO =
-    record {DefaultMonoid (λ where .DefaultMonoid.mempty → empty)}
+    excluded'x = UTxO.excludingS (excluded x) (received y)
+    received'y = UTxO.excluding (received y) (excluded x)
 
 {-# COMPILE AGDA2HS DeltaUTxO #-}
 {-# COMPILE AGDA2HS null #-}
@@ -94,9 +92,7 @@ instance
 {-# COMPILE AGDA2HS apply #-}
 {-# COMPILE AGDA2HS excludingD #-}
 {-# COMPILE AGDA2HS receiveD #-}
-{-# COMPILE AGDA2HS appendDeltaUTxO #-}
-{-# COMPILE AGDA2HS iSemigroupDeltaUTxO #-}
-{-# COMPILE AGDA2HS iMonoidDeltaUTxO #-}
+{-# COMPILE AGDA2HS append #-}
 
 {-----------------------------------------------------------------------------
     Properties
@@ -128,14 +124,58 @@ prop-null-empty du eq =
 
 --
 @0 prop-apply-empty
-  : ∀ (u : UTxO) (key : TxIn)
-  → Map.lookup key (apply empty u) ≡ Map.lookup key u 
+  : ∀ (utxo : UTxO)
+  → apply empty utxo ≡ utxo
 --
-prop-apply-empty u key =
+prop-apply-empty utxo =
   begin
-    Map.lookup key (apply empty u)
-  ≡⟨ UTxO.prop-union-empty key _ ⟩
-    Map.lookup key (UTxO.excluding u (excluded empty))
-  ≡⟨ UTxO.prop-excluding-empty key u ⟩
-    Map.lookup key u 
+    apply empty utxo
+  ≡⟨ UTxO.prop-union-empty-left ⟩
+    UTxO.excluding utxo (excluded empty)
+  ≡⟨ UTxO.prop-excluding-empty utxo ⟩
+    utxo
   ∎
+
+--
+-- This is the most important property:
+-- The semigroup operation `_<>_` is an application of `apply`.
+prop-apply-append
+  : ∀ (x y : DeltaUTxO) (utxo : UTxO)
+  → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
+  → apply (append x y) utxo ≡ apply x (apply y utxo)
+prop-apply-append x y utxo cond =
+    begin
+      apply (append x y) utxo
+    ≡⟨⟩
+      received (append x y) ∪ (excluded (append x y) ⋪ utxo)
+    ≡⟨⟩
+      (received x ∪ (excluded x ⋪ received y))
+        ∪ (excluded (append x y) ⋪ utxo)
+    ≡⟨ UTxO.prop-union-assoc ⟩
+      received x ∪ ((excluded x ⋪ received y)
+        ∪ (excluded (append x y) ⋪ utxo))
+    ≡⟨ cong (λ o → received x ∪ ((excluded x ⋪ received y) ∪ o)) lem1 ⟩
+      received x ∪ ((excluded x ⋪ received y)
+        ∪ (excluded x ⋪ (excluded y ⋪ utxo)))
+    ≡⟨ cong (λ o → received x ∪ o) (sym (UTxO.prop-excluding-union (excluded x) _ _)) ⟩
+      received x ∪ (excluded x ⋪ (received y ∪ (excluded y ⋪ utxo)))
+    ≡⟨⟩
+      apply x (received y ∪ (excluded y ⋪ utxo))
+    ≡⟨⟩
+      apply x (apply y utxo)
+    ∎
+  where
+    lem1 =
+      begin
+        excluded (append x y) ⋪ utxo
+      ≡⟨⟩
+        Set.union (UTxO.excludingS (excluded x) (received y)) (excluded y) ⋪ utxo
+      ≡⟨ cong (λ o → o ⋪ utxo) Set.prop-union-sym ⟩
+        Set.union (excluded y) (UTxO.excludingS (excluded x) (received y)) ⋪ utxo
+      ≡⟨ sym UTxO.prop-excluding-excluding ⟩
+        excluded y ⋪ (UTxO.excludingS (excluded x) (received y) ⋪ utxo)
+      ≡⟨ cong (λ o → excluded y ⋪ o) (UTxO.prop-excluding-excludingS cond) ⟩
+        excluded y ⋪ (excluded x ⋪ utxo)
+      ≡⟨ UTxO.prop-excluding-sym ⟩
+        excluded x ⋪ (excluded y ⋪ utxo)
+      ∎

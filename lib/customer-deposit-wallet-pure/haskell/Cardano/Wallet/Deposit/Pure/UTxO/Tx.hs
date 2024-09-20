@@ -4,7 +4,9 @@ import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     ( DeltaUTxO (excluded, received)
     )
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
-    ( excludingD
+    ( append
+    , empty
+    , excludingD
     , null
     , receiveD
     )
@@ -70,14 +72,16 @@ applyTx isOurs tx u0 =
     if UTxO.null (UTxO.filterByAddress isOurs (utxoFromTxOutputs tx))
         && Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.null
             (fst (spendTxD tx u0))
-        then (mempty, u0)
+        then (Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.empty, u0)
         else
-            ( fst
-                ( Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.receiveD
-                    (snd (spendTxD tx u0))
-                    (UTxO.filterByAddress isOurs (utxoFromTxOutputs tx))
+            ( Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.append
+                ( fst
+                    ( Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.receiveD
+                        (snd (spendTxD tx u0))
+                        (UTxO.filterByAddress isOurs (utxoFromTxOutputs tx))
+                    )
                 )
-                <> fst (spendTxD tx u0)
+                (fst (spendTxD tx u0))
             , snd
                 ( Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.receiveD
                     (snd (spendTxD tx u0))

@@ -55,8 +55,19 @@ balance = foldMap getValue
 union : UTxO → UTxO → UTxO
 union = Map.unionWith (λ x y → x)
 
+-- | Infix synonym for 'union'.
+-- (Not exported to Haskell.)
+_∪_ : UTxO → UTxO → UTxO
+_∪_ = union
+
+-- | Exclude a set of inputs.
 excluding : UTxO → Set.ℙ TxIn → UTxO
 excluding = Map.withoutKeys
+
+-- | Infix synonym for 'excluding'.
+-- (Not exported to Haskell.)
+_⋪_ : Set.ℙ TxIn → UTxO → UTxO
+_⋪_ x u = excluding u x
 
 restrictedBy : UTxO → Set.ℙ TxIn → UTxO
 restrictedBy = Map.restrictKeys
@@ -83,35 +94,85 @@ filterByAddress p = Map.filter (p ∘ getCompactAddr)
     Properties
 ------------------------------------------------------------------------------}
 --
-prop-union-empty
-  : ∀ (key : TxIn) (u : UTxO)
-  → Map.lookup key (union u empty)
-    ≡ Map.lookup key u
+prop-union-empty-left
+  : ∀ {utxo : UTxO}
+  → union empty utxo ≡ utxo
 --
-prop-union-empty key u =
-    begin
-      Map.lookup key (union u empty)
-    ≡⟨ Map.prop-lookup-unionWith key u empty f ⟩
-      Map.unionWithMaybe f (Map.lookup key u) (Map.lookup key empty)
-    ≡⟨ cong (Map.unionWithMaybe f (Map.lookup key u)) (Map.prop-lookup-empty key)⟩
-      Map.unionWithMaybe f (Map.lookup key u) Nothing
-    ≡⟨ lem1 (Map.lookup key u) ⟩
-      Map.lookup key u
-    ∎
-  where
-    f = (λ x y → x)
+prop-union-empty-left = Map.prop-union-empty-left
 
-    lem1 : (ma : Maybe TxOut) → Map.unionWithMaybe f ma Nothing ≡ ma
-    lem1 (Just x) = refl
-    lem1 Nothing = refl
+--
+prop-union-empty-right
+  : ∀ {utxo : UTxO}
+  → union utxo empty ≡ utxo
+--
+prop-union-empty-right = Map.prop-union-empty-right
 
 --
 @0 prop-excluding-empty
-  : ∀ (key : TxIn) (u : UTxO)
-  → Map.lookup key (excluding u Set.empty)
-    ≡ Map.lookup key u
+  : ∀ (utxo : UTxO)
+  → excluding utxo Set.empty ≡ utxo
 --
-prop-excluding-empty key u = Map.prop-withoutKeys-empty key u
+prop-excluding-empty utxo =
+  Map.prop-equality (λ key → Map.prop-withoutKeys-empty key utxo)
+
+--
+prop-union-assoc
+  : ∀ {ua ub uc : UTxO}
+  → (ua ∪ ub) ∪ uc ≡ ua ∪ (ub ∪ uc)
+--
+prop-union-assoc = Map.prop-union-assoc
+
+--
+postulate
+ prop-excluding-union
+  : ∀ (x : Set.ℙ TxIn) (ua ub : UTxO)
+  → x ⋪ (ua ∪ ub) ≡ (x ⋪ ua) ∪ (x ⋪ ub)
+--
+
+--
+postulate
+ prop-excluding-excluding
+  : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
+  → x ⋪ (y ⋪ utxo) ≡ (Set.union x y) ⋪ utxo
+--
+
+--
+postulate
+ prop-excluding-intersection
+  : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
+  → (Set.intersection x y) ⋪ utxo ≡ (x ⋪ utxo) ∪ (y ⋪ utxo)
+--
+
+--
+postulate
+ prop-excluding-dom
+  : ∀ {utxo : UTxO}
+  → dom utxo ⋪ utxo ≡ empty
+--
+
+--
+prop-excluding-sym
+  : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
+  → x ⋪ (y ⋪ utxo) ≡ y ⋪ (x ⋪ utxo)
+--
+prop-excluding-sym {x} {y} {utxo} =
+  begin
+    x ⋪ (y ⋪ utxo)
+  ≡⟨ prop-excluding-excluding ⟩
+    (Set.union x y) ⋪ utxo
+  ≡⟨ cong (λ o → o ⋪ utxo) (Set.prop-union-sym) ⟩
+    (Set.union y x) ⋪ utxo
+  ≡⟨ sym prop-excluding-excluding ⟩
+    y ⋪ (x ⋪ utxo)
+  ∎
+
+--
+postulate
+ prop-excluding-excludingS
+  : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
+  → Set.intersection (dom ua) (dom ub) ≡ Set.empty
+  → (excludingS x ua) ⋪ ub ≡ x ⋪ ub
+--
 
 --
 prop-filterByAddress-filters
@@ -121,10 +182,10 @@ prop-filterByAddress-filters
     → Map.member txin (filterByAddress p utxo)
         ≡ p (getCompactAddr txout)
 --
-prop-filterByAddress-filters p u key x eq =
+prop-filterByAddress-filters p utxo key x eq =
     begin
-        isJust (Map.lookup key (filterByAddress p u))
-    ≡⟨ cong isJust (Map.prop-lookup-filterWithKey-Just key x u q eq) ⟩
+        isJust (Map.lookup key (filterByAddress p utxo))
+    ≡⟨ cong isJust (Map.prop-lookup-filterWithKey-Just key x utxo q eq) ⟩
         isJust (if p (getCompactAddr x) then Just x else Nothing)
     ≡⟨ lem2 _ _ ⟩
         p (getCompactAddr x)
