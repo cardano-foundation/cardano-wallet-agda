@@ -75,6 +75,28 @@ prop-x-&&-False True = refl
 prop-x-&&-False False = refl
 
 {-----------------------------------------------------------------------------
+    Algebraic laws for logical connectives
+------------------------------------------------------------------------------}
+
+--
+prop-||-sym
+  : ∀ (a b : Bool)
+  → (a || b) ≡ (b || a)
+--
+prop-||-sym False False = refl
+prop-||-sym False True = refl
+prop-||-sym True False = refl
+prop-||-sym True True = refl
+
+--
+prop-||-assoc
+  : ∀ (a b c : Bool)
+  → ((a || b) || c) ≡ (a || (b || c))
+--
+prop-||-assoc False b c = refl
+prop-||-assoc True b c = refl
+
+{-----------------------------------------------------------------------------
     Properties of if_then_else
 ------------------------------------------------------------------------------}
 prop-if-apply
@@ -115,3 +137,4 @@ prop-if-eq-subst x y t e subst =
         (if x == y then t y else e)
       ∎
     }
+ 

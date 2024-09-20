@@ -35,6 +35,9 @@ unionWithMaybe f Nothing my = my
 unionWithMaybe f (Just x) Nothing = Just x
 unionWithMaybe f (Just x) (Just y) = Just (f x y)
 
+unionMaybe : Maybe a → Maybe a → Maybe a
+unionMaybe = unionWithMaybe (λ x y → x)
+
 intersectionWithMaybe : (a → b → c) → Maybe a → Maybe b → Maybe c
 intersectionWithMaybe f (Just x) (Just y) = Just (f x y)
 intersectionWithMaybe _ _ _ = Nothing
@@ -42,6 +45,20 @@ intersectionWithMaybe _ _ _ = Nothing
 updateMaybe : (a → Maybe a) → Maybe a → Maybe a
 updateMaybe f Nothing = Nothing
 updateMaybe f (Just x) = f x
+
+prop-unionMaybe-empty-right
+  : ∀ {ma : Maybe a}
+  → unionMaybe ma Nothing ≡ ma
+prop-unionMaybe-empty-right {_} {Nothing} = refl
+prop-unionMaybe-empty-right {_} {Just x} = refl
+
+prop-unionMaybe-assoc
+  : ∀ {ma mb mc : Maybe a}
+  → unionMaybe (unionMaybe ma mb) mc ≡ unionMaybe ma (unionMaybe mb mc)
+prop-unionMaybe-assoc {_} {Nothing} {mb} {mc} = refl
+prop-unionMaybe-assoc {_} {Just x} {Nothing} {mc} = refl
+prop-unionMaybe-assoc {_} {Just x} {Just x₁} {Nothing} = refl
+prop-unionMaybe-assoc {_} {Just x} {Just x₁} {Just x₂} = refl
 
 {-----------------------------------------------------------------------------
     Data.Map
@@ -83,6 +100,11 @@ module _ {k a : Set} {{_ : Ord k}} where
       : ∀ (m : Map k a)
       → null m ≡ True
       → m ≡ empty
+
+    prop-equality
+      : ∀ {m1 m2 : Map k a}
+      → (∀ (key : k) → lookup key m1 ≡ lookup key m2)
+      → m1 ≡ m2
 
     prop-lookup-eq
       : ∀ (key1 key2 : k) (m : Map k a)
@@ -184,6 +206,9 @@ module _ {k a : Set} {{_ : Ord k}} where
   filter : (a → Bool) → Map k a → Map k a
   filter p = filterWithKey (λ _ x → p x)
 
+  union : Map k a → Map k a → Map k a
+  union = unionWith (λ x y → x)
+
   spanAntitone : (k → Bool) → Map k a → (Map k a × Map k a)
   spanAntitone p m = (takeWhileAntitone p m , dropWhileAntitone p m)
 
@@ -240,6 +265,69 @@ module _ {k a b c : Set} {{_ : Ord k}} where
           (f : a → b → c)
       → lookup key (intersectionWith f ma mb)
         ≡ intersectionWithMaybe f (lookup key ma) (lookup key mb)
+
+{-----------------------------------------------------------------------------
+    Proofs
+------------------------------------------------------------------------------}
+module _ {k a : Set} {{_ : Ord k}} where
+
+  prop-lookup-union
+    : ∀ (key : k) (m n : Map k a)
+    → lookup key (union m n)
+      ≡ unionMaybe (lookup key m) (lookup key n)
+  prop-lookup-union key m n = prop-lookup-unionWith key m n (λ x y → x)
+
+  prop-union-empty-left
+    : ∀ {ma : Map k a}
+    → union empty ma ≡ ma
+  prop-union-empty-left {ma} = prop-equality eq-key
+    where
+      eq-key = λ key →
+        begin
+          lookup key (union empty ma)
+        ≡⟨ prop-lookup-union key empty ma ⟩
+          unionMaybe (lookup key empty) (lookup key ma)
+        ≡⟨ cong (λ o → unionMaybe o (lookup key ma)) (prop-lookup-empty key) ⟩
+          unionMaybe Nothing (lookup key ma)
+        ≡⟨⟩
+          lookup key ma
+        ∎
+
+  prop-union-empty-right
+    : ∀ {ma : Map k a}
+    → union ma empty ≡ ma
+  prop-union-empty-right {ma} = prop-equality eq-key
+    where
+      eq-key = λ key →
+        begin
+          lookup key (union ma empty)
+        ≡⟨ prop-lookup-union key ma empty ⟩
+          unionMaybe (lookup key ma) (lookup key empty)
+        ≡⟨ cong (λ o → unionMaybe (lookup key ma) o) (prop-lookup-empty key) ⟩
+          unionMaybe (lookup key ma) Nothing
+        ≡⟨ prop-unionMaybe-empty-right ⟩
+          lookup key ma
+        ∎
+
+  prop-union-assoc
+    : ∀ {ma mb mc : Map k a}
+    → union (union ma mb) mc ≡ union ma (union mb mc)
+  prop-union-assoc {ma} {mb} {mc} = prop-equality eq-key
+    where
+      eq-key = λ key →
+        begin
+          lookup key (union (union ma mb) mc)
+        ≡⟨ prop-lookup-union key _ _ ⟩
+          unionMaybe (lookup key (union ma mb)) (lookup key mc)
+        ≡⟨ cong (λ o → unionMaybe o (lookup key mc)) (prop-lookup-union key _ _) ⟩
+          unionMaybe (unionMaybe (lookup key ma) (lookup key mb)) (lookup key mc)
+        ≡⟨ prop-unionMaybe-assoc {_} {lookup key ma} {_} {_} ⟩
+          unionMaybe (lookup key ma) (unionMaybe (lookup key mb) (lookup key mc))
+        ≡⟨ cong (λ o → unionMaybe (lookup key ma) o) (sym (prop-lookup-union key _ _)) ⟩
+          unionMaybe (lookup key ma) (lookup key (union mb mc))
+        ≡⟨ sym (prop-lookup-union key _ _) ⟩
+          lookup key (union ma (union mb mc))
+        ∎
 
 {-----------------------------------------------------------------------------
     Test proofs
