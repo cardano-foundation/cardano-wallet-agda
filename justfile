@@ -13,6 +13,9 @@ build:
 build0:
     cabal build -v0 -O0 -j all
 
+doc:
+    cabal haddock -v0 -O0 -j all
+
 test:
     cabal test -v0 -O0 -j all
 
