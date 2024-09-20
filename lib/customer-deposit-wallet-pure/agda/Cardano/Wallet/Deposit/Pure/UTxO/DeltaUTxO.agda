@@ -15,6 +15,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
 
 open import Haskell.Prelude hiding
     ( null
+    ; concat
     )
 open import Haskell.Reasoning
 
@@ -45,6 +46,12 @@ record DeltaUTxO : Set where
 
 open DeltaUTxO public
 
+postulate
+  instance
+    iShowDeltaUTxO : Show DeltaUTxO
+
+{-# COMPILE AGDA2HS iShowDeltaUTxO derive #-}
+
 null : DeltaUTxO → Bool
 null du = Set.null (excluded du) && UTxO.null (received du)
 
@@ -63,7 +70,7 @@ excludingD utxo txins =
     (du , UTxO.excluding utxo txins)
   where
     du = record
-      { excluded = Set.difference (Map.keysSet utxo) txins
+      { excluded = Set.intersection txins (dom utxo)
       ; received = UTxO.empty
       }
 
@@ -86,6 +93,10 @@ append x y = record
     excluded'x = UTxO.excludingS (excluded x) (received y)
     received'y = UTxO.excluding (received y) (excluded x)
 
+-- | Combine a sequence of 'DeltaUTxO' using `append`
+concat : List DeltaUTxO → DeltaUTxO
+concat = foldr append empty
+
 {-# COMPILE AGDA2HS DeltaUTxO #-}
 {-# COMPILE AGDA2HS null #-}
 {-# COMPILE AGDA2HS empty #-}
@@ -93,6 +104,7 @@ append x y = record
 {-# COMPILE AGDA2HS excludingD #-}
 {-# COMPILE AGDA2HS receiveD #-}
 {-# COMPILE AGDA2HS append #-}
+{-# COMPILE AGDA2HS concat #-}
 
 {-----------------------------------------------------------------------------
     Properties
@@ -137,6 +149,48 @@ prop-apply-empty utxo =
   ∎
 
 --
+lemma-excluding-intersection-dom
+  : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
+  → (Set.intersection x (dom utxo)) ⋪ utxo ≡ x ⋪ utxo
+--
+lemma-excluding-intersection-dom {x} {utxo} =
+  begin
+    (Set.intersection x (dom utxo)) ⋪ utxo
+  ≡⟨ UTxO.prop-excluding-intersection ⟩
+    (x ⋪ utxo) ∪ (dom utxo ⋪ utxo)
+  ≡⟨ cong (λ o → (x ⋪ utxo) ∪ o) UTxO.prop-excluding-dom ⟩
+    (x ⋪ utxo) ∪ UTxO.empty
+  ≡⟨ UTxO.prop-union-empty-right ⟩
+    (x ⋪ utxo)
+  ∎
+
+-- | The 'UTxO' returned by 'excludingD' agrees
+-- with the application of the delta to the input 'UTxO'.
+--
+prop-apply-excludingD
+  : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+  → let (du , u1) = excludingD u0 txins
+    in  apply du u0 ≡ u1
+--
+prop-apply-excludingD {txins} {u0} =
+  begin
+    apply du u0
+  ≡⟨⟩
+    (received du) ∪ (excluded du ⋪ u0)
+  ≡⟨ UTxO.prop-union-empty-left ⟩
+    excluded du ⋪ u0
+  ≡⟨⟩
+    Set.intersection txins (dom u0) ⋪ u0
+  ≡⟨ lemma-excluding-intersection-dom ⟩
+    txins ⋪ u0
+  ≡⟨⟩
+    u1
+  ∎
+  where
+    du = fst (excludingD u0 txins)
+    u1 = snd (excludingD u0 txins)
+
+--
 -- This is the most important property:
 -- The semigroup operation `_<>_` is an application of `apply`.
 prop-apply-append
@@ -179,3 +233,11 @@ prop-apply-append x y utxo cond =
       ≡⟨ UTxO.prop-excluding-sym ⟩
         excluded x ⋪ (excluded y ⋪ utxo)
       ∎
+
+--
+-- Unit test for 'concat'.
+prop-concat-two
+  : ∀ (x y : DeltaUTxO)
+  → concat (x ∷ y ∷ []) ≡ append x (append y empty)
+--
+prop-concat-two x y = refl
