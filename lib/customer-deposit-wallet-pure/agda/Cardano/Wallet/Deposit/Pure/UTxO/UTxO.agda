@@ -137,11 +137,12 @@ postulate
 --
 
 --
-postulate
- prop-excluding-intersection
+@0 prop-excluding-intersection
   : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
   → (Set.intersection x y) ⋪ utxo ≡ (x ⋪ utxo) ∪ (y ⋪ utxo)
 --
+prop-excluding-intersection {x} {y} {utxo} =
+  Map.prop-withoutKeys-intersection utxo x y
 
 --
 postulate

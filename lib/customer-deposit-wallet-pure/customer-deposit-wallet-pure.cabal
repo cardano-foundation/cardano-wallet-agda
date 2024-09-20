@@ -88,6 +88,7 @@ library
     Haskell.Data.ByteString.Short
     Haskell.Data.List
     Haskell.Data.Map
+    Haskell.Data.Maps.Maybe
     Haskell.Data.Maps.InverseMap
     Haskell.Data.Maps.PairMap
     Haskell.Data.Maps.Timeline
