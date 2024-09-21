@@ -31,6 +31,7 @@ unionWith f Nothing my = my
 unionWith f (Just x) Nothing = Just x
 unionWith f (Just x) (Just y) = Just (f x y)
 
+-- | Left-biased union.
 union : Maybe a → Maybe a → Maybe a
 union = unionWith (λ x y → x)
 
@@ -56,6 +57,18 @@ prop-union-empty-right
 --
 prop-union-empty-right {_} {Nothing} = refl
 prop-union-empty-right {_} {Just x} = refl
+
+-- | 'unionWith' is symmetric if we 'flip' the function.
+-- Note that 'union' is left-biased, not symmetric.
+--
+prop-unionWith-sym
+  : ∀ {f : a → a → a} {ma mb : Maybe a}
+  → unionWith f ma mb ≡ unionWith (flip f) mb ma
+--
+prop-unionWith-sym {_} {f} {Nothing} {Nothing} = refl
+prop-unionWith-sym {_} {f} {Just x}  {Nothing} = refl
+prop-unionWith-sym {_} {f} {Nothing} {Just y} = refl
+prop-unionWith-sym {_} {f} {Just x}  {Just y} = refl
 
 --
 prop-union-assoc

@@ -103,7 +103,7 @@ module _ {k a : Set} {{_ : Ord k}} where
       → (elem key ∘ L.map fst ∘ toAscList) m ≡ False
 
     prop-lookup-unionWith
-      : ∀ (key : k) (m n : Map k a) (f : a → a → a)
+      : ∀ (key : k) (f : a → a → a) (m n : Map k a)
       → lookup key (unionWith f m n)
         ≡ Maybe.unionWith f (lookup key m) (lookup key n)
 
@@ -230,7 +230,7 @@ module _ {k a : Set} {{_ : Ord k}} where
     : ∀ (key : k) (m n : Map k a)
     → lookup key (union m n)
       ≡ Maybe.union (lookup key m) (lookup key n)
-  prop-lookup-union key m n = prop-lookup-unionWith key m n (λ x y → x)
+  prop-lookup-union key m n = prop-lookup-unionWith key (λ x y → x) m n
 
   --
   prop-union-empty-left
@@ -266,6 +266,24 @@ module _ {k a : Set} {{_ : Ord k}} where
           Maybe.union (lookup key ma) Nothing
         ≡⟨ Maybe.prop-union-empty-right ⟩
           lookup key ma
+        ∎
+
+  --
+  prop-unionWith-sym
+    : ∀ {f : a → a → a} {ma mb : Map k a}
+    → unionWith f ma mb ≡ unionWith (flip f) mb ma
+  --
+  prop-unionWith-sym {f} {ma} {mb} = prop-equality eq-key
+    where
+      eq-key = λ key →
+        begin
+          lookup key (unionWith f ma mb)
+        ≡⟨ prop-lookup-unionWith key f _ _ ⟩
+          Maybe.unionWith f (lookup key ma) (lookup key mb)
+        ≡⟨ Maybe.prop-unionWith-sym {_} {f} {lookup key ma} {lookup key mb} ⟩
+          Maybe.unionWith (flip f) (lookup key mb) (lookup key ma)
+        ≡⟨ sym (prop-lookup-unionWith key (flip f) _ _) ⟩
+          lookup key (unionWith (flip f) mb ma)
         ∎
 
   --
