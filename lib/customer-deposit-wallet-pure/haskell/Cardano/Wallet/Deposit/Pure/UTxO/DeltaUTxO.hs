@@ -36,7 +36,7 @@ excludingD utxo txins = (du, UTxO.excluding utxo txins)
     du = DeltaUTxO (Set.intersection txins (dom utxo)) UTxO.empty
 
 receiveD :: UTxO -> UTxO -> (DeltaUTxO, UTxO)
-receiveD old new = (du, UTxO.union old new)
+receiveD old new = (du, UTxO.union new old)
   where
     du :: DeltaUTxO
     du = DeltaUTxO Set.empty new

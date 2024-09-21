@@ -76,7 +76,7 @@ excludingD utxo txins =
 
 receiveD : UTxO → UTxO → (DeltaUTxO × UTxO)
 receiveD old new =
-    (du , UTxO.union old new)
+    (du , UTxO.union new old)
   where
     du = record 
       { excluded = Set.empty
@@ -164,8 +164,17 @@ lemma-excluding-intersection-dom {x} {utxo} =
     (x ⋪ utxo)
   ∎
 
--- | The 'UTxO' returned by 'excludingD' agrees
--- with the application of the delta to the input 'UTxO'.
+-- | The 'UTxO' returned by 'excludingD' is the same as 'excluding'.
+--
+prop-excluding-excludingD
+  : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+  → let (du , u1) = excludingD u0 txins
+    in  u1 ≡ UTxO.excluding u0 txins
+--
+prop-excluding-excludingD {txins} {u0} = refl
+
+-- | Applying the 'DeltaUTxO' returned by 'excludingD'
+-- to the argument 'UTxO' yields the result 'UTxO'.
 --
 @0 prop-apply-excludingD
   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
@@ -189,6 +198,37 @@ prop-apply-excludingD {txins} {u0} =
   where
     du = fst (excludingD u0 txins)
     u1 = snd (excludingD u0 txins)
+
+-- | The 'UTxO' returned by 'receiveD' is obtained by 'union'.
+--
+prop-union-receiveD
+  : ∀ {ua : UTxO} {u0 : UTxO}
+  → let (du , u1) = receiveD u0 ua
+    in  u1 ≡ UTxO.union ua u0
+--
+prop-union-receiveD {ua} {u0} = refl
+
+-- | Applying the 'DeltaUTxO' returned by 'receiveD'
+-- to the argument 'UTxO' yields the result 'UTxO'.
+--
+@0 prop-apply-receiveD
+  : ∀ {ua : UTxO} {u0 : UTxO}
+  → let (du , u1) = receiveD u0 ua
+    in  apply du u0 ≡ u1
+--
+prop-apply-receiveD {ua} {u0} =
+  begin
+    apply du u0
+  ≡⟨⟩
+    (received du) ∪ (excluded du ⋪ u0)
+  ≡⟨ cong (λ o → received du ∪ o) (UTxO.prop-excluding-empty _) ⟩
+    (received du) ∪ u0
+  ≡⟨⟩
+    u1
+  ∎
+  where
+    du = fst (receiveD u0 ua)
+    u1 = snd (receiveD u0 ua)
 
 --
 -- This is the most important property:
