@@ -49,6 +49,7 @@ packages:
 
 constraints:
     base >= 4.18.2.0 && < 5
+  , haskell-src-exts ^>= 1.23.1
 
 -- END Constraints tweaking section
 --------------------------------------------------------------------------------
