@@ -57,5 +57,6 @@ executable agda2hs-fixer
   other-modules:
     Language.Agda2hs.Agda.Parser
     Language.Agda2hs.Agda.Types
+    Language.Agda2hs.Documentation
     Language.Agda2hs.Haskell.Parser
     Language.Agda2hs.Haskell.Types
