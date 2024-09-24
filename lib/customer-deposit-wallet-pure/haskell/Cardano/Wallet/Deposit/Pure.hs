@@ -1,14 +1,9 @@
 module Cardano.Wallet.Deposit.Pure where
 
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub)
-import Cardano.Wallet.Deposit.Read
-    ( Address
-    , TxBody
-    , chainPointFromBlock
-    , getEraTransactions
-    )
+import Cardano.Wallet.Deposit.Read (Address, TxBody, getEraTransactions)
 import Cardano.Wallet.Read.Block (Block)
-import Cardano.Wallet.Read.Chain (ChainPoint)
+import Cardano.Wallet.Read.Chain (ChainPoint, getChainPoint)
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (Tx, TxOut, mkBasicTxOut)
 import Cardano.Wallet.Read.Value (Value)
@@ -93,7 +88,7 @@ rollForwardOne block s0 =
         (addresses s1)
         (utxo s1)
         (txSummaries s1)
-        (chainPointFromBlock block)
+        (getChainPoint block)
   where
     s1 :: WalletState
     s1 = foldl (\s tx -> applyTx tx s) s0 (getEraTransactions block)

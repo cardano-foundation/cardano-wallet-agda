@@ -18,6 +18,33 @@ open import Cardano.Wallet.Read.Block using
 import Cardano.Wallet.Read.Block as Block
 
 {-----------------------------------------------------------------------------
+    Slot
+------------------------------------------------------------------------------}
+data WithOrigin (a : Set) : Set where
+  Origin : WithOrigin a
+  At     : a → WithOrigin a
+
+instance
+  iEqWithOrigin : {{Eq a}} → Eq (WithOrigin a)
+  iEqWithOrigin ._==_ Origin Origin = True
+  iEqWithOrigin ._==_ (At x) (At y) = x == y
+  iEqWithOrigin ._==_ _      _      = False
+
+  iOrdWithOrigin : {{Ord a}} → Ord (WithOrigin a)
+  iOrdWithOrigin = ordFromCompare λ where
+    Origin Origin → EQ
+    Origin (At _) → LT
+    (At _) Origin → GT
+    (At x) (At y) → compare x y
+
+postulate instance
+  iIsLawfulOrdWithOrigin
+    : {{_ : Ord a}} → {{IsLawfulOrd a}} → IsLawfulOrd (WithOrigin a)
+
+Slot : Set
+Slot = WithOrigin SlotNo
+
+{-----------------------------------------------------------------------------
     ChainTip
 ------------------------------------------------------------------------------}
 data ChainTip : Set where
@@ -41,7 +68,6 @@ getChainTip block =
 {-----------------------------------------------------------------------------
     ChainPoint
 ------------------------------------------------------------------------------}
-
 -- | A point (block) on the Cardano blockchain.
 data ChainPoint : Set where
   GenesisPoint : ChainPoint
@@ -53,6 +79,10 @@ instance
   iEqChainPoint ._==_ (BlockPoint x1 y1) (BlockPoint x2 y2) =
     x1 == x2 && y1 == y2
   iEqChainPoint ._==_ _      _      = False
+
+slotFromChainPoint : ChainPoint → Slot
+slotFromChainPoint GenesisPoint = WithOrigin.Origin
+slotFromChainPoint (BlockPoint slotNo _) = WithOrigin.At slotNo
 
 chainPointFromChainTip : ChainTip → ChainPoint
 chainPointFromChainTip GenesisTip = GenesisPoint

@@ -9,8 +9,13 @@ License: Apache-2.0
 Data types relating to the consensus about the blockchain.
 -}
 module Cardano.Wallet.Read.Chain
-    ( -- * ChainPoint
-      ChainPoint (..)
+    ( -- * WithOrigin
+      WithOrigin (At, Origin)
+    , Slot
+    , slotFromChainPoint
+
+    -- * ChainPoint
+    , ChainPoint (..)
     , getChainPoint
     , prettyChainPoint
     , chainPointFromChainTip
@@ -23,6 +28,9 @@ module Cardano.Wallet.Read.Chain
 
 import Prelude
 
+import Cardano.Ledger.BaseTypes
+    ( WithOrigin (At, Origin)
+    )
 import Cardano.Wallet.Read.Block
     ( Block
     , BlockNo (..)
@@ -46,6 +54,15 @@ import NoThunks.Class
 
 import qualified Cardano.Wallet.Read.Hash as Hash
 import qualified Data.Text as T
+
+{-----------------------------------------------------------------------------
+    Slot
+------------------------------------------------------------------------------}
+type Slot = WithOrigin SlotNo
+
+slotFromChainPoint :: ChainPoint -> Slot
+slotFromChainPoint GenesisPoint = Origin
+slotFromChainPoint (BlockPoint slotNo _) = At slotNo
 
 {-----------------------------------------------------------------------------
     ChainPoint

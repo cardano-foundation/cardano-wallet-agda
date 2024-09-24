@@ -10,8 +10,9 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx
     , valueTransferFromResolvedTx
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
-import Cardano.Wallet.Deposit.Read (Address, Slot, WithOrigin (At, Origin))
+import Cardano.Wallet.Deposit.Read (Address)
 import Cardano.Wallet.Read.Block (SlotNo)
+import Cardano.Wallet.Read.Chain (Slot, WithOrigin (At, Origin))
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (TxId)
 import Data.Set (Set)
