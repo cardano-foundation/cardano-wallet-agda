@@ -50,12 +50,3 @@ getEraTransactions : {{IsEra era}} → Block era → List (Tx era)
 getEraTransactions block = []
 
 {-# COMPILE AGDA2HS getEraTransactions #-}
-
-{-----------------------------------------------------------------------------
-    ChainPoint
-------------------------------------------------------------------------------}
-
-chainPointFromBlock : {{IsEra era}} → Block era → ChainPoint
-chainPointFromBlock = getChainPoint
-
-{-# COMPILE AGDA2HS chainPointFromBlock #-}

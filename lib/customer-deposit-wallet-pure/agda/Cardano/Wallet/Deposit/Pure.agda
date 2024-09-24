@@ -77,7 +77,7 @@ open import Cardano.Wallet.Deposit.Read using
     ; Block
       ; getEraTransactions
     ; ChainPoint
-      ; chainPointFromBlock
+      ; getChainPoint
     ; IsEra
     ; Slot
     ; Tx
@@ -304,7 +304,7 @@ applyTx tx s0 = s1
 rollForwardOne
   : ∀ {era} → {{IsEra era}} → Block era → WalletState → WalletState
 rollForwardOne block s0 =
-    record s1 { localTip = chainPointFromBlock block }
+    record s1 { localTip = getChainPoint block }
   where
     s1 = foldl (λ s tx → applyTx tx s) s0 (getEraTransactions block)
 
