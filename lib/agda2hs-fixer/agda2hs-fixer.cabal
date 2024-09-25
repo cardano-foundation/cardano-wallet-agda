@@ -48,6 +48,8 @@ executable agda2hs-fixer
     , base
     , bytestring
     , containers
+    , directory
+    , filepath
     , haskell-src-exts
     , megaparsec
     , text
