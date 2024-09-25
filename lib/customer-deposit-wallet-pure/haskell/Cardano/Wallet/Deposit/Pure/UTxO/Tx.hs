@@ -45,6 +45,8 @@ import qualified Haskell.Data.Map as Map
     , unionWith
     )
 
+-- |
+-- Remove unspent outputs that are consumed by the given transaction.
 spendTxD :: IsEra era => Tx era -> UTxO -> (DeltaUTxO, UTxO)
 spendTxD tx u =
     Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.excludingD
@@ -57,6 +59,8 @@ spendTxD tx u =
             IsValidC True -> getInputs tx
             IsValidC False -> getCollateralInputs tx
 
+-- |
+-- Convert the transaction outputs into a 'UTxO' set.
 utxoFromTxOutputs :: IsEra era => Tx era -> UTxO
 utxoFromTxOutputs = utxoFromEraTx
 
@@ -101,6 +105,8 @@ resolveInputs utxo tx =
 pairFromTxOut :: TxOut -> (Read.Address, Read.Value)
 pairFromTxOut = \txout -> (getCompactAddr txout, getValue txout)
 
+-- |
+-- Compute how much 'Value' a 'UTxO' set contains at each address.
 groupByAddress :: UTxO -> Map.Map Read.Address Read.Value
 groupByAddress =
     Map.fromListWith (<>) . map pairFromTxOut . Map.elems

@@ -25,21 +25,29 @@ null = Map.null
 empty :: UTxO
 empty = Map.empty
 
+-- |
+-- Domain of a 'UTxO' = the set of /inputs/ of the /utxo/.
 dom :: UTxO -> Set TxIn
 dom = Map.keysSet
 
 balance :: UTxO -> Value
 balance = foldMap getValue
 
+-- |
+-- Left-biased union.
 union :: UTxO -> UTxO -> UTxO
 union = Map.unionWith (\x y -> x)
 
+-- |
+-- Exclude a set of inputs.
 excluding :: UTxO -> Set TxIn -> UTxO
 excluding = Map.withoutKeys
 
 restrictedBy :: UTxO -> Set TxIn -> UTxO
 restrictedBy = Map.restrictKeys
 
+-- |
+-- Exclude the inputs of a 'UTxO' from a 'Set' of inputs.
 excludingS :: Set TxIn -> UTxO -> Set TxIn
 excludingS s utxo =
     Set.filter (not . \txin -> Map.member txin utxo) s
