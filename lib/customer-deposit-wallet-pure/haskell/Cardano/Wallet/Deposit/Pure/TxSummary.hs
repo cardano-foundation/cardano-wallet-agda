@@ -6,9 +6,9 @@ import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (Tx, TxId, getTxId)
 
 data TxSummary = TxSummary
-    { summarizedTx :: TxId
-    , point :: ChainPoint
-    , transfer :: ValueTransfer
+    { txSummarized :: TxId
+    , txChainPoint :: ChainPoint
+    , txTransfer :: ValueTransfer
     }
 
 mkTxSummary :: IsEra era => Tx era -> ValueTransfer -> TxSummary

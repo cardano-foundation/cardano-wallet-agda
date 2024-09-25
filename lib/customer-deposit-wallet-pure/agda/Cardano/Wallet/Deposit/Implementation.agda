@@ -60,7 +60,7 @@ fromValueTransfer x = record
 
 fromTxSummary : TxSummary → DepositWallet.TxSummary
 fromTxSummary x =
-    (Read.slotFromChainPoint point , summarizedTx , fromValueTransfer transfer)
+    (Read.slotFromChainPoint txChainPoint , txSummarized , fromValueTransfer txTransfer)
   where
     open TxSummary x
 
