@@ -21,18 +21,18 @@ import Cardano.Wallet.Deposit.Read as Read
 
 record TxSummary : Set where
   field
-    summarizedTx : TxId
-    point : ChainPoint
-    transfer : ValueTransfer
+    txSummarized : TxId
+    txChainPoint : ChainPoint
+    txTransfer   : ValueTransfer
 
 open TxSummary public
 
 -- This is a mock summary for now
 mkTxSummary : ∀ {era} → {{IsEra era}} → Tx era → ValueTransfer → TxSummary
 mkTxSummary = λ tx transfer' → record
-    { summarizedTx = getTxId tx
-    ; point = ChainPoint.GenesisPoint
-    ; transfer = transfer'
+    { txSummarized = getTxId tx
+    ; txChainPoint = ChainPoint.GenesisPoint
+    ; txTransfer = transfer'
     }
 
 {-# COMPILE AGDA2HS TxSummary #-}
