@@ -25,6 +25,8 @@ import qualified Haskell.Data.Set as Set (empty, toAscList)
 
 -- |
 -- Insert a set of keys into a 'Map' that all have the same value.
+--
+-- (Internal, exported for technical reasons.)
 insertManyKeys
     :: (Ord key, Ord v) => Set key -> v -> Map key v -> Map key v
 insertManyKeys keys v m0 =
@@ -174,7 +176,7 @@ deleteAfter
 deleteAfter t = takeWhileAntitone (<= t)
 
 -- |
--- Restrict the items to timestamps  from < time && time <= to
+-- Restrict the items to timestamps @from < time && time <= to@.
 restrictRange
     :: (Ord time, Ord a)
     => (time, time)

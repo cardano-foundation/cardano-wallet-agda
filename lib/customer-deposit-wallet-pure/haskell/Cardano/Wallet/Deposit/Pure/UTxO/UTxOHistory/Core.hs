@@ -38,6 +38,8 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     ( UTxOHistory (..)
     )
 
+-- |
+-- (Internal, exported for technical reasons.)
 guard :: Bool -> Maybe ()
 guard True = Just ()
 guard False = Nothing
@@ -54,7 +56,7 @@ empty utxo =
         utxo
 
 -- |
--- Returns the UTxO.
+-- UTxO at the tip of history.
 getUTxO :: UTxOHistory -> UTxO
 getUTxO us =
     excluding
@@ -62,23 +64,33 @@ getUTxO us =
         (Map.keysSet (Timeline.getMapTime (spent us)))
 
 -- |
--- Returns the 'RollbackWindow' slot.
+-- 'RollbackWindow' within which we can roll back.
+--
+-- The tip of the history is also the upper end of this window.
+-- The UTxO history includes information from all blocks
+-- between genesis and the tip, and including the block at the tip.
 getRollbackWindow
     :: UTxOHistory -> RollbackWindow.RollbackWindow Slot
 getRollbackWindow x = window x
 
 -- |
--- Returns the spent TxIns that can be rolled back.
+-- The spent 'TxIn's that can be rolled back.
+--
+-- (Internal, exported for specification.)
 getSpent :: UTxOHistory -> Map TxIn SlotNo
 getSpent = Timeline.getMapTime . \r -> spent r
 
 -- |
--- Changes to the UTxO history.
+-- Representation of a change (delta) to a 'UTxOHistory'.
 data DeltaUTxOHistory
     = AppendBlock SlotNo DeltaUTxO
     | Rollback Slot
     | Prune SlotNo
 
+-- |
+-- Include the information contained in the block at 'SlotNo'
+-- into the 'UTxOHistory'.
+-- We expect that the block has already been digested into a single 'DeltaUTxO'.
 appendBlock :: SlotNo -> DeltaUTxO -> UTxOHistory -> UTxOHistory
 appendBlock newTip delta old =
     case RollbackWindow.rollForward (At newTip) (window old) of
@@ -100,6 +112,9 @@ appendBlock newTip delta old =
             (Set.intersection (excluded delta) (dom (history old)))
             (Map.keysSet (Timeline.getMapTime (spent old)))
 
+-- |
+-- Roll back the 'UTxOHistory' to the given 'Slot',
+-- i.e. forget about all blocks that are strictly later than this slot.
 rollback :: Slot -> UTxOHistory -> UTxOHistory
 rollback newTip old =
     case RollbackWindow.rollBackward newTip (window old) of
@@ -134,6 +149,12 @@ rollback newTip old =
                 window'
                 (boot old)
 
+-- |
+-- Remove the ability to 'rollback' before the given 'SlotNo',
+-- but rolling back to genesis is always possible.
+--
+-- Using 'prune' will free up some space as old information
+-- can be summarized and discarded.
 prune :: SlotNo -> UTxOHistory -> UTxOHistory
 prune newFinality old =
     case RollbackWindow.prune (At newFinality) (window old) of

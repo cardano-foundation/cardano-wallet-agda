@@ -79,16 +79,23 @@ import Haskell.Data.Map as Map
     Assumptions
 ------------------------------------------------------------------------------}
 
+-- | A 'Customer' is represented as a numerical ID.
+--
+-- The numerical ID ranges in 'Word31' because that is the range
+-- for a step in address derivation, see 'BIP32Path'.
 Customer = Word31
 
 {-# COMPILE AGDA2HS Customer #-}
 
+-- | Description of the derivation path used for the Deposit Wallet:
+-- Either a 'Customer' or a change address.
 data DerivationPath : Set where
   DerivationCustomer : Customer → DerivationPath
   DerivationChange   : DerivationPath
 
 {-# COMPILE AGDA2HS DerivationPath #-}
 
+-- | Full 'BIP32Path' corresponding to a 'DerivationPath'.
 toBIP32Path : DerivationPath → BIP32Path
 toBIP32Path = addSuffix prefix
   where
@@ -115,6 +122,8 @@ toBIP32Path = addSuffix prefix
 
 {-# COMPILE AGDA2HS toBIP32Path #-}
 
+-- |
+-- (Internal, exported for technical reasons.)
 xpubFromDerivationPath : XPub → DerivationPath → XPub
 xpubFromDerivationPath xpub DerivationChange =
   (deriveXPubSoft xpub
@@ -127,11 +136,15 @@ xpubFromDerivationPath xpub (DerivationCustomer c) =
 
 {-# COMPILE AGDA2HS xpubFromDerivationPath #-}
 
+-- | Derive an address from the wallet public key.
+--
+-- (Internal, exported for technical reasons.)
 deriveAddress : XPub → DerivationPath → Address
 deriveAddress xpub = mkEnterpriseAddress ∘ xpubFromDerivationPath xpub
 
 {-# COMPILE AGDA2HS deriveAddress #-}
 
+-- | Derive an address for a customer from the wallet public key.
 deriveCustomerAddress : XPub → Customer → Address
 deriveCustomerAddress xpub c = deriveAddress xpub (DerivationCustomer c)
 
@@ -176,6 +189,11 @@ lemma-derive-notCustomer xpub c eq = bang (lemma-derive-injective {xpub} eq)
     Type definition
 ------------------------------------------------------------------------------}
 
+-- | Data type that keeps track of addresses
+-- that belong to the Deposit Wallet.
+--
+-- NOTE: The fields are mean to be read-only,
+-- they are exported for technical reasons.
 record AddressState : Set where
   constructor AddressStateC
   field
@@ -199,6 +217,7 @@ record AddressState : Set where
 
 open AddressState public
 
+-- | Test whether an 'Address' belongs to known 'Customer'.
 isCustomerAddress : AddressState → Address → Bool
 isCustomerAddress s = λ addr → isJust $ Map.lookup addr (addresses s)
 
@@ -211,9 +230,11 @@ isCustomerAddress s = λ addr → isJust $ Map.lookup addr (addresses s)
 
 -- isCustomerAddress : AddressState → Address → Bool
 
+-- | (Internal, exported for technical reasons.)
 isChangeAddress : AddressState → Address → Bool
 isChangeAddress = λ s addr → change s == addr
 
+-- | Test whether an 'Address' belongs to the wallet.
 isOurs : AddressState → Address → Bool
 isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
 
@@ -283,6 +304,8 @@ lemma-isCustomer-not-isChange s addr =
     Observations, BIP32
 ------------------------------------------------------------------------------}
 
+-- | 
+-- (Internal, exported for technical reasons.)
 getDerivationPath'cases
   : AddressState → Address → Maybe Customer → Maybe DerivationPath
 getDerivationPath'cases s addr (Just c) = Just (DerivationCustomer c)
@@ -291,6 +314,8 @@ getDerivationPath'cases s addr Nothing =
   then Just DerivationChange
   else Nothing
 
+-- |
+-- (Internal, exported for technical reasons.)
 getDerivationPath : AddressState → Address → Maybe DerivationPath
 getDerivationPath s addr =
     getDerivationPath'cases s addr (Map.lookup addr (addresses s))
@@ -298,6 +323,9 @@ getDerivationPath s addr =
 {-# COMPILE AGDA2HS getDerivationPath'cases #-}
 {-# COMPILE AGDA2HS getDerivationPath #-}
 
+-- | Retrieve the full 'BIP32Path' of a known 'Address'.
+--
+-- Returns 'Nothing' if the address is not known.
 getBIP32Path : AddressState → Address → Maybe BIP32Path
 getBIP32Path s = fmap toBIP32Path ∘ getDerivationPath s
 
@@ -339,15 +367,19 @@ lemma-getDerivationPath-Just s addr eq =
     Observations, specification
 ------------------------------------------------------------------------------}
 
--- Helper function
+-- | Helper function
+--
+-- (Internal, exported for technical reasons.)
 swap : ∀ {a b : Set} → a × b → b × a
 swap (x , y) = (y , x)
 
 -- Specification
+-- | List all known associations between 'Customer's and their 'Address'es.
 listCustomers : AddressState → List (Customer × Address)
 listCustomers =
     map swap ∘ Map.toAscList ∘ addresses
 
+-- | Test whether an 'Address' is a change address.
 knownCustomerAddress : Address → AddressState → Bool
 knownCustomerAddress address =
     elem address ∘ map snd ∘ listCustomers
@@ -429,6 +461,7 @@ lemma-isCustomerAddress-knownCustomerAddress s addr =
 ------------------------------------------------------------------------------}
 
 -- Specification
+-- | Create a new associated between 'Customer' and known 'Address'.
 createAddress : Customer → AddressState → (Address × AddressState)
 createAddress c s0 = ( addr , s1 )
   where
@@ -527,6 +560,7 @@ prop-create-known c s0 =
     Construction
 ------------------------------------------------------------------------------}
 
+-- | Public key of the wallet.
 getXPub : AddressState → XPub
 getXPub = stateXPub
 
@@ -547,7 +581,7 @@ emptyFromXPub xpub =
 {-# COMPILE AGDA2HS emptyFromXPub #-}
 
 -- | Create an 'AddressState' from a public key and
--- a number known customer addresses.
+-- a count of known customers.
 fromXPubAndCount : XPub → Word31 → AddressState
 fromXPubAndCount xpub knownCustomerCount =
     foldl (λ s c → snd (createAddress c s)) s0 customers
@@ -562,6 +596,7 @@ fromXPubAndCount xpub knownCustomerCount =
     Change address generation
 ------------------------------------------------------------------------------}
 
+-- | Change address generator employed by 'AddressState'.
 newChangeAddress : AddressState → ChangeAddressGen ⊤
 newChangeAddress s = λ _ → (change s , tt)
 

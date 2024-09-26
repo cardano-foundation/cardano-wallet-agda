@@ -11,6 +11,7 @@ open import Haskell.Data.Word.Odd using
 {-----------------------------------------------------------------------------
     BIP32 Paths
 ------------------------------------------------------------------------------}
+-- | Method for deriving child keys.
 data DerivationType : Set where
     Soft     : DerivationType
     Hardened : DerivationType
@@ -29,7 +30,18 @@ postulate instance
   iOrdDerivationType : Ord DerivationType
 {-# COMPILE AGDA2HS iOrdDerivationType #-}
 
--- | An absolute BIP32 Path.
+{-| An absolute path according to the
+[BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) standard.
+
+Example:
+The example notated in the standard as
+
+> m/3H/2/5
+
+corresponds to the value
+
+> Segment (Segment (Segment Root Hardened 3) Soft 2) Soft 5
+-}
 data BIP32Path : Set where
     Root    : BIP32Path
     Segment : BIP32Path → DerivationType → Word31 → BIP32Path

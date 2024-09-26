@@ -46,6 +46,9 @@ import Haskell.Data.Map as Map
     Partial transactions
 ------------------------------------------------------------------------------}
 
+-- | Partially constructed 'Tx'.
+--
+-- NOTE: Currently mostly a mock type.
 record PartialTx : Set where
   constructor PartialTxC
   field
@@ -53,6 +56,7 @@ record PartialTx : Set where
 
 open PartialTx public
 
+-- | Total output 'Value' of a partially constructed transaction.
 totalOut : PartialTx → Value
 totalOut = mconcat ∘ map getValue ∘ PartialTx.outputs
 
@@ -63,6 +67,8 @@ totalOut = mconcat ∘ map getValue ∘ PartialTx.outputs
     Change addresses
 ------------------------------------------------------------------------------}
 
+-- | Represents a function that creates a fresh
+-- change address from a state @c@.
 ChangeAddressGen : Set → Set
 ChangeAddressGen c = c → (Address × c)
 
@@ -75,6 +81,7 @@ isChange = λ gen addr → ∃ (λ c → fst (gen c) ≡ addr)
     Coin selection
 ------------------------------------------------------------------------------}
 
+-- | (Internal, exported for technical reasons.)
 secondCons : ∀ {a b : Set} → b → (a × List b) → (a × List b)
 secondCons y (x , ys) = (x , y ∷ ys)
 
@@ -178,7 +185,7 @@ prop-balanceTransaction-addresses
     → addr ∈ map getCompactAddr (TxBody.outputs tx)
     → isChange new addr
         ⋁ addr ∈ map getCompactAddr (PartialTx.outputs partialTx)
-
+--
 prop-balanceTransaction-addresses u partialTx new c0 tx balance addr el
     = onLeft lemma2 (prop-||-⋁ (sym lemma1))
   where

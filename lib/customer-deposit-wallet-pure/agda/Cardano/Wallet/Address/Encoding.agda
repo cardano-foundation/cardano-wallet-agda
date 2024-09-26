@@ -47,11 +47,16 @@ open import Haskell.Data.Word using
     https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019
 ------------------------------------------------------------------------------}
 
+-- | Network tag for enterprise addresses on mainnet.
 tagEnterprise : Word8 
 tagEnterprise = 0b01100001
 
 {-# COMPILE AGDA2HS tagEnterprise #-}
 
+-- | Create an enterprise address on mainnet in binary format.
+--
+-- The binary format of addresses is described in
+-- [CIP-19](https://github.com/cardano-foundation/CIPs/blob/master/CIP-0019/README.md)
 mkEnterpriseAddressBytes : XPub → ShortByteString
 mkEnterpriseAddressBytes xpub =
     singleton tagEnterprise <>
@@ -64,6 +69,8 @@ postulate
     : ∀ (xpub : XPub)
     → isJust (fromShortByteString (mkEnterpriseAddressBytes xpub)) ≡ True
 
+-- | Create an enterprise address on mainnet from a public key.
+-- Knowing the private key allows you to spend outputs with this address.
 mkEnterpriseAddress : XPub → CompactAddr
 mkEnterpriseAddress xpub =
   fromJust

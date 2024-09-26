@@ -39,6 +39,9 @@ import Haskell.Data.Set as Set
 {-----------------------------------------------------------------------------
     DeltaUTxO
 ------------------------------------------------------------------------------}
+-- | Representation of a change (delta) to a 'UTxO'.
+--
+-- The delta records inputs that are excluded, and outputs that are added.
 record DeltaUTxO : Set where
   field
     excluded : Set.ℙ TxIn
@@ -52,19 +55,23 @@ postulate
 
 {-# COMPILE AGDA2HS iShowDeltaUTxO derive #-}
 
+-- | Test efficiently whether the change does nothing.
 null : DeltaUTxO → Bool
 null du = Set.null (excluded du) && UTxO.null (received du)
 
+-- | The empty change does nothing.
 empty : DeltaUTxO
 empty = record
   { excluded = Set.empty
   ; received = Map.empty
   }
 
+-- | Apply a change to a 'UTxO'.
 apply : DeltaUTxO → UTxO → UTxO
 apply du utxo =
    UTxO.union (received du) (UTxO.excluding utxo (excluded du))
 
+-- | Variant of 'excluding' that also returns a delta.
 excludingD : UTxO → Set.ℙ TxIn → (DeltaUTxO × UTxO)
 excludingD utxo txins =
     (du , UTxO.excluding utxo txins)
@@ -74,6 +81,10 @@ excludingD utxo txins =
       ; received = UTxO.empty
       }
 
+-- | Variant of 'union' that also returns a delta.
+-- The first argument is the 'UTxO' on which the delta acts.
+--
+-- > receiveD old new
 receiveD : UTxO → UTxO → (DeltaUTxO × UTxO)
 receiveD old new =
     (du , UTxO.union new old)
@@ -83,7 +94,8 @@ receiveD old new =
       ; received = new
       }
 
--- | Apply `x` *after* `y`.
+-- | Combine two deltas: Apply @x@ /after/ applying @y@.
+-- Drops inputs that were created by @y@, but removed again by @x@
 append : DeltaUTxO → DeltaUTxO → DeltaUTxO
 append x y = record
     { excluded = Set.union (excluded'x) (excluded y)

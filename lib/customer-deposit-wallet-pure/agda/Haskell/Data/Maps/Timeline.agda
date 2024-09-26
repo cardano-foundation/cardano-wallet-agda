@@ -29,6 +29,8 @@ variable
 ------------------------------------------------------------------------------}
 
 -- | Insert a set of keys into a 'Map' that all have the same value.
+--
+-- (Internal, exported for technical reasons.)
 insertManyKeys
     : ∀ {key v : Set} {{_ : Ord key}} {{_ : Ord v}}
     → ℙ key → v → Map key v → Map key v
@@ -159,7 +161,7 @@ deleteAfter
     → time → Timeline time a → (ℙ a × Timeline time a)
 deleteAfter t = takeWhileAntitone (_<= t)
 
--- | Restrict the items to timestamps  from < time && time <= to
+-- | Restrict the items to timestamps @from < time && time <= to@.
 restrictRange
     : ∀ {{_ : Ord time}} {{_ : Ord a}}
     → (time × time) → Timeline time a → Timeline time a

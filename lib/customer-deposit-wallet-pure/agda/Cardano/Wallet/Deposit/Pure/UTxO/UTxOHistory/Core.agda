@@ -79,6 +79,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
 variable
   key v : Set
 
+-- | (Internal, exported for technical reasons.)
 guard : Bool → Maybe ⊤
 guard True = Just tt
 guard False = Nothing
@@ -104,18 +105,24 @@ empty utxo =
 
 {-# COMPILE AGDA2HS empty #-}
 
--- | Returns the UTxO.
+-- | UTxO at the tip of history.
 getUTxO : UTxOHistory → UTxO
 getUTxO us =
     excluding history (Map.keysSet (Timeline.getMapTime spent))
   where
     open UTxOHistory us
 
--- | Returns the 'RollbackWindow' slot.
+-- | 'RollbackWindow' within which we can roll back.
+--
+-- The tip of the history is also the upper end of this window.
+-- The UTxO history includes information from all blocks
+-- between genesis and the tip, and including the block at the tip.
 getRollbackWindow : UTxOHistory → RollbackWindow.RollbackWindow Slot
 getRollbackWindow x = UTxOHistory.window x
 
--- | Returns the spent TxIns that can be rolled back.
+-- | The spent 'TxIn's that can be rolled back.
+--
+-- (Internal, exported for specification.)
 getSpent : UTxOHistory → Map TxIn SlotNo
 getSpent = Timeline.getMapTime ∘ UTxOHistory.spent
 
@@ -127,7 +134,7 @@ getSpent = Timeline.getMapTime ∘ UTxOHistory.spent
     DeltaUTxOHistory
 ------------------------------------------------------------------------------}
 
--- | Changes to the UTxO history.
+-- | Representation of a change (delta) to a 'UTxOHistory'.
 data DeltaUTxOHistory : Set where
     AppendBlock : SlotNo → DeltaUTxO → DeltaUTxOHistory
         -- ^ New slot tip, changes within that block.
@@ -138,6 +145,11 @@ data DeltaUTxOHistory : Set where
 
 {-# COMPILE AGDA2HS DeltaUTxOHistory #-}
 
+{-|
+Include the information contained in the block at 'SlotNo'
+into the 'UTxOHistory'.
+We expect that the block has already been digested into a single 'DeltaUTxO'.
+-}
 appendBlock : SlotNo → DeltaUTxO → UTxOHistory → UTxOHistory
 appendBlock newTip delta old =
   case RollbackWindow.rollForward (WithOrigin.At newTip) window of λ
@@ -168,6 +180,10 @@ appendBlock newTip delta old =
 
 {-# COMPILE AGDA2HS appendBlock #-}
 
+{-|
+Roll back the 'UTxOHistory' to the given 'Slot',
+i.e. forget about all blocks that are strictly later than this slot.
+-}
 rollback : Slot → UTxOHistory → UTxOHistory
 rollback newTip old =
   case RollbackWindow.rollBackward newTip window of λ
@@ -196,6 +212,13 @@ rollback newTip old =
 
 {-# COMPILE AGDA2HS rollback #-}
 
+{-|
+Remove the ability to 'rollback' before the given 'SlotNo',
+but rolling back to genesis is always possible.
+
+Using 'prune' will free up some space as old information
+can be summarized and discarded.
+-}
 prune : SlotNo → UTxOHistory → UTxOHistory
 prune newFinality old =
   case RollbackWindow.prune (WithOrigin.At newFinality) window of λ
