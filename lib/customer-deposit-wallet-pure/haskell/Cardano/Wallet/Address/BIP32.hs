@@ -12,6 +12,8 @@ deriving instance Eq DerivationType
 
 deriving instance Ord DerivationType
 
+-- |
+-- An absolute BIP32 Path.
 data BIP32Path
     = Root
     | Segment BIP32Path DerivationType Word31

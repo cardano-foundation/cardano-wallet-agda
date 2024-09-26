@@ -6,6 +6,14 @@ if' :: Bool -> a -> a -> a
 if' True thn els = thn
 if' False thn els = els
 
+-- |
+-- A 'RollbackWindow' is a time interval.
+-- This time interval is used to keep track of data / transactions
+-- that are not final and may still be rolled back.
+-- The 'tip' is the higher end of the interval,
+-- representing the latest state of the data.
+-- The 'finality' is the lower end of the interval,
+-- until which rollbacks are supported.
 data RollbackWindow time = RollbackWindowC
     { finality :: time
     , tip :: time
@@ -34,6 +42,8 @@ rollForward newTip w =
         then Just (RollbackWindowC (finality w) newTip)
         else Nothing
 
+-- |
+-- Potential results of a 'rollBackwards'.
 data MaybeRollback a
     = Past
     | Present a

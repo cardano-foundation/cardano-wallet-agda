@@ -45,6 +45,19 @@ delete2s
     :: (Ord a, Ord b) => [a] -> b -> Map a (Map b v) -> Map a (Map b v)
 delete2s xs b m0 = foldr (\a -> delete2 a b) m0 xs
 
+-- |
+-- The type `PairMap a b v` is essentially the type `Map (a × b) v`,
+-- but with two efficient lookup functions
+--
+-- > lookupA : a → PairMap a b v → Map b v
+-- > lookupB : b → PairMap a b v → Map a v
+--
+-- The property `prop-lookupA-lookupB` states that these lookups
+-- yield the same values.
+--
+-- In the terminology of relational database,
+-- this type stores rows of the form `a × b × v`
+-- and maintains an index on both the first column `a` and the second column `b`.
 data PairMap a b v = PairMap
     { mab :: Map a (Map b v)
     , mba :: Map b (Map a v)

@@ -30,6 +30,10 @@ insertManyKeys
 insertManyKeys keys v m0 =
     foldl' (\m key -> Map.insert key v m) m0 keys
 
+-- |
+-- A 'Timeline' is a set of items that are associated with a timestamp.
+-- Each item is unique.
+-- Multiple items can have the same timestamp associated with it.
 data Timeline time a = Timeline
     { events :: Map a time
     , eventsByTime :: InverseMap.InverseMap a time
