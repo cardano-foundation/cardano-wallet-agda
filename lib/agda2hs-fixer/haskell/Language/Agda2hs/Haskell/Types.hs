@@ -48,6 +48,7 @@ data HaskellModule = HaskellModule
         -- ^ Location of each top-level declaration.
     , comments :: Map HaskellIdentifier String
     }
+    deriving (Eq, Show)
 
 -- | Prepend multiline Haddock comments before every given identifier.
 prependHaddockLines
