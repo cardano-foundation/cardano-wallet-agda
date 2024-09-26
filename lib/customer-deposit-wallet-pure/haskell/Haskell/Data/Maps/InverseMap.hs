@@ -25,6 +25,8 @@ inverseMapFromMap m =
             (key, v) <- Map.toAscList m
             pure (v, Set.singleton key)
 
+-- |
+-- Insert a key-value pair into an 'InverseMap'.
 insert
     :: (Ord key, Ord v)
     => key
@@ -33,6 +35,8 @@ insert
     -> InverseMap key v
 insert key v = Map.insertWith Set.union v (Set.singleton key)
 
+-- |
+-- Insert a set of keys that all have the same value.
 insertManyKeys
     :: (Ord key, Ord v)
     => Set key
@@ -56,6 +60,8 @@ delete
     -> InverseMap key v
 delete key x = Map.update (deleteFromSet key) x
 
+-- |
+-- Take the difference between an 'InverseMap' and an ordinary 'Map'
 difference
     :: (Ord v, Ord key)
     => InverseMap key v

@@ -11,12 +11,19 @@ data RollbackWindow time = RollbackWindowC
     , tip :: time
     }
 
+-- |
+-- Test whether a given time is within a 'RollbackWindow'.
 member :: Ord time => time -> RollbackWindow time -> Bool
 member time w = finality w <= time && time <= tip w
 
+-- |
+-- Interval containing a single point
 singleton :: Ord time => time -> RollbackWindow time
 singleton time = RollbackWindowC time time
 
+-- |
+-- Move forward the tip of the 'RollbackWindow'.
+-- Return 'Nothing' if the new tip would not actually be moving forward.
 rollForward
     :: Ord time
     => time
@@ -32,6 +39,9 @@ data MaybeRollback a
     | Present a
     | Future
 
+-- |
+-- Roll back the tip of the 'RollbackWindow' to a point within the window.
+-- Return different error conditions if the target is outside the window.
 rollBackward
     :: Ord time
     => time
@@ -45,6 +55,9 @@ rollBackward newTip w =
                 then Present (RollbackWindowC (finality w) newTip)
                 else Past
 
+-- |
+-- Move forward the finality of the 'RollbackWindow'.
+-- Return 'Nothing' if the finality is not moving forward, or too far.
 prune
     :: Ord time
     => time
