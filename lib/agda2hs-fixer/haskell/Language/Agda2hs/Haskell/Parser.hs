@@ -53,11 +53,18 @@ collectTopLevelDeclarations
     -> Map HaskellIdentifier LineNo
 collectTopLevelDeclarations = Map.fromList . fromModule
   where
-    fromModule (Hs.Module _ _ _ _ decls) = concatMap fromTypeSig decls
+    fromModule (Hs.Module _ _ _ _ decls) = concatMap fromDeclaration decls
     fromModule _ = []
 
-    fromTypeSig (Hs.TypeSig _ (name:_) _) = fromName name
-    fromTypeSig _ = []
+    fromDeclaration (Hs.TypeSig _ (name:_) _) = fromName name
+    fromDeclaration (Hs.TypeDecl _ x _) = fromDeclHead x
+    fromDeclaration (Hs.DataDecl _ _ _ x _ _) = fromDeclHead x
+    fromDeclaration _ = []
 
     fromName (Hs.Ident info s) = [(s, Hs.startLine info - 1)]
     fromName _ = []
+
+    fromDeclHead (Hs.DHead _ name) = fromName name
+    fromDeclHead (Hs.DHInfix _ _ name) = fromName name
+    fromDeclHead (Hs.DHParen _ x) = fromDeclHead x
+    fromDeclHead (Hs.DHApp _ x _) = fromDeclHead x

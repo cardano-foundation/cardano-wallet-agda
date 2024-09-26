@@ -27,6 +27,7 @@ import Text.Megaparsec
     , empty
     , many
     , manyTill
+    , option
     , parse
     , skipMany
     , satisfy
@@ -34,6 +35,7 @@ import Text.Megaparsec
 
 import qualified Data.Map.Strict as Map
 import qualified Text.Megaparsec.Char as C
+import qualified Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
 
@@ -73,7 +75,7 @@ section = (,) <$> documentationPre <*> many codeLine
 getIdentifier :: [Line] -> Maybe AgdaIdentifier
 getIdentifier [] = Nothing
 getIdentifier (x:_) =
-    case parse agdaNamePart "" x of
+    case parse agdaDeclarationIdentifier "" x of
         Left _ -> Nothing
         Right a -> Just a
 
@@ -119,6 +121,16 @@ blockDocumentationPre =
 -- | Parse the rest of a line, including the newline character.
 line :: Parser String
 line = takeWhileP (Just "character") (/= '\n') <* C.newline
+
+-- | Parse the identifier contained in a declaration
+-- (term, data, record, …).
+-- This parser is not very robust yet.
+agdaDeclarationIdentifier :: Parser String
+agdaDeclarationIdentifier =
+    option () (() <$ keyword) *> agdaNamePart
+  where
+    keyword =
+        L.lexeme C.space1 (C.string "data" <|> C.string "record")
 
 agdaNamePart :: Parser String
 agdaNamePart =

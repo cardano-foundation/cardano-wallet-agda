@@ -72,6 +72,8 @@ getRollbackWindow x = window x
 getSpent :: UTxOHistory -> Map TxIn SlotNo
 getSpent = Timeline.getMapTime . \r -> spent r
 
+-- |
+-- Changes to the UTxO history.
 data DeltaUTxOHistory
     = AppendBlock SlotNo DeltaUTxO
     | Rollback Slot

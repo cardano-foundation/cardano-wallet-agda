@@ -26,7 +26,7 @@ open import Haskell.Data.Maps.Timeline using
     Data type
 ------------------------------------------------------------------------------}
 
-{-| Tx History.
+{-| 'TxHistory'.
 
 History of the transactions to and from the Deposit Wallet.
 Information includes:

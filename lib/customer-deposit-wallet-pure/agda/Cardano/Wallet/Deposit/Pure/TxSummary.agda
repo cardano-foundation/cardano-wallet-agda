@@ -18,7 +18,12 @@ import Cardano.Wallet.Deposit.Read as Read
 {-----------------------------------------------------------------------------
     TxSummary
 ------------------------------------------------------------------------------}
+{-|
+A 'TxSummary' summarizes a transaction.
 
+Note: Haddock may be broken. The fields of this record
+refer to types from "Cardano.Wallet.Read".
+-}
 record TxSummary : Set where
   field
     txSummarized : TxId
@@ -27,7 +32,9 @@ record TxSummary : Set where
 
 open TxSummary public
 
--- This is a mock summary for now
+-- | Create a 'TxSummary' from a transaction.
+--
+-- FIXME: This is a mock summary for now!
 mkTxSummary : ∀ {era} → {{IsEra era}} → Tx era → ValueTransfer → TxSummary
 mkTxSummary = λ tx transfer' → record
     { txSummarized = getTxId tx
