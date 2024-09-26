@@ -95,14 +95,17 @@ prependLines original0 inserted = both
     Agda to Haskell
 ------------------------------------------------------------------------------}
 -- | Attempt to convert an identifier in Agda to a Haskell identifier.
--- Currently only supports values, not types.
+--
+-- Works for both values (starts with lowercase)
+-- and types (starts with uppercase).
 fromAgdaIdentifier :: AgdaIdentifier -> Maybe HaskellIdentifier
 fromAgdaIdentifier [] = Nothing
 fromAgdaIdentifier "_" = Nothing
 fromAgdaIdentifier s@(x:xs)
-    | small x && all valid xs = Just s
+    | validStart x && all valid xs = Just s
     | otherwise = Nothing
   where
+    validStart c = small c || large c
     valid c = small c || large c || digit c || tick c
     small c = Char.isLowerCase c || c == '_'
     large = Char.isUpperCase

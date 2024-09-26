@@ -17,6 +17,12 @@ import qualified Haskell.Data.Map as Map
     )
 import qualified Haskell.Data.Set as Set (filter)
 
+-- |
+-- The type 'UTxO' is used to keep track of unspent transaction outputs.
+-- This type is a mapping from transaction inputs, 'TxIn',
+-- which are references, to transaction outputs, 'TxOut',
+-- which record the actual currency values, addresses, and other data,
+-- that is available for spending.
 type UTxO = Map.Map TxIn TxOut
 
 -- |
