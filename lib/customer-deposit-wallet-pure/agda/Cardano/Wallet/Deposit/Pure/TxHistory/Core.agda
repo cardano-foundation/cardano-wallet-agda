@@ -52,6 +52,10 @@ import Data.Foldable
 {-----------------------------------------------------------------------------
     Introduction
 ------------------------------------------------------------------------------}
+{-|
+The empty transaction history.
+It starts at genesis and contains no transactions.
+-}
 empty : TxHistory
 empty = record
   { txIds = Timeline.empty
@@ -65,7 +69,11 @@ empty = record
     Observation
 ------------------------------------------------------------------------------}
 
--- | Returns the tip slot.
+{-|
+'getTip' records the slot up to which the transaction history
+includes information from blocks. All blocks from genesis up to and
+including this slot have been inspected for relevant transactions.
+-}
 getTip : TxHistory → Slot
 getTip = TxHistory.tip
 
@@ -107,6 +115,12 @@ getValueTransfers range history =
     Operations
 ------------------------------------------------------------------------------}
 
+{-|
+Include the information contained in the block at 'SlotNo'
+into the transaction history.
+We expect that the block has already been digested into a list
+of 'ResolvedTx'.
+-}
 rollForward
   : ∀{era} → {{IsEra era}}
   → SlotNo → List (TxId × ResolvedTx era) → TxHistory → TxHistory
@@ -135,6 +149,10 @@ rollForward {era} new txs history =
         mv = valueTransferFromResolvedTx tx
         fun = λ m addr v → PairMap.insert txid addr v m
 
+{-|
+Roll back the transaction history to the given 'Slot',
+i.e. forget about all transaction that are strictly later than this slot.
+-}
 rollBackward : Slot → TxHistory → TxHistory
 rollBackward new history = 
     if new > getTip history

@@ -51,14 +51,21 @@ import Data.Foldable
     ( toList
     )
 
+-- |
+-- The empty transaction history.
+-- It starts at genesis and contains no transactions.
 empty :: TxHistory
 empty = TxHistory Timeline.empty PairMap.empty Origin
 
 -- |
--- Returns the tip slot.
+-- 'getTip' records the slot up to which the transaction history
+-- includes information from blocks. All blocks from genesis up to and
+-- including this slot have been inspected for relevant transactions.
 getTip :: TxHistory -> Slot
 getTip = \r -> tip r
 
+-- |
+-- Get the transaction history for a single address.
 getAddressHistory :: Address -> TxHistory -> [(Slot, TxId)]
 getAddressHistory address history =
     sortOn
@@ -75,6 +82,8 @@ getAddressHistory address history =
     txs2 :: Map TxId Slot
     txs2 = Map.restrictKeys (Timeline.getMapTime (txIds history)) txs1
 
+-- |
+-- Get the total 'ValueTransfer' in a given slot range.
 getValueTransfers
     :: (Slot, Slot) -> TxHistory -> Map Address ValueTransfer
 getValueTransfers range history =
@@ -92,6 +101,11 @@ getValueTransfers range history =
             (\tx -> PairMap.lookupA tx (txTransfers history))
             (toList txs1)
 
+-- |
+-- Include the information contained in the block at 'SlotNo'
+-- into the transaction history.
+-- We expect that the block has already been digested into a list
+-- of 'ResolvedTx'.
 rollForward
     :: IsEra era
     => SlotNo
@@ -128,6 +142,9 @@ rollForward new txs history =
             -> PairMap.PairMap TxId Address ValueTransfer
         fun = \m addr v -> PairMap.insert txid addr v m
 
+-- |
+-- Roll back the transaction history to the given 'Slot',
+-- i.e. forget about all transaction that are strictly later than this slot.
 rollBackward :: Slot -> TxHistory -> TxHistory
 rollBackward new history =
     if new > getTip history
