@@ -27,7 +27,7 @@ import Language.Agda2hs.Haskell.Types
     , prettyHaskellModule
     )
 import System.IO
-    ( hPutStr
+    ( hPutStrLn
     , readFile'
     , stderr
     )
@@ -55,7 +55,7 @@ modifyFileAddingDocumentation
 modifyFileAddingDocumentation agdaPath haskellPath = do
     doModify `catch` (\(e :: ErrParseError) -> warning $ show e)
   where
-    warning s = hPutStr stderr $ "Warning: " ++ s
+    warning s = hPutStrLn stderr $ "Warning: " ++ s
 
     doModify = do
         agdaCode <- readFile agdaPath

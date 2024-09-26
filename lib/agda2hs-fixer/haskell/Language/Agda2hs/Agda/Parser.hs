@@ -34,7 +34,6 @@ import Text.Megaparsec
 
 import qualified Data.Map.Strict as Map
 import qualified Text.Megaparsec.Char as C
-import qualified Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
 
@@ -74,7 +73,7 @@ section = (,) <$> documentationPre <*> many codeLine
 getIdentifier :: [Line] -> Maybe AgdaIdentifier
 getIdentifier [] = Nothing
 getIdentifier (x:_) =
-    case parse agdaIdentifier "" x of
+    case parse agdaNamePart "" x of
         Left _ -> Nothing
         Right a -> Just a
 
@@ -121,16 +120,13 @@ blockDocumentationPre =
 line :: Parser String
 line = takeWhileP (Just "character") (/= '\n') <* C.newline
 
-agdaIdentifier :: Parser AgdaIdentifier
-agdaIdentifier = L.lexeme C.hspace1 agdaNamePart
-
 agdaNamePart :: Parser String
 agdaNamePart =
     (:)
-        <$> notForbidden ("'" <> forbiddenChars)
-        <*> many (notForbidden forbiddenChars)
+        <$> satisfy (notForbidden ("'" <> forbiddenChars))
+        <*> takeWhileP Nothing (notForbidden forbiddenChars)
   where
-    notForbidden xs = satisfy $ not . (`elem` xs)
+    notForbidden xs = not . (`elem` xs)
 
     forbiddenChars :: [Char]
     forbiddenChars = ".;{}()@ "

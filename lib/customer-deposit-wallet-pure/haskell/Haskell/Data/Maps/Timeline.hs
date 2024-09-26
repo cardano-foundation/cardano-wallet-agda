@@ -23,6 +23,8 @@ import qualified Haskell.Data.Maps.InverseMap as InverseMap
 import Haskell.Data.Maybe (fromMaybe)
 import qualified Haskell.Data.Set as Set (empty, toAscList)
 
+-- |
+-- Insert a set of keys into a 'Map' that all have the same value.
 insertManyKeys
     :: (Ord key, Ord v) => Set key -> v -> Map key v -> Map key v
 insertManyKeys keys v m0 =
@@ -38,18 +40,26 @@ data Timeline time a = Timeline
 empty :: (Ord time, Ord a) => Timeline time a
 empty = Timeline Map.empty Map.empty
 
+-- |
+-- Look up all items with a particular timestamp.
 lookupByTime
     :: (Ord time, Ord a) => time -> Timeline time a -> Set a
 lookupByTime t =
     fromMaybe Set.empty . Map.lookup t . \r -> eventsByTime r
 
+-- |
+-- Look up the timestamp of a particular item.
 lookupByItem
     :: (Ord time, Ord a) => a -> Timeline time a -> Maybe time
 lookupByItem x = Map.lookup x . \r -> events r
 
+-- |
+-- Convert to a map (cheap).
 getMapTime :: (Ord time, Ord a) => Timeline time a -> Map a time
 getMapTime = \r -> events r
 
+-- |
+-- Convert to a list of items, ascending by timestamp.
 toAscList :: (Ord time, Ord a) => Timeline time a -> [(time, a)]
 toAscList =
     concat
@@ -60,6 +70,8 @@ toAscList =
         . Map.toAscList
         . \r -> eventsByTime r
 
+-- |
+-- Insert a single item.
 insert
     :: (Ord time, Ord a)
     => time
@@ -71,6 +83,8 @@ insert t x timeline =
         (Map.insert x t (events timeline))
         (InverseMap.insert x t (eventsByTime timeline))
 
+-- |
+-- Insert a set of items that all have the same timestamp.
 insertMany
     :: (Ord time, Ord a)
     => time
@@ -82,6 +96,8 @@ insertMany t xs timeline =
         (insertManyKeys xs t (events timeline))
         (InverseMap.insertManyKeys xs t (eventsByTime timeline))
 
+-- |
+-- Return the items that are not in the set.
 difference
     :: (Ord time, Ord a) => Timeline time a -> Set a -> Timeline time a
 difference timeline xs =
@@ -92,6 +108,11 @@ difference timeline xs =
             (Map.restrictKeys (events timeline) xs)
         )
 
+-- |
+-- Take while a predicate on the timestamps holds.
+-- The predicate has to be antitonic.
+--
+-- This function also returns the set of items that were discarded.
 takeWhileAntitone
     :: (Ord time, Ord a)
     => (time -> Bool)
@@ -112,6 +133,11 @@ takeWhileAntitone predicate timeline =
         (fst (Map.spanAntitone predicate (eventsByTime timeline)))
     )
 
+-- |
+-- Take while a predicate on the timestamps holds.
+-- The predicate has to be antitonic.
+--
+-- This function also returns the set of items that were discarded.
 dropWhileAntitone
     :: (Ord time, Ord a)
     => (time -> Bool)
@@ -132,6 +158,10 @@ dropWhileAntitone predicate timeline =
         (snd (Map.spanAntitone predicate (eventsByTime timeline)))
     )
 
+-- |
+-- Delete all items whose timestamp is after a given time.
+--
+-- This function also returns the set of items that were deleted.
 deleteAfter
     :: (Ord time, Ord a)
     => time
@@ -139,6 +169,8 @@ deleteAfter
     -> (Set a, Timeline time a)
 deleteAfter t = takeWhileAntitone (<= t)
 
+-- |
+-- Restrict the items to timestamps  from < time && time <= to
 restrictRange
     :: (Ord time, Ord a)
     => (time, time)

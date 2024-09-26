@@ -66,6 +66,10 @@ utxoFromTxOutputs = utxoFromEraTx
 
 type IsOurs addr = addr -> Bool
 
+-- |
+-- Apply a transactions to the 'UTxO'.
+--
+-- Returns both a delta and the new value.
 applyTx
     :: IsEra era
     => IsOurs Read.Addr
@@ -111,6 +115,8 @@ groupByAddress :: UTxO -> Map.Map Read.Address Read.Value
 groupByAddress =
     Map.fromListWith (<>) . map pairFromTxOut . Map.elems
 
+-- |
+-- Compute the 'ValueTransfer' corresponding to 'DeltaUTxO'.
 valueTransferFromDeltaUTxO
     :: UTxO -> DeltaUTxO -> Map.Map Read.Address ValueTransfer
 valueTransferFromDeltaUTxO u0 du = Map.unionWith (<>) ins outs
@@ -122,6 +128,10 @@ valueTransferFromDeltaUTxO u0 du = Map.unionWith (<>) ins outs
     outs :: Map.Map Read.Address ValueTransfer
     outs = Map.map fromReceived (groupByAddress (received du))
 
+-- |
+-- Compute the 'ValueTransfer' corresponding to a 'ResolvedTx'.
+-- Spent transaction outputs that have not been resolved will not
+-- be considered.
 valueTransferFromResolvedTx
     :: IsEra era => ResolvedTx era -> Map.Map Read.Address ValueTransfer
 valueTransferFromResolvedTx tx = valueTransferFromDeltaUTxO u0 du

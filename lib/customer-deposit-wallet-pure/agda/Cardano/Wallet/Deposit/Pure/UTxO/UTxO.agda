@@ -38,16 +38,19 @@ import Haskell.Data.Set as Set
 
 UTxO = Map.Map TxIn TxOut
 
+-- | Test whether the 'UTxO' is empty.
 null : UTxO → Bool
 null = Map.null
 
+-- | The empty 'UTxO'.
 empty : UTxO
 empty = Map.empty
 
--- | Domain of a 'UTxO' = the set of /inputs/ of the /utxo/.
+-- | The domain of a 'UTxO' is the set of /inputs/.
 dom : UTxO → Set.ℙ TxIn
 dom = Map.keysSet
 
+-- | The total value contained in the outputs.
 balance : UTxO → Value
 balance = foldMap getValue
 
@@ -69,6 +72,7 @@ excluding = Map.withoutKeys
 _⋪_ : Set.ℙ TxIn → UTxO → UTxO
 _⋪_ x u = excluding u x
 
+-- | Restrict to a given set of inputs.
 restrictedBy : UTxO → Set.ℙ TxIn → UTxO
 restrictedBy = Map.restrictKeys
 
@@ -76,6 +80,7 @@ restrictedBy = Map.restrictKeys
 excludingS : Set.ℙ TxIn → UTxO → Set.ℙ TxIn
 excludingS s utxo = Set.filter (not ∘ (λ txin → Map.member txin utxo)) s
 
+-- | Keep those outputs whose address satisfies the predicate.
 filterByAddress : (Address → Bool) → UTxO → UTxO
 filterByAddress p = Map.filter (p ∘ getCompactAddr)
 
@@ -93,6 +98,8 @@ filterByAddress p = Map.filter (p ∘ getCompactAddr)
 {-----------------------------------------------------------------------------
     Properties
 ------------------------------------------------------------------------------}
+-- |
+-- 'empty' is a left identity of 'union'.
 --
 prop-union-empty-left
   : ∀ {utxo : UTxO}
@@ -100,6 +107,8 @@ prop-union-empty-left
 --
 prop-union-empty-left = Map.prop-union-empty-left
 
+-- |
+-- 'empty' is a right identity of 'union'.
 --
 prop-union-empty-right
   : ∀ {utxo : UTxO}
@@ -107,6 +116,8 @@ prop-union-empty-right
 --
 prop-union-empty-right = Map.prop-union-empty-right
 
+-- |
+-- Excluding the empty set does nothing.
 --
 @0 prop-excluding-empty
   : ∀ (utxo : UTxO)
@@ -115,6 +126,8 @@ prop-union-empty-right = Map.prop-union-empty-right
 prop-excluding-empty utxo =
   Map.prop-equality (λ key → Map.prop-withoutKeys-empty key utxo)
 
+-- |
+-- 'union' is associative.
 --
 prop-union-assoc
   : ∀ {ua ub uc : UTxO}
@@ -122,6 +135,9 @@ prop-union-assoc
 --
 prop-union-assoc = Map.prop-union-assoc
 
+-- |
+-- Excluding from a union is the same as excluding
+-- from each member of the union.
 --
 postulate
  prop-excluding-union
@@ -129,6 +145,8 @@ postulate
   → x ⋪ (ua ∪ ub) ≡ (x ⋪ ua) ∪ (x ⋪ ub)
 --
 
+-- |
+-- Excluding from an exclusion is the same as excluding the union.
 --
 postulate
  prop-excluding-excluding
@@ -136,6 +154,8 @@ postulate
   → x ⋪ (y ⋪ utxo) ≡ (Set.union x y) ⋪ utxo
 --
 
+-- |
+-- Excluding the intersection is the same as the union of the exclusions.
 --
 @0 prop-excluding-intersection
   : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
@@ -144,6 +164,8 @@ postulate
 prop-excluding-intersection {x} {y} {utxo} =
   Map.prop-withoutKeys-intersection utxo x y
 
+-- |
+-- Excluding the entire domain gives the empty 'UTxO'.
 --
 postulate
  prop-excluding-dom
@@ -151,6 +173,8 @@ postulate
   → dom utxo ⋪ utxo ≡ empty
 --
 
+-- |
+-- Excluding two sets of 'TxIn's can be done in either order.
 --
 prop-excluding-sym
   : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
@@ -167,6 +191,9 @@ prop-excluding-sym {x} {y} {utxo} =
     y ⋪ (x ⋪ utxo)
   ∎
 
+-- |
+-- Not excluding inputs makes no difference if these
+-- inputs have nothing in common with the 'UTxO'.
 --
 postulate
  prop-excluding-excludingS
@@ -175,6 +202,8 @@ postulate
   → (excludingS x ua) ⋪ ub ≡ x ⋪ ub
 --
 
+-- |
+-- Those outputs whose address satisfies the predicate are kept.
 --
 prop-filterByAddress-filters
     : ∀ (p : Address → Bool)

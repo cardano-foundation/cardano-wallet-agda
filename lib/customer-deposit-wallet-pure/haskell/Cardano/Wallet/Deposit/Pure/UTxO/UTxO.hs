@@ -19,17 +19,23 @@ import qualified Haskell.Data.Set as Set (filter)
 
 type UTxO = Map.Map TxIn TxOut
 
+-- |
+-- Test whether the 'UTxO' is empty.
 null :: UTxO -> Bool
 null = Map.null
 
+-- |
+-- The empty 'UTxO'.
 empty :: UTxO
 empty = Map.empty
 
 -- |
--- Domain of a 'UTxO' = the set of /inputs/ of the /utxo/.
+-- The domain of a 'UTxO' is the set of /inputs/.
 dom :: UTxO -> Set TxIn
 dom = Map.keysSet
 
+-- |
+-- The total value contained in the outputs.
 balance :: UTxO -> Value
 balance = foldMap getValue
 
@@ -43,6 +49,8 @@ union = Map.unionWith (\x y -> x)
 excluding :: UTxO -> Set TxIn -> UTxO
 excluding = Map.withoutKeys
 
+-- |
+-- Restrict to a given set of inputs.
 restrictedBy :: UTxO -> Set TxIn -> UTxO
 restrictedBy = Map.restrictKeys
 
@@ -52,5 +60,7 @@ excludingS :: Set TxIn -> UTxO -> Set TxIn
 excludingS s utxo =
     Set.filter (not . \txin -> Map.member txin utxo) s
 
+-- |
+-- Keep those outputs whose address satisfies the predicate.
 filterByAddress :: (Address -> Bool) -> UTxO -> UTxO
 filterByAddress p = Map.filter (p . getCompactAddr)
