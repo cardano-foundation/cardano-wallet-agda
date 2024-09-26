@@ -1,0 +1,64 @@
+cabal-version:   3.6
+name:            agda2hs-fixer
+version:         0.1.0.0
+synopsis:        Fix Haskell files
+description:
+  This utilitiy fixes the `.hs` output produced by `agda2hs`.
+
+  * Adds Haddock comments on functions
+  * Adds properties as Haddock comments
+
+homepage:        https://github.com/cardano-foundation/cardano-wallet-agda
+license:         Apache-2.0
+license-file:    LICENSE
+author:          Cardano Foundation (High Assurance Lab)
+maintainer:      hal@cardanofoundation.org
+copyright:       (c) 2024 Cardano Foundation
+category:        Cardano
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+common language
+  default-language:   Haskell2010
+  default-extensions:
+    NoImplicitPrelude
+    OverloadedStrings
+
+common opts-lib
+  ghc-options:
+    -Wall -Wcompat -Wredundant-constraints -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
+
+  if flag(release)
+    ghc-options: -O2 -Werror
+
+common opts-exe
+  import: opts-lib
+  ghc-options: -threaded -rtsopts
+
+flag release
+  description: Enable optimization and `-Werror`
+  default:     False
+  manual:      True
+
+executable agda2hs-fixer
+  import:           language, opts-exe
+  hs-source-dirs:   haskell
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , haskell-src-exts
+    , megaparsec
+    , text
+    , transformers
+    , with-utf8
+  main-is:          agda2hs-fixer.hs
+  other-modules:
+    Language.Agda2hs.Agda.Parser
+    Language.Agda2hs.Agda.Types
+    Language.Agda2hs.Documentation
+    Language.Agda2hs.Haskell.Parser
+    Language.Agda2hs.Haskell.Types

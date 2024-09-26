@@ -42,6 +42,8 @@ guard :: Bool -> Maybe ()
 guard True = Just ()
 guard False = Nothing
 
+-- |
+-- An empty UTxO history
 empty :: UTxO -> UTxOHistory
 empty utxo =
     UTxOHistory
@@ -51,16 +53,22 @@ empty utxo =
         (RollbackWindow.singleton Origin)
         utxo
 
+-- |
+-- Returns the UTxO.
 getUTxO :: UTxOHistory -> UTxO
 getUTxO us =
     excluding
         (history us)
         (Map.keysSet (Timeline.getMapTime (spent us)))
 
+-- |
+-- Returns the 'RollbackWindow' slot.
 getRollbackWindow
     :: UTxOHistory -> RollbackWindow.RollbackWindow Slot
 getRollbackWindow x = window x
 
+-- |
+-- Returns the spent TxIns that can be rolled back.
 getSpent :: UTxOHistory -> Map TxIn SlotNo
 getSpent = Timeline.getMapTime . \r -> spent r
 

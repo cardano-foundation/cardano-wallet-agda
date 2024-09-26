@@ -54,6 +54,8 @@ import Data.Foldable
 empty :: TxHistory
 empty = TxHistory Timeline.empty PairMap.empty Origin
 
+-- |
+-- Returns the tip slot.
 getTip :: TxHistory -> Slot
 getTip = \r -> tip r
 

@@ -33,6 +33,8 @@ data Timeline time a = Timeline
     , eventsByTime :: InverseMap.InverseMap a time
     }
 
+-- |
+-- The empty set of items.
 empty :: (Ord time, Ord a) => Timeline time a
 empty = Timeline Map.empty Map.empty
 

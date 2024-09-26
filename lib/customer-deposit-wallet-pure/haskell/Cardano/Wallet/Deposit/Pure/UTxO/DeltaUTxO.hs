@@ -41,6 +41,8 @@ receiveD old new = (du, UTxO.union new old)
     du :: DeltaUTxO
     du = DeltaUTxO Set.empty new
 
+-- |
+-- Apply `x` *after* `y`.
 append :: DeltaUTxO -> DeltaUTxO -> DeltaUTxO
 append x y =
     DeltaUTxO
@@ -52,5 +54,7 @@ append x y =
     received'y :: UTxO
     received'y = UTxO.excluding (received y) (excluded x)
 
+-- |
+-- Combine a sequence of 'DeltaUTxO' using `append`
 concat :: [DeltaUTxO] -> DeltaUTxO
 concat = foldr append empty

@@ -13,6 +13,8 @@ unionWith f Nothing my = my
 unionWith f (Just x) Nothing = Just x
 unionWith f (Just x) (Just y) = Just (f x y)
 
+-- |
+-- Left-biased union.
 union :: Maybe a -> Maybe a -> Maybe a
 union = unionWith (\x y -> x)
 

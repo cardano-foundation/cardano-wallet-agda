@@ -106,6 +106,8 @@ createAddress c s0 = (addr, s1)
 getXPub :: AddressState -> XPub
 getXPub = \r -> stateXPub r
 
+-- |
+-- Create an empty 'AddressState' from a public key.
 emptyFromXPub :: XPub -> AddressState
 emptyFromXPub xpub =
     AddressStateC
@@ -113,6 +115,9 @@ emptyFromXPub xpub =
         Map.empty
         (deriveAddress xpub DerivationChange)
 
+-- |
+-- Create an 'AddressState' from a public key and
+-- a number known customer addresses.
 fromXPubAndCount :: XPub -> Word31 -> AddressState
 fromXPubAndCount xpub knownCustomerCount =
     foldl (\s c -> snd (createAddress c s)) s0 customers
