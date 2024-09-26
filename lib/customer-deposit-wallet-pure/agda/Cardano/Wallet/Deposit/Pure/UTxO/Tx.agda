@@ -42,6 +42,7 @@ import Haskell.Data.Set as Set
     UTxO utilities
 ------------------------------------------------------------------------------}
 -- | Remove unspent outputs that are consumed by the given transaction.
+-- Also returns a delta.
 spendTxD : ∀{era} → {{IsEra era}} → Read.Tx era → UTxO → (DeltaUTxO × UTxO)
 spendTxD tx u =
     DeltaUTxO.excludingD u inputsToExclude
@@ -53,7 +54,7 @@ spendTxD tx u =
           ; (IsValidC False) → getCollateralInputs tx
           }
 
--- | Convert the transaction outputs into a 'UTxO' set.
+-- | Convert the transaction outputs into a 'UTxO'.
 utxoFromTxOutputs : ∀{era} → {{IsEra era}} → Read.Tx era → UTxO
 utxoFromTxOutputs = utxoFromEraTx
 
@@ -63,6 +64,7 @@ utxoFromTxOutputs = utxoFromEraTx
 {-----------------------------------------------------------------------------
     Apply Transactions
 ------------------------------------------------------------------------------}
+-- | Tyep for a predicate that tests whether @addr@ belongs to us.
 IsOurs : Set → Set
 IsOurs addr = addr -> Bool
 
@@ -109,6 +111,7 @@ record ResolvedTx era : Set where
 
 open ResolvedTx public
 
+-- | Resolve transaction inputs by consulting a known 'UTxO' set.
 resolveInputs : ∀{era} → {{IsEra era}} → UTxO → Read.Tx era → ResolvedTx era
 resolveInputs utxo tx =
   record
@@ -125,7 +128,9 @@ resolveInputs utxo tx =
 {-----------------------------------------------------------------------------
     ValueTransfer
 ------------------------------------------------------------------------------}
--- Helper function
+-- | Helper function
+--
+-- (Internal, exported for technical reasons.)
 pairFromTxOut : Read.TxOut → (Read.Address × Read.Value)
 pairFromTxOut =
     λ txout → (getCompactAddr txout , getValue txout)
@@ -152,8 +157,9 @@ valueTransferFromDeltaUTxO u0 du =
     outs = Map.map fromReceived (groupByAddress (DeltaUTxO.received du))
 
 -- | Compute the 'ValueTransfer' corresponding to a 'ResolvedTx'.
--- Spent transaction outputs that have not been resolved will not
--- be considered.
+--
+-- Caveat: Spent transaction outputs that have not been resolved
+-- will be ignored.
 valueTransferFromResolvedTx
     : ∀{era} → {{IsEra era}}
     → ResolvedTx era → Map.Map Read.Address ValueTransfer

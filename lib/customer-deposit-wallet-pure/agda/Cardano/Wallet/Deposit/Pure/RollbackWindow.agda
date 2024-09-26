@@ -21,6 +21,7 @@ import Haskell.Data.Set as Set
 {-----------------------------------------------------------------------------
     Helpers
 ------------------------------------------------------------------------------}
+-- | (Internal function, exported for technical reasons.)
 if'
   : (b : Bool)
   → (thn : @0 (b ≡ True) → a)
@@ -141,9 +142,11 @@ prune newFinality w =
       }))
     else Nothing
 
+{-# FOREIGN AGDA2HS
+  -- | Intersection of two 'RollbackWindow'.
+#-}
 -- The anonymous module is need to get `forall time` in the Haskell code.
 module _ {time : Set} {{_ : Ord time}} where
--- | Intersection of two 'RollbackWindow'.
   intersect
     : ∀ {{@0 _ : IsLawfulOrd time}}
     → RollbackWindow time → RollbackWindow time → Maybe (RollbackWindow time)

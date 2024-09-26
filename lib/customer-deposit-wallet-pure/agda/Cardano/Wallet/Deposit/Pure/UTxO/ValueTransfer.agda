@@ -11,7 +11,8 @@ import Cardano.Wallet.Deposit.Read as Read
 {-----------------------------------------------------------------------------
     ValueTransfer
 ------------------------------------------------------------------------------}
-
+-- | Records a transfer of 'Value'
+-- — some 'Value' is spent, while other 'Value' is received.
 record ValueTransfer : Set where
   field
     spent    : Value
@@ -19,9 +20,11 @@ record ValueTransfer : Set where
 
 open ValueTransfer public
 
+-- | Record spending a given 'Value'.
 fromSpent : Value → ValueTransfer
 fromSpent = λ value → record { spent = value ; received = mempty }
 
+-- | Record receiving a given 'Value'.
 fromReceived : Value → ValueTransfer
 fromReceived = λ value → record { spent = mempty ; received = value }
 

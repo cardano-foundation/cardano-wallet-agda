@@ -47,6 +47,7 @@ import qualified Haskell.Data.Map as Map
 
 -- |
 -- Remove unspent outputs that are consumed by the given transaction.
+-- Also returns a delta.
 spendTxD :: IsEra era => Tx era -> UTxO -> (DeltaUTxO, UTxO)
 spendTxD tx u =
     Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.excludingD
@@ -60,10 +61,12 @@ spendTxD tx u =
             IsValidC False -> getCollateralInputs tx
 
 -- |
--- Convert the transaction outputs into a 'UTxO' set.
+-- Convert the transaction outputs into a 'UTxO'.
 utxoFromTxOutputs :: IsEra era => Tx era -> UTxO
 utxoFromTxOutputs = utxoFromEraTx
 
+-- |
+-- Tyep for a predicate that tests whether @addr@ belongs to us.
 type IsOurs addr = addr -> Bool
 
 -- |
@@ -104,10 +107,16 @@ data ResolvedTx era = ResolvedTx
     , resolvedInputs :: UTxO
     }
 
+-- |
+-- Resolve transaction inputs by consulting a known 'UTxO' set.
 resolveInputs :: IsEra era => UTxO -> Tx era -> ResolvedTx era
 resolveInputs utxo tx =
     ResolvedTx tx (UTxO.restrictedBy utxo (getInputs tx))
 
+-- |
+-- Helper function
+--
+-- (Internal, exported for technical reasons.)
 pairFromTxOut :: TxOut -> (Read.Address, Read.Value)
 pairFromTxOut = \txout -> (getCompactAddr txout, getValue txout)
 
@@ -132,8 +141,9 @@ valueTransferFromDeltaUTxO u0 du = Map.unionWith (<>) ins outs
 
 -- |
 -- Compute the 'ValueTransfer' corresponding to a 'ResolvedTx'.
--- Spent transaction outputs that have not been resolved will not
--- be considered.
+--
+-- Caveat: Spent transaction outputs that have not been resolved
+-- will be ignored.
 valueTransferFromResolvedTx
     :: IsEra era => ResolvedTx era -> Map.Map Read.Address ValueTransfer
 valueTransferFromResolvedTx tx = valueTransferFromDeltaUTxO u0 du

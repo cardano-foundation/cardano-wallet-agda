@@ -13,6 +13,9 @@ import Haskell.Data.Maps.Timeline (Timeline)
 -- and spending of slot of each TxIn.
 -- This allows us to rollback to a given slot
 -- and prune the history to a given slot.
+--
+-- NOTE: This is an abstract data type,
+-- its internals are only exported for technical reasons.
 data UTxOHistory = UTxOHistory
     { history :: UTxO
     , created :: Timeline Slot TxIn

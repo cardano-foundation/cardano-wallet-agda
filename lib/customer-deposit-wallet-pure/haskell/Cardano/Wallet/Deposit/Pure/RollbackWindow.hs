@@ -2,6 +2,8 @@
 
 module Cardano.Wallet.Deposit.Pure.RollbackWindow where
 
+-- |
+-- (Internal function, exported for technical reasons.)
 if' :: Bool -> a -> a -> a
 if' True thn els = thn
 if' False thn els = els
@@ -78,6 +80,7 @@ prune newFinality w =
         then Just (RollbackWindowC newFinality (tip w))
         else Nothing
 
+-- | Intersection of two 'RollbackWindow'.
 intersect
     :: forall time
      . Ord time

@@ -34,6 +34,8 @@ Information includes:
 * Slot of each transaction
 * Value transfer for each transaction, indexed by address
 
+NOTE: This is an abstract data type,
+its internals are only exported for technical reasons.
 -}
 record TxHistory : Set where
   field
