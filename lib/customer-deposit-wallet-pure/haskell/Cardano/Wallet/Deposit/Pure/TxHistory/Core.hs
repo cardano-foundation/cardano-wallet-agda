@@ -1,10 +1,9 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Cardano.Wallet.Deposit.Pure.TxHistory.Core where
 
 import Cardano.Wallet.Deposit.Pure.TxHistory.Type
     ( TxHistory (tip, txBlocks, txIds, txTransfers)
     )
+import Cardano.Wallet.Deposit.Pure.TxSummary (TxSummary (TxSummaryC))
 import Cardano.Wallet.Deposit.Pure.UTxO.Tx
     ( ResolvedTx
     , valueTransferFromResolvedTx
@@ -21,12 +20,13 @@ import Cardano.Wallet.Read.Chain
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (TxId)
 import Data.Set (Set)
-import Haskell.Data.List (foldl', sortOn)
+import Haskell.Data.List (foldl')
 import Haskell.Data.Map (Map)
 import qualified Haskell.Data.Map as Map
     ( empty
     , keysSet
-    , restrictKeys
+    , lookup
+    , mapMaybeWithKey
     , toAscList
     , unionWith
     , withoutKeys
@@ -73,21 +73,18 @@ getTip = \r -> tip r
 
 -- |
 -- Get the transaction history for a single address.
-getAddressHistory :: Address -> TxHistory -> [(Slot, TxId)]
-getAddressHistory address history =
-    sortOn
-        (\r -> fst r)
-        ( map
-            ( \case
-                (x, y) -> (y, x)
-            )
-            (Map.toAscList txs2)
-        )
+getAddressHistory :: Address -> TxHistory -> Map TxId TxSummary
+getAddressHistory address history = txSummaries
   where
-    txs1 :: Set TxId
-    txs1 = Map.keysSet (PairMap.lookupB address (txTransfers history))
-    txs2 :: Map TxId Slot
-    txs2 = Map.restrictKeys (Timeline.getMapTime (txIds history)) txs1
+    valueTransfers :: Map TxId ValueTransfer
+    valueTransfers = PairMap.lookupB address (txTransfers history)
+    makeTxSummary :: TxId -> ValueTransfer -> Maybe TxSummary
+    makeTxSummary txid v =
+        case Map.lookup txid (txBlocks history) of
+            Nothing -> Nothing
+            Just b -> Just (TxSummaryC txid b v)
+    txSummaries :: Map TxId TxSummary
+    txSummaries = Map.mapMaybeWithKey makeTxSummary valueTransfers
 
 -- |
 -- Get the total 'ValueTransfer' in a given slot range.

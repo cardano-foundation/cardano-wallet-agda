@@ -18,6 +18,9 @@ open import Cardano.Wallet.Deposit.Read using
 open import Cardano.Wallet.Deposit.Pure.TxHistory.Type using
     ( TxHistory
     )
+open import Cardano.Wallet.Deposit.Pure.TxSummary using
+    ( TxSummary
+    )
 open import Cardano.Wallet.Deposit.Pure.UTxO.Tx using
     ( ResolvedTx 
     ; valueTransferFromResolvedTx
@@ -82,17 +85,28 @@ getTip = TxHistory.tip
 
 -- | Get the transaction history for a single address.
 getAddressHistory
-  : Address → TxHistory → List (Slot × TxId)
+  : Address → TxHistory → Map TxId TxSummary
 getAddressHistory address history =
-    sortOn fst (map (λ {(x , y) → (y , x)}) (Map.toAscList txs2))
+    txSummaries
   where
     open TxHistory history
 
-    txs1 : ℙ TxId
-    txs1 = Map.keysSet (PairMap.lookupB address txTransfers)
+    valueTransfers : Map TxId ValueTransfer
+    valueTransfers = PairMap.lookupB address txTransfers
 
-    txs2 : Map TxId Slot
-    txs2 = Map.restrictKeys (Timeline.getMapTime txIds) txs1
+    makeTxSummary : TxId → ValueTransfer → Maybe TxSummary
+    makeTxSummary txid v =
+        case Map.lookup txid txBlocks of λ
+            { Nothing → Nothing
+            ; (Just b) → Just (record
+                { txSummarized = txid
+                ; txChainPoint = b
+                ; txTransfer = v
+                })
+            }
+
+    txSummaries : Map TxId TxSummary
+    txSummaries = Map.mapMaybeWithKey makeTxSummary valueTransfers
 
 -- | Get the total 'ValueTransfer' in a given slot range.
 getValueTransfers

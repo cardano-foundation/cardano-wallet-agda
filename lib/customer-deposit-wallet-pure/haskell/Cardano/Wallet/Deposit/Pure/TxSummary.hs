@@ -12,7 +12,7 @@ import Cardano.Wallet.Read.Tx (Tx, TxId, getTxId)
 --
 -- Note: Haddock may be broken. The fields of this record
 -- refer to types from "Cardano.Wallet.Read".
-data TxSummary = TxSummary
+data TxSummary = TxSummaryC
     { txSummarized :: TxId
     , txChainPoint :: ChainPoint
     , txTransfer :: ValueTransfer
@@ -28,4 +28,4 @@ deriving instance Show TxSummary
 -- FIXME: This is a mock summary for now!
 mkTxSummary :: IsEra era => Tx era -> ValueTransfer -> TxSummary
 mkTxSummary =
-    \tx transfer' -> TxSummary (getTxId tx) GenesisPoint transfer'
+    \tx transfer' -> TxSummaryC (getTxId tx) GenesisPoint transfer'
