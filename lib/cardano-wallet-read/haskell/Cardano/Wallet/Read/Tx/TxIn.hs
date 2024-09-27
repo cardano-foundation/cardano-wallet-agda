@@ -42,7 +42,7 @@ import qualified Cardano.Ledger.TxIn as SH
 -- It references the 'TxId' and an output index.
 --
 -- Note: We use a type synonym here because we want zero-cost
--- coercion between @Set TxIn@ and @Set SH.TxIn StandardCrypto@.
+-- coercion between @Set TxIn@ and @Set (SH.TxIn StandardCrypto)@.
 -- Unfortunately, 'Set' expects a nominal role.
 -- (See the design literature on 'Data.Coercible'.)
 type TxIn = SH.TxIn StandardCrypto

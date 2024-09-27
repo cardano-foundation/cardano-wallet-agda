@@ -50,15 +50,15 @@ import qualified Cardano.Ledger.SafeHash as SafeHash
 import qualified Cardano.Ledger.TxIn as SH.TxIn
 import qualified Cardano.Read.Ledger.Tx.TxId as L
 
--- | A 'TxId' is a unique identifier for a transaction body.
--- It is obtained by hashing.
+-- | Unique identifier for a transaction body,
+-- obtained by hashing.
 --
 -- 'TxId' is an __era-independent__ concept:
 -- The inputs of any transaction can refer to 'TxId's from previous eras.
 -- Hence, 'TxId' does not have an @era@ type index.
 --
 -- Note: We use a type synonym here because we want zero-cost
--- coercion between @Set TxId@ and @Set L.TxIdType Shelley@.
+-- coercion between @Set TxId@ and @Set (L.TxIdType Shelley)@.
 -- Unfortunately, 'Set' expects a nominal role.
 -- (See the design literature on 'Data.Coercible'.)
 type TxId = SH.TxIn.TxId StandardCrypto
@@ -68,10 +68,12 @@ pattern TxId :: Hash Blake2b_256 EraIndependentTxBody -> TxId
 pattern TxId x <- (hashFromTxId -> x)
   where TxId x = txIdFromHash x
 
+-- | Wrap hash of a transaction body as 'TxId'.
 txIdFromHash
     :: Hash Blake2b_256 EraIndependentTxBody -> TxId
 txIdFromHash = SH.TxIn.TxId . SafeHash.unsafeMakeSafeHash
 
+-- | Unwrap 'TxId' as hash of a transaction body.
 hashFromTxId
     :: TxId -> Hash Blake2b_256 EraIndependentTxBody
 hashFromTxId (SH.TxIn.TxId h) = SafeHash.extractHash h

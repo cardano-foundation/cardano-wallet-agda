@@ -16,13 +16,14 @@ module Cardano.Wallet.Read.Tx
     , IsValid (IsValidC)
     , getScriptValidity
 
-    -- * TxIn
+    -- * TxId
     , TxId
     , getTxId
     , EraIndependentTxBody
     , txIdFromHash
     , hashFromTxId
 
+    -- * TxIn
     , TxIx
     , pattern TxIx
 
