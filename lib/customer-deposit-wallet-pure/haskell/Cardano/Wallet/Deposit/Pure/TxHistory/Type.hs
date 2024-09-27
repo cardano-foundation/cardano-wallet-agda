@@ -2,8 +2,9 @@ module Cardano.Wallet.Deposit.Pure.TxHistory.Type where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
 import Cardano.Wallet.Deposit.Read (Address)
-import Cardano.Wallet.Read.Chain (Slot)
+import Cardano.Wallet.Read.Chain (ChainPoint, Slot)
 import Cardano.Wallet.Read.Tx (TxId)
+import Haskell.Data.Map (Map)
 import Haskell.Data.Maps.PairMap (PairMap)
 import Haskell.Data.Maps.Timeline (Timeline)
 
@@ -20,6 +21,7 @@ import Haskell.Data.Maps.Timeline (Timeline)
 -- its internals are only exported for technical reasons.
 data TxHistory = TxHistory
     { txIds :: Timeline Slot TxId
+    , txBlocks :: Map TxId ChainPoint
     , txTransfers :: PairMap TxId Address ValueTransfer
     , tip :: Slot
     }

@@ -80,6 +80,10 @@ instance
     x1 == x2 && y1 == y2
   iEqChainPoint ._==_ _      _      = False
 
+instance postulate
+  iOrdChainPoint : Ord ChainPoint
+  iShowChainPoint : Show ChainPoint
+
 slotFromChainPoint : ChainPoint → Slot
 slotFromChainPoint GenesisPoint = WithOrigin.Origin
 slotFromChainPoint (BlockPoint slotNo _) = WithOrigin.At slotNo

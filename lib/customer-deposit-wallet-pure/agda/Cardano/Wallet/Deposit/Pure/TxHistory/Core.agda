@@ -7,6 +7,8 @@ open import Haskell.Reasoning
 
 open import Cardano.Wallet.Deposit.Read using
     ( Address
+    ; ChainPoint
+      ; slotFromChainPoint
     ; Slot
     ; SlotNo
     ; TxId
@@ -15,6 +17,9 @@ open import Cardano.Wallet.Deposit.Read using
     )
 open import Cardano.Wallet.Deposit.Pure.TxHistory.Type using
     ( TxHistory
+    )
+open import Cardano.Wallet.Deposit.Pure.TxSummary using
+    ( TxSummary
     )
 open import Cardano.Wallet.Deposit.Pure.UTxO.Tx using
     ( ResolvedTx 
@@ -59,6 +64,7 @@ It starts at genesis and contains no transactions.
 empty : TxHistory
 empty = record
   { txIds = Timeline.empty
+  ; txBlocks = Map.empty
   ; txTransfers = PairMap.empty
   ; tip = WithOrigin.Origin
   }
@@ -79,22 +85,50 @@ getTip = TxHistory.tip
 
 -- | Get the transaction history for a single address.
 getAddressHistory
-  : Address → TxHistory → List (Slot × TxId)
+  : Address → TxHistory → Map TxId TxSummary
 getAddressHistory address history =
-    sortOn fst (map (λ {(x , y) → (y , x)}) (Map.toAscList txs2))
+    txSummaries
   where
     open TxHistory history
 
-    txs1 : ℙ TxId
-    txs1 = Map.keysSet (PairMap.lookupB address txTransfers)
+    valueTransfers : Map TxId ValueTransfer
+    valueTransfers = PairMap.lookupB address txTransfers
 
-    txs2 : Map TxId Slot
-    txs2 = Map.restrictKeys (Timeline.getMapTime txIds) txs1
+    makeTxSummary : TxId → ValueTransfer → Maybe TxSummary
+    makeTxSummary txid v =
+        case Map.lookup txid txBlocks of λ
+            { Nothing → Nothing
+            ; (Just b) → Just (record
+                { txSummarized = txid
+                ; txChainPoint = b
+                ; txTransfer = v
+                })
+            }
 
--- | Get the total 'ValueTransfer' in a given slot range.
+    txSummaries : Map TxId TxSummary
+    txSummaries = Map.mapMaybeWithKey makeTxSummary valueTransfers
+
+-- | Get the 'ValueTransfer' for each known slot.
 getValueTransfers
+  : TxHistory → Map Slot (Map Address ValueTransfer)
+getValueTransfers history =
+    Map.fromListWith (Map.unionWith (_<>_)) transfers 
+  where
+    open TxHistory history
+
+    timeline : List (Slot × TxId)
+    timeline = Timeline.toAscList txIds
+
+    second' : (b → c) → (a × b) → (a × c)
+    second' f (x , y) = (x , f y)
+
+    transfers : List (Slot × Map Address ValueTransfer)
+    transfers = map (second' (λ txid → PairMap.lookupA txid txTransfers)) timeline
+
+-- | Compute the total 'ValueTransfer' in a given slot range.
+getValueTransferInRange
   : (Slot × Slot) → TxHistory → Map Address ValueTransfer
-getValueTransfers range history =
+getValueTransferInRange range history =
     foldl' (Map.unionWith (_<>_)) Map.empty txs2
   where
     open TxHistory history
@@ -110,6 +144,7 @@ getValueTransfers range history =
 {-# COMPILE AGDA2HS getTip #-}
 {-# COMPILE AGDA2HS getAddressHistory #-}
 {-# COMPILE AGDA2HS getValueTransfers #-}
+{-# COMPILE AGDA2HS getValueTransferInRange #-}
 
 {-----------------------------------------------------------------------------
     Operations
@@ -123,19 +158,20 @@ of 'ResolvedTx'.
 -}
 rollForward
   : ∀{era} → {{IsEra era}}
-  → SlotNo → List (TxId × ResolvedTx era) → TxHistory → TxHistory
-rollForward {era} new txs history =
-    if WithOrigin.At new <= getTip history
+  → ChainPoint → List (TxId × ResolvedTx era) → TxHistory → TxHistory
+rollForward {era} newTip txs history =
+    if newSlot <= getTip history
     then history
     else record
-        { txIds = Timeline.insertMany slot txids txIds
+        { txIds = Timeline.insertMany newSlot txids txIds
+        ; txBlocks = Timeline.insertManyKeys txids newTip txBlocks
         ; txTransfers = foldl' insertValueTransfer txTransfers txs
-        ; tip = WithOrigin.At new
+        ; tip = newSlot
         }
   where
     open TxHistory history
 
-    slot = WithOrigin.At new
+    newSlot = slotFromChainPoint newTip
     txids = Set.fromList (map fst txs)
 
     insertValueTransfer
@@ -159,6 +195,7 @@ rollBackward new history =
     then history
     else record
         { txIds = keptTimeline
+        ; txBlocks = Map.withoutKeys txBlocks deletedTxIds
         ; txTransfers = PairMap.withoutKeysA txTransfers deletedTxIds
         ; tip = new
         }

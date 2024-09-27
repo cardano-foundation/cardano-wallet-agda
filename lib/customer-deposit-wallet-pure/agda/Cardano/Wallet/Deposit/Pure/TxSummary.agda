@@ -25,6 +25,7 @@ Note: Haddock may be broken. The fields of this record
 refer to types from "Cardano.Wallet.Read".
 -}
 record TxSummary : Set where
+  constructor TxSummaryC
   field
     txSummarized : TxId
     txChainPoint : ChainPoint
