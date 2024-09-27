@@ -6,6 +6,7 @@ open import Haskell.Prelude
 
 open import Cardano.Wallet.Deposit.Read using
     ( Address
+    ; ChainPoint
     ; Slot
     ; TxId
     )
@@ -40,6 +41,9 @@ its internals are only exported for technical reasons.
 record TxHistory : Set where
   field
     txIds : Timeline Slot TxId
+
+    txBlocks : Map TxId ChainPoint
+        -- ^ Map from transaction to the respective 'ChainPoint'.
 
     txTransfers : PairMap TxId Address ValueTransfer
         -- ^ Map from (transaction × address) to ValueTransfer

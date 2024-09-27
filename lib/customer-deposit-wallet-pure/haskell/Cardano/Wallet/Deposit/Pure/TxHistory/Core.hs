@@ -3,7 +3,7 @@
 module Cardano.Wallet.Deposit.Pure.TxHistory.Core where
 
 import Cardano.Wallet.Deposit.Pure.TxHistory.Type
-    ( TxHistory (tip, txIds, txTransfers)
+    ( TxHistory (tip, txBlocks, txIds, txTransfers)
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.Tx
     ( ResolvedTx
@@ -12,7 +12,12 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
 import Cardano.Wallet.Deposit.Read (Address)
 import Cardano.Wallet.Read.Block (SlotNo)
-import Cardano.Wallet.Read.Chain (Slot, WithOrigin (At, Origin))
+import Cardano.Wallet.Read.Chain
+    ( ChainPoint
+    , Slot
+    , WithOrigin (Origin)
+    , slotFromChainPoint
+    )
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (TxId)
 import Data.Set (Set)
@@ -24,6 +29,7 @@ import qualified Haskell.Data.Map as Map
     , restrictKeys
     , toAscList
     , unionWith
+    , withoutKeys
     )
 import qualified Haskell.Data.Maps.PairMap as PairMap
     ( PairMap
@@ -39,6 +45,7 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , empty
     , getMapTime
     , insertMany
+    , insertManyKeys
     , restrictRange
     )
 import qualified Haskell.Data.Set as Set (fromList)
@@ -55,7 +62,7 @@ import Data.Foldable
 -- The empty transaction history.
 -- It starts at genesis and contains no transactions.
 empty :: TxHistory
-empty = TxHistory Timeline.empty PairMap.empty Origin
+empty = TxHistory Timeline.empty Map.empty PairMap.empty Origin
 
 -- |
 -- 'getTip' records the slot up to which the transaction history
@@ -108,21 +115,22 @@ getValueTransfers range history =
 -- of 'ResolvedTx'.
 rollForward
     :: IsEra era
-    => SlotNo
+    => ChainPoint
     -> [(TxId, ResolvedTx era)]
     -> TxHistory
     -> TxHistory
-rollForward new txs history =
-    if At new <= getTip history
+rollForward newTip txs history =
+    if newSlot <= getTip history
         then history
         else
             TxHistory
-                (Timeline.insertMany slot txids (txIds history))
+                (Timeline.insertMany newSlot txids (txIds history))
+                (Timeline.insertManyKeys txids newTip (txBlocks history))
                 (foldl' insertValueTransfer (txTransfers history) txs)
-                (At new)
+                newSlot
   where
-    slot :: WithOrigin SlotNo
-    slot = At new
+    newSlot :: Slot
+    newSlot = slotFromChainPoint newTip
     txids :: Set TxId
     txids = Set.fromList (map (\r -> fst r) txs)
     insertValueTransfer
@@ -152,6 +160,7 @@ rollBackward new history =
         else
             TxHistory
                 keptTimeline
+                (Map.withoutKeys (txBlocks history) deletedTxIds)
                 (PairMap.withoutKeysA (txTransfers history) deletedTxIds)
                 new
   where

@@ -7,6 +7,8 @@ open import Haskell.Reasoning
 
 open import Cardano.Wallet.Deposit.Read using
     ( Address
+    ; ChainPoint
+      ; slotFromChainPoint
     ; Slot
     ; SlotNo
     ; TxId
@@ -59,6 +61,7 @@ It starts at genesis and contains no transactions.
 empty : TxHistory
 empty = record
   { txIds = Timeline.empty
+  ; txBlocks = Map.empty
   ; txTransfers = PairMap.empty
   ; tip = WithOrigin.Origin
   }
@@ -123,19 +126,20 @@ of 'ResolvedTx'.
 -}
 rollForward
   : ∀{era} → {{IsEra era}}
-  → SlotNo → List (TxId × ResolvedTx era) → TxHistory → TxHistory
-rollForward {era} new txs history =
-    if WithOrigin.At new <= getTip history
+  → ChainPoint → List (TxId × ResolvedTx era) → TxHistory → TxHistory
+rollForward {era} newTip txs history =
+    if newSlot <= getTip history
     then history
     else record
-        { txIds = Timeline.insertMany slot txids txIds
+        { txIds = Timeline.insertMany newSlot txids txIds
+        ; txBlocks = Timeline.insertManyKeys txids newTip txBlocks
         ; txTransfers = foldl' insertValueTransfer txTransfers txs
-        ; tip = WithOrigin.At new
+        ; tip = newSlot
         }
   where
     open TxHistory history
 
-    slot = WithOrigin.At new
+    newSlot = slotFromChainPoint newTip
     txids = Set.fromList (map fst txs)
 
     insertValueTransfer
@@ -159,6 +163,7 @@ rollBackward new history =
     then history
     else record
         { txIds = keptTimeline
+        ; txBlocks = Map.withoutKeys txBlocks deletedTxIds
         ; txTransfers = PairMap.withoutKeysA txTransfers deletedTxIds
         ; tip = new
         }
