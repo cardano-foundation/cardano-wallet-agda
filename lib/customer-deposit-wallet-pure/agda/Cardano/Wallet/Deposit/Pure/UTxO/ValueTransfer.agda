@@ -20,6 +20,13 @@ record ValueTransfer : Set where
 
 open ValueTransfer public
 
+postulate instance
+  iEqValueTransfer : Eq ValueTransfer
+  iShowValueTransfer : Show ValueTransfer
+
+{-# COMPILE AGDA2HS iEqValueTransfer derive #-}
+{-# COMPILE AGDA2HS iShowValueTransfer derive #-}
+
 -- | Record spending a given 'Value'.
 fromSpent : Value → ValueTransfer
 fromSpent = λ value → record { spent = value ; received = mempty }

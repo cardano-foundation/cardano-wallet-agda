@@ -32,6 +32,13 @@ record TxSummary : Set where
 
 open TxSummary public
 
+postulate instance
+  iEqTxSummary : Eq TxSummary
+  iShowTxSummary : Show TxSummary
+
+{-# COMPILE AGDA2HS iEqTxSummary derive #-}
+{-# COMPILE AGDA2HS iShowTxSummary derive #-}
+
 -- | Create a 'TxSummary' from a transaction.
 --
 -- FIXME: This is a mock summary for now!

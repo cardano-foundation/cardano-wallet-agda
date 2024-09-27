@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer where
 
 import Cardano.Wallet.Read.Value (Value)
@@ -9,6 +11,10 @@ data ValueTransfer = ValueTransfer
     { spent :: Value
     , received :: Value
     }
+
+deriving instance Eq ValueTransfer
+
+deriving instance Show ValueTransfer
 
 -- |
 -- Record spending a given 'Value'.
