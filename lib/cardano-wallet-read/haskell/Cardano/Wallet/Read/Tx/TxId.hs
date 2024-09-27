@@ -13,6 +13,7 @@
 module Cardano.Wallet.Read.Tx.TxId
     ( TxId
     , pattern TxId
+    , EraIndependentTxBody
     , txIdFromHash
     , hashFromTxId
     , getTxId
