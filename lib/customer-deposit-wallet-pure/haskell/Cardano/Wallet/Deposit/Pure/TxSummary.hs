@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Cardano.Wallet.Deposit.Pure.TxSummary where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
@@ -15,6 +17,10 @@ data TxSummary = TxSummary
     , txChainPoint :: ChainPoint
     , txTransfer :: ValueTransfer
     }
+
+deriving instance Eq TxSummary
+
+deriving instance Show TxSummary
 
 -- |
 -- Create a 'TxSummary' from a transaction.
