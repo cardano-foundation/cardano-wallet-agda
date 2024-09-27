@@ -9,7 +9,7 @@ License: Apache-2.0
 Data types relating to the consensus about the blockchain.
 -}
 module Cardano.Wallet.Read.Chain
-    ( -- * WithOrigin
+    ( -- * Slot
       WithOrigin (At, Origin)
     , Slot
     , slotFromChainPoint
@@ -58,8 +58,10 @@ import qualified Data.Text as T
 {-----------------------------------------------------------------------------
     Slot
 ------------------------------------------------------------------------------}
+-- | Either genesis or a numbered slot.
 type Slot = WithOrigin SlotNo
 
+-- | Get the 'Slot' of a 'ChainPoint'.
 slotFromChainPoint :: ChainPoint -> Slot
 slotFromChainPoint GenesisPoint = Origin
 slotFromChainPoint (BlockPoint slotNo _) = At slotNo
@@ -67,7 +69,6 @@ slotFromChainPoint (BlockPoint slotNo _) = At slotNo
 {-----------------------------------------------------------------------------
     ChainPoint
 ------------------------------------------------------------------------------}
-
 -- | A point (block) on the Cardano blockchain.
 data ChainPoint
     = GenesisPoint
@@ -80,6 +81,7 @@ data ChainPoint
 instance NoThunks ChainPoint
 
 {-# INLINABLE getChainPoint #-}
+-- | Get 'ChainPoint' of this block.
 getChainPoint :: IsEra era => Block era -> ChainPoint
 getChainPoint block =
     BlockPoint
@@ -97,6 +99,7 @@ prettyChainPoint (BlockPoint slot hash) =
     hashF = T.take 8 . Hash.hashToTextAsHex
     slotF (SlotNo n) = T.pack (show n)
 
+-- | Get 'ChainPoint' of the given tip.
 chainPointFromChainTip :: ChainTip -> ChainPoint
 chainPointFromChainTip GenesisTip = GenesisPoint
 chainPointFromChainTip (BlockTip slot hash _) = BlockPoint slot hash
@@ -104,9 +107,9 @@ chainPointFromChainTip (BlockTip slot hash _) = BlockPoint slot hash
 {-----------------------------------------------------------------------------
     Tip
 ------------------------------------------------------------------------------}
-
--- | Used in chain-sync protocol to advertise the tip of the server's chain.
--- Records the 'ChainPoint' and the 'BlockNo' of the block.
+-- | Point on the blockchain.
+-- Used in chain-sync protocol to advertise the tip of the server's chain.
+-- Records both the 'ChainPoint' and the 'BlockNo' of the block.
 data ChainTip
     = GenesisTip
     | BlockTip
@@ -119,6 +122,7 @@ data ChainTip
 instance NoThunks ChainTip
 
 {-# INLINABLE getChainTip #-}
+-- | Get 'ChainTip' corresponding to this block.
 getChainTip :: IsEra era => Block era -> ChainTip
 getChainTip block =
     BlockTip
