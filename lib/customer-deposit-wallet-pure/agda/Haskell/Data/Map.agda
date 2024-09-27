@@ -43,6 +43,7 @@ module _ {k a : Set} {{_ : Ord k}} where
 
     unionWith     : (a → a → a) → Map k a → Map k a → Map k a
     filterWithKey : (k → a → Bool) → Map k a → Map k a
+    mapMaybeWithKey : (k → a → Maybe b) → Map k a → Map k b
 
     takeWhileAntitone : (k → Bool) → Map k a → Map k a
     dropWhileAntitone : (k → Bool) → Map k a → Map k a
@@ -185,22 +186,24 @@ module _ {k a : Set} {{_ : Ord k}} where
   foldMap' : ∀ {{_ : Monoid b}} → (a → b) → Map k a → b
   foldMap' f = foldMap f ∘ L.map snd ∘ toAscList
 
-postulate
-  prop-lookup-fmap
-    : ∀ {a b k : Set} {{_ : Ord k}}
-        (key : k)
-        (m : Map k a)
-        (f : a → b)
-    → lookup key (fmap {{iMapFunctor {k} {a}}} f m)
-      ≡ fmap f (lookup key m)
+-- Properties involving 2 type variables.
+module _ {k a b : Set} {{_ : Ord k}} where
+  postulate
 
-  prop-lookup-mapWithKey
-    : ∀ {a b k : Set} {{_ : Ord k}}
-        (key : k)
-        (m : Map k a)
-        (f : k → a → b)
-    → lookup key (mapWithKey f m)
-      ≡ fmap (f key) (lookup key m)
+    prop-lookup-fmap
+      : ∀ (key : k) (m : Map k a) (f : a → b)
+      → lookup key (fmap {{iMapFunctor {k} {a}}} f m)
+        ≡ fmap f (lookup key m)
+
+    prop-lookup-mapWithKey
+      : ∀ (key : k) (m : Map k a) (f : k → a → b)
+      → lookup key (mapWithKey f m)
+        ≡ fmap (f key) (lookup key m)
+
+    prop-lookup-mapMaybeWithKey
+      : ∀ (key : k) (m : Map k a) (f : k → a → Maybe b)
+      → lookup key (mapMaybeWithKey f m)
+        ≡ Maybe.mapMaybe (f key) (lookup key m)
 
 instance
   iMapFoldable : ∀ {k : Set} {{_ : Ord k}} → Foldable (Map k)
@@ -211,8 +214,10 @@ instance
   iEqMap : ∀ {k v : Set} {{_ : Ord k}} {{_ : Eq v}} → Eq (Map k v)
   iEqMap ._==_ m1 m2 = toAscList m1 == toAscList m2
 
+-- Properties involving three type variables.
 module _ {k a b c : Set} {{_ : Ord k}} where
   postulate
+
     intersectionWith : (a → b → c) → Map k a → Map k b → Map k c
 
     prop-lookup-intersectionWith

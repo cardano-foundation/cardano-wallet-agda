@@ -26,6 +26,10 @@ filter : (a → Bool) → Maybe a → Maybe a
 filter p Nothing = Nothing
 filter p (Just x) = if p x then Just x else Nothing
 
+mapMaybe : (a → Maybe b) → Maybe a → Maybe b
+mapMaybe f Nothing = Nothing
+mapMaybe f (Just x) = f x
+
 unionWith : (a → a → a) → Maybe a → Maybe a → Maybe a
 unionWith f Nothing my = my
 unionWith f (Just x) Nothing = Just x
