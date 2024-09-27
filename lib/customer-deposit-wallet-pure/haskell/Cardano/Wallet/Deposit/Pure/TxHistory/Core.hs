@@ -24,6 +24,7 @@ import Haskell.Data.List (foldl')
 import Haskell.Data.Map (Map)
 import qualified Haskell.Data.Map as Map
     ( empty
+    , fromListWith
     , keysSet
     , lookup
     , mapMaybeWithKey
@@ -47,6 +48,7 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , insertMany
     , insertManyKeys
     , restrictRange
+    , toAscList
     )
 import qualified Haskell.Data.Set as Set (fromList)
 
@@ -87,10 +89,27 @@ getAddressHistory address history = txSummaries
     txSummaries = Map.mapMaybeWithKey makeTxSummary valueTransfers
 
 -- |
--- Get the total 'ValueTransfer' in a given slot range.
+-- Get the 'ValueTransfer' for each known slot.
 getValueTransfers
+    :: TxHistory -> Map Slot (Map Address ValueTransfer)
+getValueTransfers history =
+    Map.fromListWith (Map.unionWith (<>)) transfers
+  where
+    timeline :: [(Slot, TxId)]
+    timeline = Timeline.toAscList (txIds history)
+    second' :: (b -> c) -> (a, b) -> (a, c)
+    second' f (x, y) = (x, f y)
+    transfers :: [(Slot, Map Address ValueTransfer)]
+    transfers =
+        map
+            (second' (\txid -> PairMap.lookupA txid (txTransfers history)))
+            timeline
+
+-- |
+-- Compute the total 'ValueTransfer' in a given slot range.
+getValueTransferInRange
     :: (Slot, Slot) -> TxHistory -> Map Address ValueTransfer
-getValueTransfers range history =
+getValueTransferInRange range history =
     foldl' (Map.unionWith (<>)) Map.empty txs2
   where
     txs1 :: Set TxId

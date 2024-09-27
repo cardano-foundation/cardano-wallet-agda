@@ -108,10 +108,27 @@ getAddressHistory address history =
     txSummaries : Map TxId TxSummary
     txSummaries = Map.mapMaybeWithKey makeTxSummary valueTransfers
 
--- | Get the total 'ValueTransfer' in a given slot range.
+-- | Get the 'ValueTransfer' for each known slot.
 getValueTransfers
+  : TxHistory → Map Slot (Map Address ValueTransfer)
+getValueTransfers history =
+    Map.fromListWith (Map.unionWith (_<>_)) transfers 
+  where
+    open TxHistory history
+
+    timeline : List (Slot × TxId)
+    timeline = Timeline.toAscList txIds
+
+    second' : (b → c) → (a × b) → (a × c)
+    second' f (x , y) = (x , f y)
+
+    transfers : List (Slot × Map Address ValueTransfer)
+    transfers = map (second' (λ txid → PairMap.lookupA txid txTransfers)) timeline
+
+-- | Compute the total 'ValueTransfer' in a given slot range.
+getValueTransferInRange
   : (Slot × Slot) → TxHistory → Map Address ValueTransfer
-getValueTransfers range history =
+getValueTransferInRange range history =
     foldl' (Map.unionWith (_<>_)) Map.empty txs2
   where
     open TxHistory history
@@ -127,6 +144,7 @@ getValueTransfers range history =
 {-# COMPILE AGDA2HS getTip #-}
 {-# COMPILE AGDA2HS getAddressHistory #-}
 {-# COMPILE AGDA2HS getValueTransfers #-}
+{-# COMPILE AGDA2HS getValueTransferInRange #-}
 
 {-----------------------------------------------------------------------------
     Operations
