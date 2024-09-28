@@ -78,24 +78,31 @@ applyTx
     -> UTxO
     -> (DeltaUTxO × UTxO)
 applyTx isOurs tx u0 =
-    let (du10 , u1)  = spendTxD tx u0
-        receivedUTxO = UTxO.filterByAddress isOurs (utxoFromTxOutputs tx)
-        (du21 , u2)  = DeltaUTxO.receiveD u1 receivedUTxO
-        (du , u) = (DeltaUTxO.append du21 du10 , u2)
-    
-        -- NOTE: Performance.
-        -- 'applyTx' is part of a tight loop that inspects all transactions
-        -- (> 30M Txs as of Feb 2022).
-        -- Thus, we make a small performance optimization here.
-        -- Specifically, we want to reject a transaction as soon as possible
-        -- if it does not change the 'UTxO' set. The test
-        isUnchangedUTxO = UTxO.null receivedUTxO && DeltaUTxO.null du10
-        -- allocates slightly fewer new Set/Map than the definition
-        --   isUnchangedUTxO =  mempty == du
+    if isUnchangedUTxO
+        then (DeltaUTxO.empty , u0)
+        else (du , u)
+  where
+    d1 = spendTxD tx u0
+    du10 = fst d1
+    u1 = snd d1
 
-    in  if isUnchangedUTxO
-          then (DeltaUTxO.empty , u0)
-          else (du , u)
+    receivedUTxO = UTxO.filterByAddress isOurs (utxoFromTxOutputs tx)
+    d2 = DeltaUTxO.receiveD u1 receivedUTxO
+    du21 = fst d2
+    u2 = snd d2
+
+    du = DeltaUTxO.append du21 du10
+    u = u2
+
+    -- NOTE: Performance.
+    -- 'applyTx' is part of a tight loop that inspects all transactions
+    -- (> 30M Txs as of Feb 2022).
+    -- Thus, we make a small performance optimization here.
+    -- Specifically, we want to reject a transaction as soon as possible
+    -- if it does not change the 'UTxO' set. The test
+    isUnchangedUTxO = UTxO.null receivedUTxO && DeltaUTxO.null du10
+    -- allocates slightly fewer new Set/Map than the definition
+    --   isUnchangedUTxO = UTxO.null du
 
 {-# COMPILE AGDA2HS IsOurs #-}
 {-# COMPILE AGDA2HS applyTx #-}
