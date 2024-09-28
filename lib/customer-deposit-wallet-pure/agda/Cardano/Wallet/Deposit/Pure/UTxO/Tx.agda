@@ -16,7 +16,7 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ; fromReceived
     ; fromSpent
     )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Read using
     ( IsEra
     ; IsValid
       ; IsValidC
@@ -29,7 +29,6 @@ open import Cardano.Wallet.Deposit.Read using
     ; TxOut
       ; getCompactAddr
       ; getValue
-    ; TxBody
     )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
