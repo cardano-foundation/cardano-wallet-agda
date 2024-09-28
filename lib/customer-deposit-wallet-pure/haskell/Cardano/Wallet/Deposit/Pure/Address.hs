@@ -6,7 +6,7 @@ import Cardano.Wallet.Address.BIP32
     )
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft)
 import Cardano.Wallet.Address.Encoding (mkEnterpriseAddress)
-import Cardano.Wallet.Deposit.Read (Address)
+import Cardano.Wallet.Deposit.Read.Temp (Address)
 import qualified Cardano.Wallet.Read.Address (CompactAddr)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word.Odd (Word31)

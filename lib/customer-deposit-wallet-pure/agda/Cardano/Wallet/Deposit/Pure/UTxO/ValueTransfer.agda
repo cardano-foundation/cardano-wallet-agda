@@ -6,7 +6,7 @@ open import Cardano.Wallet.Read using
     ( Value
     )
 
-import Cardano.Wallet.Deposit.Read as Read
+import Cardano.Wallet.Read as Read
 
 {-----------------------------------------------------------------------------
     ValueTransfer

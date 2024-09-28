@@ -33,7 +33,7 @@ open import Cardano.Wallet.Read using
 
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
-import Cardano.Wallet.Deposit.Read as Read
+import Cardano.Wallet.Read as Read
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
@@ -72,7 +72,7 @@ IsOurs addr = addr -> Bool
 -- Returns both a delta and the new value.
 applyTx
     : ∀ {era} → {{IsEra era}}
-    → IsOurs Read.Addr
+    → IsOurs Read.CompactAddr
     -> Read.Tx era
     -> UTxO
     -> (DeltaUTxO × UTxO)
@@ -137,12 +137,12 @@ resolveInputs utxo tx =
 -- | Helper function
 --
 -- (Internal, exported for technical reasons.)
-pairFromTxOut : Read.TxOut → (Read.Address × Read.Value)
+pairFromTxOut : Read.TxOut → (Read.CompactAddr × Read.Value)
 pairFromTxOut =
     λ txout → (getCompactAddr txout , getValue txout)
 
 -- | Compute how much 'Value' a 'UTxO' set contains at each address.
-groupByAddress : UTxO → Map.Map Read.Address Read.Value
+groupByAddress : UTxO → Map.Map Read.CompactAddr Read.Value
 groupByAddress =
     Map.fromListWith (_<>_) ∘ map pairFromTxOut ∘ Map.elems
 
@@ -152,7 +152,7 @@ valueTransferFromDeltaUTxO
     -- ^ UTxO set to which the 'DeltaUTxO' is applied.
   → DeltaUTxO
     -- ^ Change to the 'UTxO' set.
-  → Map.Map Read.Address ValueTransfer
+  → Map.Map Read.CompactAddr ValueTransfer
     -- ^ Value transfer, grouped by address.
 valueTransferFromDeltaUTxO u0 du =
     Map.unionWith (_<>_) ins outs
@@ -168,7 +168,7 @@ valueTransferFromDeltaUTxO u0 du =
 -- will be ignored.
 valueTransferFromResolvedTx
     : ∀{era} → {{IsEra era}}
-    → ResolvedTx era → Map.Map Read.Address ValueTransfer
+    → ResolvedTx era → Map.Map Read.CompactAddr ValueTransfer
 valueTransferFromResolvedTx tx =
     valueTransferFromDeltaUTxO u0 du
   where

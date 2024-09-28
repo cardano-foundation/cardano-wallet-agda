@@ -13,7 +13,7 @@ open import Cardano.Wallet.Read using
     ; ChainPoint
     )
 
-import Cardano.Wallet.Deposit.Read as Read
+import Cardano.Wallet.Read as Read
 
 {-----------------------------------------------------------------------------
     TxSummary

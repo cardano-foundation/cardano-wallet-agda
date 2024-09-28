@@ -5,16 +5,6 @@ module Cardano.Wallet.Deposit.Pure.TxHistory.Core where
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
-open import Cardano.Wallet.Deposit.Read using
-    ( Address
-    ; ChainPoint
-      ; slotFromChainPoint
-    ; Slot
-    ; SlotNo
-    ; TxId
-    ; WithOrigin
-    ; IsEra
-    )
 open import Cardano.Wallet.Deposit.Pure.TxHistory.Type using
     ( TxHistory
     )
@@ -27,6 +17,18 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.Tx using
     )
 open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ( ValueTransfer
+    )
+open import Cardano.Wallet.Deposit.Read.Temp using
+    ( Address
+    )
+open import Cardano.Wallet.Read using
+    ( ChainPoint
+      ; slotFromChainPoint
+    ; Slot
+    ; SlotNo
+    ; TxId
+    ; WithOrigin
+    ; IsEra
     )
 open import Haskell.Data.List using
     ( foldl'

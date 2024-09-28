@@ -28,7 +28,7 @@ postulate
 
   instance
     iEqCompactAddr : Eq CompactAddr
-    iLawfulEqCompactAddr : IsLawfulEq CompactAddr
+    iIsLawfulEqCompactAddr : IsLawfulEq CompactAddr
 
   iOrdCompactAddr₀ : Ord CompactAddr
 

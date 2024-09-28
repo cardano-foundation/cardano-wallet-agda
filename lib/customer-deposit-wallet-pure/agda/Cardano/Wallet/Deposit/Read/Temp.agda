@@ -1,18 +1,16 @@
 {-# OPTIONS --erasure #-}
-module Cardano.Wallet.Deposit.Read where
+module Cardano.Wallet.Deposit.Read.Temp where
 
 open import Haskell.Prelude
 
-open import Cardano.Wallet.Read public
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read.Value 
-    ( Value
+open import Cardano.Wallet.Read public using
+    ( CompactAddr
+        ; iEqCompactAddr
+        ; iOrdCompactAddr
+        ; iIsLawfulEqCompactAddr
+    ; TxIn
+    ; TxOut
     )
-#-}
-
-import Haskell.Data.Map as Map
 
 {-----------------------------------------------------------------------------
     Address

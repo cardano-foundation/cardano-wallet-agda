@@ -21,7 +21,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
     , fromReceived
     , fromSpent
     )
-import qualified Cardano.Wallet.Deposit.Read as Read (Addr, Address)
+import qualified Cardano.Wallet.Read.Address as Read (CompactAddr)
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx
     ( IsValid (IsValidC)
@@ -75,7 +75,7 @@ type IsOurs addr = addr -> Bool
 -- Returns both a delta and the new value.
 applyTx
     :: IsEra era
-    => IsOurs Read.Addr
+    => IsOurs Read.CompactAddr
     -> Tx era
     -> UTxO
     -> (DeltaUTxO, UTxO)
@@ -127,26 +127,26 @@ resolveInputs utxo tx =
 -- Helper function
 --
 -- (Internal, exported for technical reasons.)
-pairFromTxOut :: TxOut -> (Read.Address, Read.Value)
+pairFromTxOut :: TxOut -> (Read.CompactAddr, Read.Value)
 pairFromTxOut = \txout -> (getCompactAddr txout, getValue txout)
 
 -- |
 -- Compute how much 'Value' a 'UTxO' set contains at each address.
-groupByAddress :: UTxO -> Map.Map Read.Address Read.Value
+groupByAddress :: UTxO -> Map.Map Read.CompactAddr Read.Value
 groupByAddress =
     Map.fromListWith (<>) . map pairFromTxOut . Map.elems
 
 -- |
 -- Compute the 'ValueTransfer' corresponding to 'DeltaUTxO'.
 valueTransferFromDeltaUTxO
-    :: UTxO -> DeltaUTxO -> Map.Map Read.Address ValueTransfer
+    :: UTxO -> DeltaUTxO -> Map.Map Read.CompactAddr ValueTransfer
 valueTransferFromDeltaUTxO u0 du = Map.unionWith (<>) ins outs
   where
     u1 :: UTxO
     u1 = UTxO.restrictedBy u0 (excluded du)
-    ins :: Map.Map Read.Address ValueTransfer
+    ins :: Map.Map Read.CompactAddr ValueTransfer
     ins = Map.map fromSpent (groupByAddress u1)
-    outs :: Map.Map Read.Address ValueTransfer
+    outs :: Map.Map Read.CompactAddr ValueTransfer
     outs = Map.map fromReceived (groupByAddress (received du))
 
 -- |
@@ -155,7 +155,9 @@ valueTransferFromDeltaUTxO u0 du = Map.unionWith (<>) ins outs
 -- Caveat: Spent transaction outputs that have not been resolved
 -- will be ignored.
 valueTransferFromResolvedTx
-    :: IsEra era => ResolvedTx era -> Map.Map Read.Address ValueTransfer
+    :: IsEra era
+    => ResolvedTx era
+    -> Map.Map Read.CompactAddr ValueTransfer
 valueTransferFromResolvedTx tx = valueTransferFromDeltaUTxO u0 du
   where
     u0 :: UTxO

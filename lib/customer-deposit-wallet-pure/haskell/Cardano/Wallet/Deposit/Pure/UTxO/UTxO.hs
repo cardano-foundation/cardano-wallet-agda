@@ -1,6 +1,6 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxO where
 
-import Cardano.Wallet.Deposit.Read (Address)
+import Cardano.Wallet.Deposit.Read.Temp (Address)
 import Cardano.Wallet.Read.Tx (TxIn, TxOut, getCompactAddr, getValue)
 import Cardano.Wallet.Read.Value (Value)
 import Data.Set (Set)

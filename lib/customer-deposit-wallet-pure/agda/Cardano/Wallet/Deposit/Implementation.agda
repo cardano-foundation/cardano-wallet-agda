@@ -16,11 +16,13 @@ open import Cardano.Wallet.Deposit.Pure.Experimental using
     ; ValueTransfer
     ; WalletState
     )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
-    ; Slot
-    ; Tx
     ; TxBody
+    )
+open import Cardano.Wallet.Read using
+    ( Slot
+    ; Tx
     ; TxId
     ; TxOut
     ; Value
@@ -31,7 +33,7 @@ open import Cardano.Wallet.Read.Eras using
     )
 
 import Cardano.Wallet.Deposit.Pure.Experimental as Wallet
-import Cardano.Wallet.Deposit.Read as Read
+import Cardano.Wallet.Read as Read
 import Haskell.Data.Map as Map
 
 import Specification
@@ -80,7 +82,7 @@ operations = record
     Properties
 ------------------------------------------------------------------------------}
 -- Helper function
-pairFromTxOut : Read.TxOut → (Read.Address × Read.Value)
+pairFromTxOut : Read.TxOut → (Read.CompactAddr × Read.Value)
 pairFromTxOut =
     λ txout → (Read.getCompactAddr txout , Read.getValue txout)
 

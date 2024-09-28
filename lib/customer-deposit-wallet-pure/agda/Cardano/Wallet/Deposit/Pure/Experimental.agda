@@ -72,16 +72,18 @@ open import Cardano.Wallet.Deposit.Pure.TxSummary public using
 open import Cardano.Wallet.Deposit.Pure.TxSummary using
     ( mkTxSummary
     )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
-    ; Block
+    ; TxBody
+    )
+open import Cardano.Wallet.Read using
+    ( Block
       ; getEraTransactions
     ; ChainPoint
       ; getChainPoint
     ; IsEra
     ; Slot
     ; Tx
-    ; TxBody
     ; TxId
     ; TxIn
     ; TxOut
