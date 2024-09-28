@@ -22,10 +22,12 @@ import Prelude hiding (subtract)
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
     ; TxBody
-    ; TxIn
+    )
+open import Cardano.Wallet.Read using
+    ( TxIn
     ; TxOut
       ; getCompactAddr
       ; getValue

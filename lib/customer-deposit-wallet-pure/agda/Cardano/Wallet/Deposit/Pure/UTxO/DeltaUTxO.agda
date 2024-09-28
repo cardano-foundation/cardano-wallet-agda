@@ -25,7 +25,7 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
       ; _∪_
       ; _⋪_
     )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Read using
     ( TxIn
     )
 open import Haskell.Data.Set using

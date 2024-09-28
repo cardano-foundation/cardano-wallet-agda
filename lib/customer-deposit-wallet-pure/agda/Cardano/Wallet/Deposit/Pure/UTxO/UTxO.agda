@@ -17,9 +17,11 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
 
 open import Haskell.Prelude hiding (null; f)
 
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
-    ; TxIn
+    )
+open import Cardano.Wallet.Read using
+    ( TxIn
     ; TxOut
       ; getCompactAddr
       ; getValue

@@ -9,7 +9,8 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx
     , valueTransferFromResolvedTx
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
-import Cardano.Wallet.Deposit.Read (Address)
+import Cardano.Wallet.Deposit.Read.Temp (Address)
+import qualified Cardano.Wallet.Read.Address (CompactAddr)
 import Cardano.Wallet.Read.Block (SlotNo)
 import Cardano.Wallet.Read.Chain
     ( ChainPoint
@@ -157,7 +158,7 @@ rollForward newTip txs history =
     insertValueTransfer m0 (txid, tx) =
         foldl' (uncurry . fun) m0 (Map.toAscList mv)
       where
-        mv :: Map Address ValueTransfer
+        mv :: Map Cardano.Wallet.Read.Address.CompactAddr ValueTransfer
         mv = valueTransferFromResolvedTx tx
         fun
             :: PairMap.PairMap TxId Address ValueTransfer

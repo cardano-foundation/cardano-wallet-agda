@@ -1,8 +1,20 @@
-module Cardano.Wallet.Deposit.Pure where
+module Cardano.Wallet.Deposit.Pure.Experimental where
 
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub)
-import Cardano.Wallet.Deposit.Read (Address, TxBody, getEraTransactions)
-import Cardano.Wallet.Read.Block (Block)
+import Cardano.Wallet.Deposit.Pure.Address (AddressState, Customer)
+import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
+    ( createAddress
+    , getXPub
+    , isOurs
+    , listCustomers
+    , newChangeAddress
+    )
+import Cardano.Wallet.Deposit.Pure.TxSummary (TxSummary)
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO (applyTx)
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (balance)
+import Cardano.Wallet.Deposit.Read.Temp (Address, TxBody)
+import Cardano.Wallet.Read.Block (Block, getEraTransactions)
 import Cardano.Wallet.Read.Chain (ChainPoint, getChainPoint)
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (Tx, TxOut, mkBasicTxOut)

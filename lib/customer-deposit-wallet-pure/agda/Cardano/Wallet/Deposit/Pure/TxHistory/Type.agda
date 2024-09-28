@@ -4,14 +4,16 @@ module Cardano.Wallet.Deposit.Pure.TxHistory.Type where
 
 open import Haskell.Prelude
 
-open import Cardano.Wallet.Deposit.Read using
-    ( Address
-    ; ChainPoint
-    ; Slot
-    ; TxId
-    )
 open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ( ValueTransfer
+    )
+open import Cardano.Wallet.Deposit.Read.Temp using
+    ( Address
+    )
+open import Cardano.Wallet.Read using
+    ( ChainPoint
+    ; Slot
+    ; TxId
     )
 open import Haskell.Data.Map using
     ( Map

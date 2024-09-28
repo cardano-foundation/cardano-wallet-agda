@@ -3,7 +3,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type where
 
 open import Haskell.Prelude
 
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Read using
     ( Slot
     ; SlotNo
     ; TxIn

@@ -5,7 +5,7 @@ open import Haskell.Prelude
 open import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer using
     ( ValueTransfer
     )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Read using
     ( IsEra
     ; Tx
       ; getTxId
@@ -13,7 +13,7 @@ open import Cardano.Wallet.Deposit.Read using
     ; ChainPoint
     )
 
-import Cardano.Wallet.Deposit.Read as Read
+import Cardano.Wallet.Read as Read
 
 {-----------------------------------------------------------------------------
     TxSummary

@@ -1,7 +1,7 @@
 module Cardano.Wallet.Deposit.Pure.TxHistory.Type where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
-import Cardano.Wallet.Deposit.Read (Address)
+import Cardano.Wallet.Deposit.Read.Temp (Address)
 import Cardano.Wallet.Read.Chain (ChainPoint, Slot)
 import Cardano.Wallet.Read.Tx (TxId)
 import Haskell.Data.Map (Map)

@@ -5,6 +5,7 @@ module Cardano.Wallet.Read.Block where
 
 open import Haskell.Prelude
 open import Cardano.Wallet.Read.Eras using (IsEra)
+open import Cardano.Wallet.Read.Tx using (Tx)
 
 variable
   era : Set
@@ -74,3 +75,4 @@ postulate
 
   getEraBHeader : {{IsEra era}} → Block era → BHeader era
   getEraHeaderHash : {{IsEra era}} → Block era → HeaderHash era
+  getEraTransactions : {{IsEra era}} → Block era → List (Tx era)

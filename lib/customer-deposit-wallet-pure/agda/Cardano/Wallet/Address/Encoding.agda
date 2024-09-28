@@ -18,7 +18,7 @@ open import Cardano.Wallet.Address.Hash using
   ( blake2b'224
   ; prop-blake2b'224-injective
   )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Read using
   ( CompactAddr
     ; fromShortByteString
     ; prop-fromShortByteString-partially-injective

@@ -44,7 +44,7 @@ open import Cardano.Wallet.Address.Encoding using
     ( mkEnterpriseAddress
     ; prop-mkEnterpriseAddress-injective
     )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
     )
 open import Cardano.Write.Tx.Balance using

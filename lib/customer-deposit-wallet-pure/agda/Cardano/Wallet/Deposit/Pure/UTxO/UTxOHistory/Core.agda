@@ -40,7 +40,7 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type using
     ( UTxOHistory
     )
-open import Cardano.Wallet.Deposit.Read using
+open import Cardano.Wallet.Read using
     ( Slot
     ; SlotNo
     ; TxIn
