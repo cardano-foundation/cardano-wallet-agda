@@ -2,7 +2,7 @@
 
 -- Experimental wallet implementation
 -- with proofs for the specification.
-module Cardano.Wallet.Deposit.Pure
+module Cardano.Wallet.Deposit.Pure.Experimental
     {-
     ; ValueTransfer
       ; TxSummary

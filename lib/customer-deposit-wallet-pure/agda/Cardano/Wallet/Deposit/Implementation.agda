@@ -11,7 +11,7 @@ module Cardano.Wallet.Deposit.Implementation where
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
-open import Cardano.Wallet.Deposit.Pure using
+open import Cardano.Wallet.Deposit.Pure.Experimental using
     ( TxSummary
     ; ValueTransfer
     ; WalletState
@@ -30,7 +30,7 @@ open import Cardano.Wallet.Read.Eras using
       ; iIsEraConway
     )
 
-import Cardano.Wallet.Deposit.Pure as Wallet
+import Cardano.Wallet.Deposit.Pure.Experimental as Wallet
 import Cardano.Wallet.Deposit.Read as Read
 import Haskell.Data.Map as Map
 
