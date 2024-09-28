@@ -80,25 +80,35 @@ applyTx
     -> UTxO
     -> (DeltaUTxO, UTxO)
 applyTx isOurs tx u0 =
-    if UTxO.null (UTxO.filterByAddress isOurs (utxoFromTxOutputs tx))
-        && Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.null
-            (fst (spendTxD tx u0))
+    if isUnchangedUTxO
         then (Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.empty, u0)
-        else
-            ( Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.append
-                ( fst
-                    ( Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.receiveD
-                        (snd (spendTxD tx u0))
-                        (UTxO.filterByAddress isOurs (utxoFromTxOutputs tx))
-                    )
-                )
-                (fst (spendTxD tx u0))
-            , snd
-                ( Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.receiveD
-                    (snd (spendTxD tx u0))
-                    (UTxO.filterByAddress isOurs (utxoFromTxOutputs tx))
-                )
-            )
+        else (du, u)
+  where
+    d1 :: (DeltaUTxO, UTxO)
+    d1 = spendTxD tx u0
+    du10 :: DeltaUTxO
+    du10 = fst d1
+    u1 :: UTxO
+    u1 = snd d1
+    receivedUTxO :: UTxO
+    receivedUTxO = UTxO.filterByAddress isOurs (utxoFromTxOutputs tx)
+    d2 :: (DeltaUTxO, UTxO)
+    d2 =
+        Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.receiveD
+            u1
+            receivedUTxO
+    du21 :: DeltaUTxO
+    du21 = fst d2
+    u2 :: UTxO
+    u2 = snd d2
+    du :: DeltaUTxO
+    du = Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.append du21 du10
+    u :: UTxO
+    u = u2
+    isUnchangedUTxO :: Bool
+    isUnchangedUTxO =
+        UTxO.null receivedUTxO
+            && Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO.null du10
 
 -- |
 -- A transaction whose inputs have been partially resolved.
