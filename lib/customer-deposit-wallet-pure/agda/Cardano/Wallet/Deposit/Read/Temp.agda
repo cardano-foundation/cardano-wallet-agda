@@ -16,16 +16,23 @@ open import Cardano.Wallet.Read public using
     Address
 ------------------------------------------------------------------------------}
 
-Addr = CompactAddr
-Address = Addr
+-- | Default type for addresses on the Cardano ledger.
+--
+-- Consider using 'CompactAddr' or 'Addr' directly if you want more control
+-- over space and time usage.
+--
+-- NOTE: To be moved into "Cardano.Wallet.Read"
+Address = CompactAddr
 
-{-# COMPILE AGDA2HS Addr #-}
 {-# COMPILE AGDA2HS Address #-}
 
 {-----------------------------------------------------------------------------
     Transactions
 ------------------------------------------------------------------------------}
 
+-- | Transaction body
+--
+-- NOTE: To be absorbed by "Cardano.Wallet.Write"
 record TxBody : Set where
   constructor TxBodyC
   field
