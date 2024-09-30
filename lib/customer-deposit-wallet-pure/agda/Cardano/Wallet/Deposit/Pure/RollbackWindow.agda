@@ -63,7 +63,7 @@ substWithEq f refl = refl
 -- representing the latest state of the data.
 -- The 'finality' is the lower end of the interval,
 -- until which rollbacks are supported.
-record RollbackWindow (time : Set) {{_ : Ord time}} : Set where
+record RollbackWindow (time : Set) {{@0 _ : Ord time}} : Set where
   constructor RollbackWindowC
   field
     finality : time

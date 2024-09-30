@@ -45,7 +45,7 @@ insertManyKeys keys v m0 =
 -- | A 'Timeline' is a set of items that are associated with a timestamp.
 -- Each item is unique.
 -- Multiple items can have the same timestamp associated with it.
-record Timeline (time a : Set) {{_ : Ord time}} {{_ : Ord a}} : Set where
+record Timeline (time a : Set) {{@0 _ : Ord time}} {{@0 _ : Ord a}} : Set where
   field
     events : Map a time
     eventsByTime : InverseMap.InverseMap a time

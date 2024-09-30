@@ -26,7 +26,7 @@ import Haskell.Data.Set as Set
 variable
   key v : Set
 
-InverseMap : ∀ (key v : Set) → {{_ : Ord key}} → {{_ : Ord v}} → Set
+InverseMap : ∀ (key v : Set) → {{@0 _ : Ord key}} → {{@0 _ : Ord v}} → Set
 InverseMap key v = Map v (ℙ key)
 
 {-# COMPILE AGDA2HS InverseMap #-}
