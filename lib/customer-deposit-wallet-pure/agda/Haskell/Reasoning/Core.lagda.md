@@ -43,8 +43,7 @@ When describing properties **about** Haskell programs, using the logical connect
 
 ### Propositional logic: Logical connectives
 
-The logical connectives exported by `Haskell.Reasoning` are taken from the Agda standard library for compatiblity.
-However, we use a notation that is more familiar from classical logic.
+The logical connectives exported by `Haskell.Reasoning` are compatible with the definitions from the Agda standard library, but in order to keep the dependency footprint small, we define them anew. In addition, we use a notation that is more familiar from classical logic.
 
 The standard logical connectives are:
 
@@ -69,9 +68,10 @@ together with the observation that a contradiction allows us to conclude anythin
 
 In order to construct proofs of logical propositions, you have to pattern match on the constructors.
 
-We import and rename from the Agda standard library as much as possible:
+We duplicate the definitions from the Agda standard library here:
 
 ```agda
+{-
 open import Data.Sum public using () renaming
   ( _⊎_ to _⋁_
   ; inj₁ to inl
@@ -83,6 +83,31 @@ open import Data.Product public using () renaming
   ; proj₂ to projr
   ; _,_ to _`and`_
   )
+-}
+open import Agda.Primitive using
+  ( Level
+  ; _⊔_
+  )
+
+infixr 1 _⋁_
+
+private
+  variable ℓ₁ ℓ₂ : Level
+
+data _⋁_ (A : Set ℓ₁) (B : Set ℓ₂) : Set (ℓ₁ ⊔ ℓ₂) where
+  inl : A → A ⋁ B
+  inr : B → A ⋁ B
+
+infixr 4 _`and`_
+infixr 2 _⋀_
+
+record _⋀_ (A : Set ℓ₁) (B : Set ℓ₂) : Set (ℓ₁ ⊔ ℓ₂) where
+  constructor _`and`_
+  field
+    projl : A
+    projr : B
+
+open _⋀_ public
 
 open import Haskell.Prim public using (⊥; magic)
 
@@ -95,11 +120,20 @@ Existential quantifications comes with a pattern synonym `witness`
 that can be used extract a witness of the property.
 
 ```agda
-open import Data.Product public
-  using (∃; ∃-syntax)
+-- open import Data.Product public using (∃; ∃-syntax)
 
-pattern _`witness`_ x y = Data.Product._,_ x y
 infixr 4 _`witness`_
+
+record ∃ {A : Set ℓ₁} (B : A → Set ℓ₂) : Set (ℓ₁ ⊔ ℓ₂) where
+  constructor _`witness`_
+  field
+    projx : A
+    projB : B projx
+
+∃-syntax : ∀ {A : Set ℓ₁} → (A → Set ℓ₂) → Set (ℓ₁ ⊔ ℓ₂)
+∃-syntax = ∃
+
+syntax ∃-syntax (λ x → B) = ∃[ x ] B
 ```
 
     _`witness`_
@@ -202,7 +236,10 @@ Agda allows us to formalize proofs by equational reasoning. The notation is as f
 For example, the proof by equational reasoning above is formalized in Agda as follows:
 
 ```agda
-open import Haskell.Prelude
+open import Haskell.Law public
+open import Haskell.Law.Equality public
+open import Haskell.Prelude using
+    (List; _++_; _∷_; []; _≡_)
 
 prop
   : ∀ {a : Set} (xs ys zs : List a)
@@ -276,7 +313,7 @@ In Agda, we can distinguish three notions of equality:
 ```agda
 -- general helper, remove when updating adga2hs dependency
 subst : ∀ {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
-subst P refl z = z
+subst P _≡_.refl z = z
 ```
 
 * **Extensional equality** — The above definitions are useful for inductive data types, which typically have a unique normal form, but they don't quite work for functions. Two functions `f` and `g` are considered **extensionally** equal if they give equal results when applied to the same function argument `x`, that is when the proposition
@@ -295,10 +332,17 @@ For the purpose of **reasoning about functions**, it is desirable to adapt exten
 and we now postulate it:
 
 ```agda
+{-
 open import Axiom.Extensionality.Propositional public
   using (Extensionality)
+-}
 
-postulate ext : ∀ {a b} → Extensionality a b
+Extensionality : (ℓ₁ ℓ₂ : Level) → Set _
+Extensionality ℓ₁ ℓ₂ =
+  {A : Set ℓ₁} {B : A → Set ℓ₂} {f g : (x : A) → B x} →
+  (∀ x → f x ≡ g x) → f ≡ g
+
+postulate ext : ∀ {ℓ₁ ℓ₂} → Extensionality ℓ₁ ℓ₂
 ```
 
 This axiom is consistent with Agda: There are models of type theory in which this axiom holds true. However, the negation of this axiom is also consistent: there are also models of type theory in which is axiom does not hold. In other words, this axiom is independent — but generally considered to be highly desirable.
