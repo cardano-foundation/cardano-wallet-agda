@@ -39,8 +39,11 @@ instance
   iEqWord31 : Eq Word31
   iEqWord31 ._==_ (Word31C x) (Word31C y) = eqWord x y
 
+  iOrdFromLessThanWord31 : OrdFromLessThan Word31
+  iOrdFromLessThanWord31 .OrdFromLessThan._<_ (Word31C x) (Word31C y) = ltWord x y
+
   iOrdWord31 : Ord Word31
-  iOrdWord31 = ordFromLessThan (λ {(Word31C x) (Word31C y) → ltWord x y})
+  iOrdWord31 = record {OrdFromLessThan iOrdFromLessThanWord31}
 
   iBoundedBelowWord31 : BoundedBelow Word31
   iBoundedBelowWord31 .minBound = 0

@@ -26,8 +26,12 @@ instance
   iEqBlockNo : Eq BlockNo
   iEqBlockNo ._==_ x y = unBlockNo x == unBlockNo y
 
+  iOrdFromCompareBlockNo : OrdFromCompare BlockNo
+  iOrdFromCompareBlockNo .OrdFromCompare.compare =
+    λ x y → compare (unBlockNo x) (unBlockNo y)
+
   iOrdBlockNo : Ord BlockNo
-  iOrdBlockNo = ordFromCompare (λ x y → compare (unBlockNo x) (unBlockNo y))
+  iOrdBlockNo = record {OrdFromCompare iOrdFromCompareBlockNo}
 
 {-----------------------------------------------------------------------------
     SlotNo
@@ -43,8 +47,12 @@ instance
   iEqSlotNo : Eq SlotNo
   iEqSlotNo ._==_ x y = unSlotNo x == unSlotNo y
 
+  iOrdFromCompareSlotNo : OrdFromCompare SlotNo
+  iOrdFromCompareSlotNo .OrdFromCompare.compare =
+    λ x y → compare (unSlotNo x) (unSlotNo y)
+
   iOrdSlotNo : Ord SlotNo
-  iOrdSlotNo = ordFromCompare (λ x y → compare (unSlotNo x) (unSlotNo y))
+  iOrdSlotNo = record {OrdFromCompare iOrdFromCompareSlotNo}
 
 postulate instance
   iIsLawfulOrdSlotNo : IsLawfulOrd SlotNo

@@ -59,8 +59,11 @@ instance
   iEqWord8 : Eq Word8
   iEqWord8 ._==_ (Word8C x) (Word8C y) = eqWord x y
 
+  iOrdFromLessThanWord8 : OrdFromLessThan Word8
+  iOrdFromLessThanWord8 .OrdFromLessThan._<_ (Word8C x) (Word8C y) = ltWord x y
+
   iOrdWord8 : Ord Word8
-  iOrdWord8 = ordFromLessThan (λ {(Word8C x) (Word8C y) → ltWord x y})
+  iOrdWord8 = record {OrdFromLessThan iOrdFromLessThanWord8}
 
   iBoundedBelowWord8 : BoundedBelow Word8
   iBoundedBelowWord8 .minBound = 0
@@ -110,8 +113,11 @@ instance
   iEqWord16 : Eq Word16
   iEqWord16 ._==_ (Word16C x) (Word16C y) = eqWord x y
 
+  iOrdFromLessThanWord16 : OrdFromLessThan Word16
+  iOrdFromLessThanWord16 .OrdFromLessThan._<_ (Word16C x) (Word16C y) = ltWord x y
+
   iOrdWord16 : Ord Word16
-  iOrdWord16 = ordFromLessThan (λ {(Word16C x) (Word16C y) → ltWord x y})
+  iOrdWord16 = record {OrdFromLessThan iOrdFromLessThanWord16}
 
   iBoundedBelowWord16 : BoundedBelow Word16
   iBoundedBelowWord16 .minBound = 0
