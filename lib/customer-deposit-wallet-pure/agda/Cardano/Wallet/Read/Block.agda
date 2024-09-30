@@ -3,7 +3,9 @@
 -- Synchronized manually with the corresponding Haskell module.
 module Cardano.Wallet.Read.Block where
 
+open import Haskell.Reasoning
 open import Haskell.Prelude
+
 open import Cardano.Wallet.Read.Eras using (IsEra)
 open import Cardano.Wallet.Read.Tx using (Tx)
 

@@ -15,6 +15,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     -}
     where
 
+open import Haskell.Reasoning
 open import Haskell.Prelude hiding (null; f)
 
 open import Cardano.Wallet.Deposit.Read.Temp using

@@ -7,6 +7,8 @@ module Haskell.Data.ByteString
     where
 
 open import Haskell.Prelude hiding (lookup; null; map)
+open import Haskell.Reasoning
+
 open import Haskell.Data.Word using
     ( Word8
     )
