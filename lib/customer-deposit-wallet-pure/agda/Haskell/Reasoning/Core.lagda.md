@@ -310,12 +310,6 @@ In Agda, we can distinguish three notions of equality:
 
         subst : ∀ {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
 
-```agda
--- general helper, remove when updating adga2hs dependency
-subst : ∀ {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
-subst P _≡_.refl z = z
-```
-
 * **Extensional equality** — The above definitions are useful for inductive data types, which typically have a unique normal form, but they don't quite work for functions. Two functions `f` and `g` are considered **extensionally** equal if they give equal results when applied to the same function argument `x`, that is when the proposition
 
         ∀ x → f x ≡ g x
