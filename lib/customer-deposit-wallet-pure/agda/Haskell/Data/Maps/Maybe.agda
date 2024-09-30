@@ -7,6 +7,7 @@ module Haskell.Data.Maps.Maybe
     This is used to make proofs for 'Data.Map' more transparent.
     -} where
 
+open import Haskell.Reasoning
 open import Haskell.Prelude hiding (null; map; filter)
 
 open import Haskell.Data.Maybe using

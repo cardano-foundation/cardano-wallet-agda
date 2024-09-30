@@ -13,11 +13,11 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     -}
     where
 
+open import Haskell.Reasoning
 open import Haskell.Prelude hiding
     ( null
     ; concat
     )
-open import Haskell.Reasoning
 
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO

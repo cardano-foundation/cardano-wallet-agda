@@ -117,9 +117,6 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Haskell.Data.Map as Map
 
--- The import of the cong! tactic slows down type checking…
-open import Tactic.Cong using (cong!)
-
 {-----------------------------------------------------------------------------
     Type definition
 ------------------------------------------------------------------------------}

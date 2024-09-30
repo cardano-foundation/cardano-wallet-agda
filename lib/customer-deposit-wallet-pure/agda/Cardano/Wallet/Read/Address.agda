@@ -10,6 +10,7 @@ module Cardano.Wallet.Read.Address
     -}
     where
 
+open import Haskell.Reasoning
 open import Haskell.Prelude
 
 open import Haskell.Data.ByteString.Short using
