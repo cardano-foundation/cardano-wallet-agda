@@ -2,7 +2,7 @@
 
 module Haskell.Data.Maps.Timeline where
 
-open import Haskell.Prelude
+open import Haskell.Prelude hiding (fromMaybe)
 
 open import Haskell.Data.List using
     ( foldl'

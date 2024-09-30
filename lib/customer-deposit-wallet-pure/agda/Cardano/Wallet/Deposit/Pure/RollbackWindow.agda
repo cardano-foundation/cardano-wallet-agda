@@ -8,8 +8,7 @@ open import Haskell.Prelude hiding
 open import Haskell.Reasoning
 
 open import Haskell.Data.Maybe using
-    ( fromMaybe
-    ; prop-Just-injective
+    ( prop-Just-injective
     )
 open import Haskell.Data.Set using
     ( ℙ

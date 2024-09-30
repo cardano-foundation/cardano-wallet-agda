@@ -2,17 +2,17 @@
 -- with efficient lookups for single keys.
 module Haskell.Data.Maps.PairMap where
 
-open import Haskell.Prelude
+open import Haskell.Prelude hiding (fromMaybe)
 open import Haskell.Reasoning
 
 open import Haskell.Data.List using
     ( foldl'
     )
-open import Haskell.Data.Maybe using
-    ( fromMaybe
-    )
 open import Haskell.Data.Map using
     ( Map
+    )
+open import Haskell.Data.Maybe using
+    ( fromMaybe
     )
 open import Haskell.Data.Set using
     ( ℙ

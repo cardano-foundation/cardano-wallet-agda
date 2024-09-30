@@ -2,7 +2,9 @@
 
 module Haskell.Data.Maybe where
 
-open import Haskell.Prelude
+open import Haskell.Prelude hiding
+    ( fromMaybe
+    )
 
 isNothing : ∀ {a : Set} → Maybe a → Bool
 isNothing (Just _) = False
