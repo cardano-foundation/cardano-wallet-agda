@@ -241,9 +241,6 @@ isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
 {-# COMPILE AGDA2HS isChangeAddress #-}
 {-# COMPILE AGDA2HS isOurs #-}
 
-suc-injective : ∀ {x y : Nat} → suc x ≡ suc y → x ≡ y
-suc-injective refl = refl
-
 --
 @0 lemma-change-not-known
   : ∀ (s : AddressState)

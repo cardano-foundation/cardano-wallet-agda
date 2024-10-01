@@ -2,17 +2,17 @@
 -- with efficient lookups for single keys.
 module Haskell.Data.Maps.PairMap where
 
-open import Haskell.Prelude
+open import Haskell.Prelude hiding (fromMaybe)
 open import Haskell.Reasoning
 
 open import Haskell.Data.List using
     ( foldl'
     )
-open import Haskell.Data.Maybe using
-    ( fromMaybe
-    )
 open import Haskell.Data.Map using
     ( Map
+    )
+open import Haskell.Data.Maybe using
+    ( fromMaybe
     )
 open import Haskell.Data.Set using
     ( ℙ
@@ -400,7 +400,7 @@ this type stores rows of the form `a × b × v`
 and maintains an index on both the first column `a` and the second column `b`.
 
 -}
-record PairMap (a b v : Set) {{orda : Ord a}} {{ordb : Ord b}} : Set where
+record PairMap (a b v : Set) {{@0 orda : Ord a}} {{@0 ordb : Ord b}} : Set where
   field
     mab : Map a (Map b v)
     mba : Map b (Map a v)

@@ -7,7 +7,7 @@ module Cardano.Wallet.Address.Encoding
     -}
     where
 
-open import Haskell.Prelude
+open import Haskell.Prelude hiding (fromJust)
 
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
   ( XPub

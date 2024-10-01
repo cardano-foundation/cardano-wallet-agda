@@ -76,7 +76,7 @@ prune
     -> RollbackWindow time
     -> Maybe (RollbackWindow time)
 prune newFinality w =
-    if member newFinality w
+    if finality w <= newFinality && newFinality <= tip w
         then Just (RollbackWindowC newFinality (tip w))
         else Nothing
 

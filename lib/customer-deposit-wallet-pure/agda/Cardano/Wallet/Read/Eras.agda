@@ -8,21 +8,47 @@ open import Haskell.Prelude
 {-----------------------------------------------------------------------------
     Eras
 ------------------------------------------------------------------------------}
-Byron = ⊤
-Shelley = ⊤
-Allegra = ⊤
-Mary = ⊤
-Alonzo = ⊤
-Babbage = ⊤
-Conway = ⊤
+data Byron   : Set where ByronEraC   : Byron
+data Shelley : Set where ShelleyEraC : Shelley
+data Allegra : Set where AllegraEraC : Allegra
+data Mary    : Set where MaryEraC    : Mary
+data Alonzo  : Set where AlonzoEraC  : Alonzo
+data Babbage : Set where BabbageEraC : Babbage
+data Conway  : Set where ConwayEraC  : Conway
 
-postulate
-  IsEra : Set → Set
-  instance
-    iIsEraByron : IsEra Byron
-    iIsEraShelley : IsEra Byron
-    iIsEraAllegra : IsEra Byron
-    iIsEraMary : IsEra Byron
-    iIsEraAlonzo : IsEra Byron
-    iIsEraBabbage : IsEra Byron
-    iIsEraConway : IsEra Byron
+data Era : Set → Set where
+    ByronC   : Era Byron
+    ShelleyC : Era Shelley
+    AllegraC : Era Allegra
+    MaryC    : Era Mary
+    AlonzoC  : Era Alonzo
+    BabbageC : Era Babbage
+    ConwayC  : Era Conway
+
+record IsEra (era : Set) : Set where
+  field
+    theEra : Era era
+
+{-# COMPILE AGDA2HS IsEra existing-class #-}
+
+instance
+  iIsEraByron : IsEra Byron
+  iIsEraByron = record { theEra = ByronC }
+
+  iIsEraShelley : IsEra Shelley
+  iIsEraShelley = record { theEra = ShelleyC }
+
+  iIsEraAllegra : IsEra Allegra
+  iIsEraAllegra = record { theEra = AllegraC }
+
+  iIsEraMary : IsEra Mary
+  iIsEraMary = record { theEra = MaryC }
+
+  iIsEraAlonzo : IsEra Alonzo
+  iIsEraAlonzo = record { theEra = AlonzoC }
+
+  iIsEraBabbage : IsEra Babbage
+  iIsEraBabbage = record { theEra = BabbageC }
+
+  iIsEraConway : IsEra Conway
+  iIsEraConway = record { theEra = ConwayC }

@@ -26,7 +26,7 @@ AntitonicPred {a} p =
 ------------------------------------------------------------------------------}
 
 postulate
-  Map : ∀ (k : Set) {{iOrd : Ord k}} → Set → Set
+  Map : ∀ (k : Set) → Set → Set
 
 module _ {k a : Set} {{_ : Ord k}} where
   postulate

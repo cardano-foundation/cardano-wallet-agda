@@ -32,12 +32,15 @@ instance
   iEqWithOrigin ._==_ (At x) (At y) = x == y
   iEqWithOrigin ._==_ _      _      = False
 
+  iOrdFromCompareWithOrigin : {{Ord a}} → OrdFromCompare (WithOrigin a)
+  iOrdFromCompareWithOrigin .OrdFromCompare.compare = λ where
+      Origin Origin → EQ
+      Origin (At _) → LT
+      (At _) Origin → GT
+      (At x) (At y) → compare x y
+
   iOrdWithOrigin : {{Ord a}} → Ord (WithOrigin a)
-  iOrdWithOrigin = ordFromCompare λ where
-    Origin Origin → EQ
-    Origin (At _) → LT
-    (At _) Origin → GT
-    (At x) (At y) → compare x y
+  iOrdWithOrigin = record {OrdFromCompare iOrdFromCompareWithOrigin}
 
 postulate instance
   iIsLawfulOrdWithOrigin

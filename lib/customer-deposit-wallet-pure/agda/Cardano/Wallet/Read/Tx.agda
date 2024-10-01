@@ -51,9 +51,12 @@ instance
   iEqTxIx : Eq TxIx
   iEqTxIx ._==_ x y = word16FromTxIx x == word16FromTxIx y
 
+  iOrdFromCompareTxIx : OrdFromCompare TxIx
+  iOrdFromCompareTxIx .OrdFromCompare.compare =
+    λ x y → compare (word16FromTxIx x) (word16FromTxIx y)
+
   iOrdTxIx : Ord TxIx
-  iOrdTxIx =
-    ordFromCompare (λ x y → compare (word16FromTxIx x) (word16FromTxIx y))
+  iOrdTxIx = record {OrdFromCompare iOrdFromCompareTxIx}
 
 {-----------------------------------------------------------------------------
     TxIn

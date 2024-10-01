@@ -2,7 +2,7 @@
 
 module Cardano.Wallet.Address.BIP32_Ed25519 where
 
-open import Haskell.Prelude
+open import Haskell.Prelude hiding (fromJust)
 open import Haskell.Reasoning
 
 open import Haskell.Data.ByteString using

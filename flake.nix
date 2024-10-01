@@ -16,7 +16,8 @@
 
     flake-utils.url = "github:hamishmack/flake-utils/hkm/nested-hydraJobs";
 
-    agda-tools.url = "github:HeinrichApfelmus/agda-notes?dir=nix/agda-hs-tools";
+    agda2hs.url = "github:agda/agda2hs?ref=770f209c3e1aa94ba9d34c1488379e83190d589d";
+#    agda-tools.url = "github:HeinrichApfelmus/agda-notes?dir=nix/agda-hs-tools";
   };
 
   outputs = inputs:
@@ -39,6 +40,10 @@
           inherit system;
           inherit (inputs.haskellNix) config;
         };
+
+        agda2hs = inputs.agda2hs.lib.${system}.withPackages([
+          inputs.agda2hs.packages.${system}.agda2hs-lib
+        ]);
 
         indexState = "2024-08-20T21:35:22Z";
 
@@ -72,18 +77,16 @@
           shell.buildInputs = [
             nixpkgs.just
             nixpkgs.gitAndTools.git
-            nixpkgs.haskellPackages.ghcid
-            nixpkgs.haskellPackages.hlint
             nixpkgs.haskellPackages.fourmolu
             nixpkgs.haskellPackages.ghcid
+            nixpkgs.haskellPackages.hlint
             nixpkgs.haskellPackages.stylish-haskell
 
-            inputs.agda-tools.packages.${system}.agda
-            inputs.agda-tools.packages.${system}.agda2hs
+            agda2hs
           ];
 
           shell.shellHook = ''
-            export AGDA_DIR=${inputs.agda-tools.packages.${system}.agda-dir.outPath}
+            export AGDA_DIR=${agda2hs.outPath}
           '';
         }).flake (
           # we also want cross compilation to windows.
