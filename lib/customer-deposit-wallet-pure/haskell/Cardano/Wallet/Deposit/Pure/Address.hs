@@ -8,6 +8,7 @@ import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft)
 import Cardano.Wallet.Address.Encoding (mkEnterpriseAddress)
 import Cardano.Wallet.Deposit.Read.Temp (Address)
 import qualified Cardano.Wallet.Read.Address (CompactAddr)
+import Cardano.Wallet.Read.Chain (NetworkId)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word.Odd (Word31)
 import qualified Haskell.Data.Map as Map (Map, empty, insert, lookup, toAscList)
@@ -73,7 +74,8 @@ deriveCustomerAddress xpub c =
 -- NOTE: The fields are mean to be read-only,
 -- they are exported for technical reasons.
 data AddressState = AddressStateC
-    { stateXPub :: XPub
+    { networkId :: NetworkId
+    , stateXPub :: XPub
     , addresses :: Map.Map Address Customer
     , change :: Address
     }
@@ -152,7 +154,12 @@ createAddress c s0 = (addr, s1)
         :: Map.Map Cardano.Wallet.Read.Address.CompactAddr Word31
     addresses1 = Map.insert addr c (addresses s0)
     s1 :: AddressState
-    s1 = AddressStateC (stateXPub s0) addresses1 (change s0)
+    s1 =
+        AddressStateC
+            (networkId s0)
+            (stateXPub s0)
+            addresses1
+            (change s0)
 
 -- |
 -- Public key of the wallet.
@@ -160,23 +167,24 @@ getXPub :: AddressState -> XPub
 getXPub = \r -> stateXPub r
 
 -- |
--- Create an empty 'AddressState' from a public key.
-emptyFromXPub :: XPub -> AddressState
-emptyFromXPub xpub =
+-- Create an empty 'AddressState' for a given 'NetworkId' from a public key.
+emptyFromXPub :: NetworkId -> XPub -> AddressState
+emptyFromXPub net xpub =
     AddressStateC
+        net
         xpub
         Map.empty
         (deriveAddress xpub DerivationChange)
 
 -- |
--- Create an 'AddressState' from a public key and
+-- Create an 'AddressState' for a given 'NetworkId' from a public key and
 -- a count of known customers.
-fromXPubAndCount :: XPub -> Word31 -> AddressState
-fromXPubAndCount xpub knownCustomerCount =
+fromXPubAndCount :: NetworkId -> XPub -> Word31 -> AddressState
+fromXPubAndCount net xpub knownCustomerCount =
     foldl (\s c -> snd (createAddress c s)) s0 customers
   where
     s0 :: AddressState
-    s0 = emptyFromXPub xpub
+    s0 = emptyFromXPub net xpub
     customers :: [Word31]
     customers = [0 .. knownCustomerCount]
 

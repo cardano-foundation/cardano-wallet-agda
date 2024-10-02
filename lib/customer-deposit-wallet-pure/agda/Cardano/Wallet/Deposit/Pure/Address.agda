@@ -47,6 +47,9 @@ open import Cardano.Wallet.Address.Encoding using
 open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
     )
+open import Cardano.Wallet.Read using
+    ( NetworkId
+    )
 open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
     ; isChange
@@ -197,6 +200,7 @@ lemma-derive-notCustomer xpub c eq = bang (lemma-derive-injective {xpub} eq)
 record AddressState : Set where
   constructor AddressStateC
   field
+    networkId : NetworkId
     stateXPub : XPub
     addresses : Map.Map Address Customer
 --    customers : Map.Map Customer Address
@@ -496,7 +500,8 @@ createAddress c s0 = ( addr , s1 )
 
     s1 : AddressState
     s1 = record
-      { stateXPub = stateXPub s0
+      { networkId = networkId s0
+      ; stateXPub = stateXPub s0
       ; addresses = addresses1
       ; change = change s0
       ; invariant-change = invariant-change s0
@@ -563,11 +568,12 @@ getXPub = stateXPub
 
 {-# COMPILE AGDA2HS getXPub #-}
 
--- | Create an empty 'AddressState' from a public key.
-emptyFromXPub : XPub → AddressState
-emptyFromXPub xpub =
+-- | Create an empty 'AddressState' for a given 'NetworkId' from a public key.
+emptyFromXPub : NetworkId → XPub → AddressState
+emptyFromXPub net xpub =
   record
-    { stateXPub = xpub
+    { networkId = net
+    ; stateXPub = xpub
     ; addresses = Map.empty
     ; change = deriveAddress xpub DerivationChange
     ; invariant-change = refl
@@ -577,13 +583,13 @@ emptyFromXPub xpub =
 
 {-# COMPILE AGDA2HS emptyFromXPub #-}
 
--- | Create an 'AddressState' from a public key and
+-- | Create an 'AddressState' for a given 'NetworkId' from a public key and
 -- a count of known customers.
-fromXPubAndCount : XPub → Word31 → AddressState
-fromXPubAndCount xpub knownCustomerCount =
+fromXPubAndCount : NetworkId → XPub → Word31 → AddressState
+fromXPubAndCount net xpub knownCustomerCount =
     foldl (λ s c → snd (createAddress c s)) s0 customers
   where
-    s0 = emptyFromXPub xpub
+    s0 = emptyFromXPub net xpub
     customers = enumFromTo 0 knownCustomerCount
 
 {-# COMPILE AGDA2HS fromXPubAndCount #-}
