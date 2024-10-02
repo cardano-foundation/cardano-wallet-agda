@@ -5,7 +5,13 @@ import Cardano.Wallet.Address.BIP32
     , DerivationType (Hardened, Soft)
     )
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft)
-import Cardano.Wallet.Address.Encoding (mkEnterpriseAddress)
+import Cardano.Wallet.Address.Encoding
+    ( EnterpriseAddr (EnterpriseAddrC)
+    , NetworkTag
+    , compactAddrFromEnterpriseAddr
+    , credentialFromXPub
+    , fromNetworkId
+    )
 import Cardano.Wallet.Deposit.Read.Temp (Address)
 import qualified Cardano.Wallet.Read.Address (CompactAddr)
 import Cardano.Wallet.Read.Chain (NetworkId)
@@ -57,15 +63,18 @@ xpubFromDerivationPath xpub (DerivationCustomer c) =
 -- Derive an address from the wallet public key.
 --
 -- (Internal, exported for technical reasons.)
-deriveAddress :: XPub -> DerivationPath -> Address
-deriveAddress xpub =
-    mkEnterpriseAddress . xpubFromDerivationPath xpub
+deriveAddress :: NetworkTag -> XPub -> DerivationPath -> Address
+deriveAddress net xpub =
+    compactAddrFromEnterpriseAddr
+        . EnterpriseAddrC net
+        . credentialFromXPub
+        . xpubFromDerivationPath xpub
 
 -- |
 -- Derive an address for a customer from the wallet public key.
-deriveCustomerAddress :: XPub -> Customer -> Address
-deriveCustomerAddress xpub c =
-    deriveAddress xpub (DerivationCustomer c)
+deriveCustomerAddress :: NetworkTag -> XPub -> Customer -> Address
+deriveCustomerAddress net xpub c =
+    deriveAddress net xpub (DerivationCustomer c)
 
 -- |
 -- Data type that keeps track of addresses
@@ -79,6 +88,11 @@ data AddressState = AddressStateC
     , addresses :: Map.Map Address Customer
     , change :: Address
     }
+
+-- |
+-- Network for which this 'AddressState' tracks addresses.
+getNetworkTag :: AddressState -> NetworkTag
+getNetworkTag s = fromNetworkId (networkId s)
 
 -- |
 -- Test whether an 'Address' belongs to known 'Customer'.
@@ -148,8 +162,10 @@ createAddress c s0 = (addr, s1)
   where
     xpub :: XPub
     xpub = stateXPub s0
+    net :: NetworkTag
+    net = getNetworkTag s0
     addr :: Address
-    addr = deriveCustomerAddress xpub c
+    addr = deriveCustomerAddress net xpub c
     addresses1
         :: Map.Map Cardano.Wallet.Read.Address.CompactAddr Word31
     addresses1 = Map.insert addr c (addresses s0)
@@ -174,7 +190,7 @@ emptyFromXPub net xpub =
         net
         xpub
         Map.empty
-        (deriveAddress xpub DerivationChange)
+        (deriveAddress (fromNetworkId net) xpub DerivationChange)
 
 -- |
 -- Create an 'AddressState' for a given 'NetworkId' from a public key and

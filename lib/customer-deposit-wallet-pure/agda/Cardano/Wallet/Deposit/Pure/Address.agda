@@ -41,8 +41,15 @@ open import Cardano.Wallet.Address.BIP32_Ed25519 using
     ; prop-rawSerialiseXPub-injective
     )
 open import Cardano.Wallet.Address.Encoding using
-    ( mkEnterpriseAddress
-    ; prop-mkEnterpriseAddress-injective
+    ( Credential
+      ; credentialFromXPub
+      ; prop-credentialFromXPub-injective
+    ; NetworkTag
+      ; fromNetworkId
+    ; EnterpriseAddr
+      ; EnterpriseAddrC
+      ; compactAddrFromEnterpriseAddr
+      ; prop-compactAddrFromEnterpriseAddr-injective
     )
 open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
@@ -142,14 +149,19 @@ xpubFromDerivationPath xpub (DerivationCustomer c) =
 -- | Derive an address from the wallet public key.
 --
 -- (Internal, exported for technical reasons.)
-deriveAddress : XPub → DerivationPath → Address
-deriveAddress xpub = mkEnterpriseAddress ∘ xpubFromDerivationPath xpub
+deriveAddress : NetworkTag → XPub → DerivationPath → Address
+deriveAddress net xpub =
+  compactAddrFromEnterpriseAddr
+  ∘ EnterpriseAddrC net
+  ∘ credentialFromXPub
+  ∘ xpubFromDerivationPath xpub
 
 {-# COMPILE AGDA2HS deriveAddress #-}
 
 -- | Derive an address for a customer from the wallet public key.
-deriveCustomerAddress : XPub → Customer → Address
-deriveCustomerAddress xpub c = deriveAddress xpub (DerivationCustomer c)
+deriveCustomerAddress : NetworkTag → XPub → Customer → Address
+deriveCustomerAddress net xpub c =
+  deriveAddress net xpub (DerivationCustomer c)
 
 {-# COMPILE AGDA2HS deriveCustomerAddress #-}
 
@@ -170,20 +182,30 @@ lemma-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationChange}
 
 --
 @0 lemma-derive-injective
-  : ∀ {xpub : XPub} {x y : DerivationPath}
-  → deriveAddress xpub x ≡ deriveAddress xpub y
+  : ∀ {net : NetworkTag} {xpub : XPub} {x y : DerivationPath}
+  → deriveAddress net xpub x ≡ deriveAddress net xpub y
   → x ≡ y
 --
-lemma-derive-injective =
+lemma-derive-injective {net} =
   lemma-xpubFromDerivationPath-injective
-  ∘ prop-mkEnterpriseAddress-injective _ _
+  ∘ prop-credentialFromXPub-injective _ _
+  ∘ lem-EnterpriseAddrC-injective _ _
+  ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
+  where
+    lem-EnterpriseAddrC-injective
+      : ∀ (x1 y1 : Credential)
+      → EnterpriseAddrC net x1 ≡ EnterpriseAddrC net y1
+      → x1 ≡ y1
+    lem-EnterpriseAddrC-injective _ _ refl = refl
 
 --
 @0 lemma-derive-notCustomer
-  : ∀ (xpub : XPub) (c : Customer)
-  → ¬(deriveAddress xpub DerivationChange ≡ deriveCustomerAddress xpub c)
+  : ∀ {net : NetworkTag} (xpub : XPub) (c : Customer)
+  → ¬(deriveAddress net xpub DerivationChange
+    ≡ deriveCustomerAddress net xpub c)
 --
-lemma-derive-notCustomer xpub c eq = bang (lemma-derive-injective {xpub} eq)
+lemma-derive-notCustomer {net} xpub c eq =
+    bang (lemma-derive-injective {net} {xpub} eq)
   where
     bang : DerivationChange ≡ DerivationCustomer c → ⊥
     bang ()
@@ -210,22 +232,30 @@ record AddressState : Set where
   @0 isCustomerAddress₁ : Address → Bool
   isCustomerAddress₁ = λ addr → isJust $ Map.lookup addr addresses
 
+  @0 networkTag : NetworkTag
+  networkTag = fromNetworkId networkId
+
   field
     @0 invariant-change
-      : change ≡ deriveAddress stateXPub DerivationChange
+      : change ≡ deriveAddress networkTag stateXPub DerivationChange
 
     @0 invariant-customer
       : ∀ (addr : Address)
       → isCustomerAddress₁ addr ≡ True
-      → ∃ (λ ix → addr ≡ deriveCustomerAddress stateXPub ix)
+      → ∃ (λ ix → addr ≡ deriveCustomerAddress networkTag stateXPub ix)
 
 open AddressState public
+
+-- | Network for which this 'AddressState' tracks addresses.
+getNetworkTag : AddressState → NetworkTag
+getNetworkTag s = fromNetworkId (networkId s)
 
 -- | Test whether an 'Address' belongs to known 'Customer'.
 isCustomerAddress : AddressState → Address → Bool
 isCustomerAddress s = λ addr → isJust $ Map.lookup addr (addresses s)
 
 {-# COMPILE AGDA2HS AddressState #-}
+{-# COMPILE AGDA2HS getNetworkTag #-}
 {-# COMPILE AGDA2HS isCustomerAddress #-}
 
 {-----------------------------------------------------------------------------
@@ -255,8 +285,11 @@ lemma-change-not-known s =
     { (Just _) {{eq}} →
         let (ix `witness` eq) =
               invariant-customer s (change s) (cong isJust eq)
+            net = getNetworkTag s
 
-            lem1 : deriveAddress xpub DerivationChange ≡ deriveCustomerAddress xpub ix
+            lem1
+              : deriveAddress net xpub DerivationChange
+                ≡ deriveCustomerAddress net xpub ix
             lem1 = trans (sym (invariant-change s)) eq
         in  magic (lemma-derive-notCustomer xpub ix lem1)
     ; Nothing {{eq}} → eq
@@ -467,14 +500,15 @@ createAddress : Customer → AddressState → (Address × AddressState)
 createAddress c s0 = ( addr , s1 )
   where
     xpub = stateXPub s0
-    addr = deriveCustomerAddress xpub c
+    net = getNetworkTag s0
+    addr = deriveCustomerAddress net xpub c
 
     addresses1 = Map.insert addr c (addresses s0)
 
     @0 lem2
       : ∀ (addr2 : Address)
       → isJust (Map.lookup addr2 addresses1) ≡ True
-      → ∃ (λ ix → addr2 ≡ deriveCustomerAddress xpub ix)
+      → ∃ (λ ix → addr2 ≡ deriveCustomerAddress net xpub ix)
     lem2 addr2 isMember = case addr2 == addr of λ
         { True {{eq}} → c `witness` equality addr2 addr eq
         ; False {{eq}} →
@@ -515,7 +549,7 @@ prop-create-derive
   : ∀ (c : Customer)
       (s0 : AddressState)
   → let (address , _) = createAddress c s0
-    in  deriveCustomerAddress (stateXPub s0) c ≡ address
+    in  deriveCustomerAddress (getNetworkTag s0) (stateXPub s0) c ≡ address
 --
 prop-create-derive = λ c s0 → refl
 
@@ -575,7 +609,7 @@ emptyFromXPub net xpub =
     { networkId = net
     ; stateXPub = xpub
     ; addresses = Map.empty
-    ; change = deriveAddress xpub DerivationChange
+    ; change = deriveAddress (fromNetworkId net) xpub DerivationChange
     ; invariant-change = refl
     ; invariant-customer = λ addr eq →
       case trans (sym eq) (cong isJust (Map.prop-lookup-empty addr)) of λ ()
