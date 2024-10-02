@@ -81,10 +81,12 @@ postulate
     Injectivity
 ------------------------------------------------------------------------------}
 
+--
 prop-pack-injective
   : ∀ (x y : List Word8)
   → pack x ≡ pack y
   → x ≡ y
+--
 prop-pack-injective x y eq =
   begin
     x
@@ -96,10 +98,12 @@ prop-pack-injective x y eq =
     y
   ∎
 
+--
 prop-unpack-injective
   : ∀ (x y : ShortByteString)
   → unpack x ≡ unpack y
   → x ≡ y
+--
 prop-unpack-injective x y eq =
   begin
     x
@@ -111,18 +115,22 @@ prop-unpack-injective x y eq =
     y
   ∎
 
+--
 prop-fromShort-injective
   : ∀ (x y : ShortByteString)
   → fromShort x ≡ fromShort y
   → x ≡ y
+--
 prop-fromShort-injective x y =
   prop-unpack-injective _ _
   ∘ BS.prop-pack-injective _ _
 
+--
 prop-toShort-injective
   : ∀ (x y : BS.ByteString)
   → toShort x ≡ toShort y
   → x ≡ y
+--
 prop-toShort-injective x y =
   BS.prop-unpack-injective _ _
   ∘ prop-pack-injective _ _
@@ -132,9 +140,11 @@ prop-toShort-injective x y =
     Semigroup morphisms
 ------------------------------------------------------------------------------}
 
+--
 prop-pack-morphism
   : ∀ (x y : List Word8)
   → pack x <> pack y ≡ pack (x ++ y)
+--
 prop-pack-morphism x y =
   begin
     pack x <> pack y
@@ -146,9 +156,11 @@ prop-pack-morphism x y =
     pack (x ++ y)
   ∎
 
+--
 prop-unpack-morphism
   : ∀ (x y : ShortByteString)
   → unpack (x <> y) ≡ unpack x ++ unpack y
+--
 prop-unpack-morphism x y =
   begin
     unpack (x <> y)
@@ -158,11 +170,48 @@ prop-unpack-morphism x y =
     unpack x ++ unpack y
   ∎
 
+--
 prop-<>-cancel-left
   : ∀ (x y z : ShortByteString)
   → x <> y ≡ x <> z
   → y ≡ z
+--
 prop-<>-cancel-left x y z =
   prop-unpack-injective _ _
   ∘ ++-cancel-left (unpack x) (unpack y)
   ∘ prop-pack-injective _ _
+
+--
+prop-singleton-<>-injective
+  : ∀ (x y : Word8) (xs ys : ShortByteString)
+  → singleton x <> xs ≡ singleton y <> ys
+  → x ≡ y ⋀ xs ≡ ys
+--
+prop-singleton-<>-injective x y xs ys eq =
+    ∷-injective-left lem2
+      `and` prop-unpack-injective _ _ (∷-injective-right lem2)
+  where
+    lem1
+      : ∀ (z : Word8) (zs : ShortByteString)
+      → z ∷ unpack zs ≡ unpack (singleton z <> zs)
+    lem1 z zs =
+      begin
+        z ∷ unpack zs
+      ≡⟨⟩
+        (z ∷ []) ++ unpack zs
+      ≡⟨ cong (λ o → o ++ unpack zs) (sym (prop-unpack-∘-pack (z ∷ []))) ⟩
+        unpack (pack (z ∷ [])) ++ unpack zs
+      ≡⟨ sym (prop-unpack-morphism (pack (z ∷ [])) zs) ⟩
+        unpack (singleton z <> zs)
+      ∎
+
+    lem2 =
+      begin
+        x ∷ unpack xs
+      ≡⟨ lem1 x xs ⟩
+        unpack (singleton x <> xs)
+      ≡⟨ cong unpack eq ⟩
+        unpack (singleton y <> ys)
+      ≡⟨ sym (lem1 y ys) ⟩
+        y ∷ unpack ys
+      ∎

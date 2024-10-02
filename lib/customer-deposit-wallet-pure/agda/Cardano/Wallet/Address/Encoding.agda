@@ -2,6 +2,7 @@
 
 module Cardano.Wallet.Address.Encoding where
 
+open import Haskell.Reasoning
 open import Haskell.Prelude hiding (fromJust)
 
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
@@ -26,7 +27,7 @@ open import Haskell.Data.ByteString.Short using
     ; singleton
     ; toShort
     ; prop-toShort-injective
-    ; prop-<>-cancel-left
+    ; prop-singleton-<>-injective
   )
 open import Haskell.Data.Maybe using
   ( fromJust
@@ -113,6 +114,15 @@ toEnterpriseTag MainnetTag = 0b01100001
 
 {-# COMPILE AGDA2HS toEnterpriseTag #-}
 
+--
+prop-toEnterpriseTag-injective
+  : ∀ (x y : NetworkTag)
+  → toEnterpriseTag x ≡ toEnterpriseTag y
+  → x ≡ y
+--
+prop-toEnterpriseTag-injective TestnetTag TestnetTag refl = refl
+prop-toEnterpriseTag-injective MainnetTag MainnetTag refl = refl
+
 -- | Canonical binary format of an 'EnterpriseAddr'.
 --
 -- The binary format of addresses is described in
@@ -153,11 +163,19 @@ prop-credentialFromXPub-injective x y =
   ∘ prop-KeyHashObj-injective _ _
 
 --
-postulate
- prop-bytesFromEnterpriseAddr-injective
+prop-bytesFromEnterpriseAddr-injective
   : ∀ (x y : EnterpriseAddr)
   → bytesFromEnterpriseAddr x ≡ bytesFromEnterpriseAddr y
   → x ≡ y
+--
+prop-bytesFromEnterpriseAddr-injective
+  (EnterpriseAddrC netx (KeyHashObj hashx))
+  (EnterpriseAddrC nety (KeyHashObj hashy)) eq =
+    cong₂ EnterpriseAddrC eqNet (cong KeyHashObj (projr eqPair))
+  where
+    eqPair =
+      prop-singleton-<>-injective (toEnterpriseTag netx) _ hashx hashy eq
+    eqNet = prop-toEnterpriseTag-injective _ _ (projl eqPair)
 
 --
 @0 prop-compactAddrFromEnterpriseAddr-injective
