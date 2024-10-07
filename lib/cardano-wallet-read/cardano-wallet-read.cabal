@@ -101,6 +101,8 @@ library
     Cardano.Wallet.Read.Tx.Gen.TxParameters
     Cardano.Wallet.Read.Value
   other-modules:
+    Cardano.Wallet.Read.Chain.Genesis
+    Cardano.Wallet.Read.Chain.Point
     Cardano.Wallet.Read.Eras.EraValue
     Cardano.Wallet.Read.Tx.CollateralInputs
     Cardano.Wallet.Read.Tx.Inputs
@@ -109,7 +111,6 @@ library
     Cardano.Wallet.Read.Tx.TxId
     Cardano.Wallet.Read.Tx.TxIn
     Cardano.Wallet.Read.Tx.TxOut
-
 
   build-depends:
     , base
@@ -145,6 +146,7 @@ library
     , ouroboros-network-api
     , QuickCheck
     , text
+    , time
     , transformers
 
   hs-source-dirs:   haskell
