@@ -31,13 +31,21 @@ module Cardano.Wallet.Read.Chain
     , readGenesisData
     , genesisHashMainnet
     , mockGenesisDataMainnet
+
+    -- ** NetworkId
+    , NetworkId (Mainnet, Testnet)
+    , NetworkMagic (..)
+    , getNetworkId
     ) where
 
 import Cardano.Wallet.Read.Chain.Genesis
     ( GenesisData
     , GenesisDataError
     , GenesisHash
+    , NetworkId (..)
+    , NetworkMagic (..)
     , genesisHashMainnet
+    , getNetworkId
     , mockGenesisDataMainnet
     , readGenesisData
     )

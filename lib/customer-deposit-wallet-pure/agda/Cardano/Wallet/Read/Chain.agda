@@ -122,3 +122,13 @@ postulate
 
   genesisHashMainnet : GenesisHash
   mockGenesisDataMainnet : GenesisData
+
+postulate
+  NetworkMagic : Set
+
+data NetworkId : Set where
+  Mainnet : NetworkId
+  Testnet : NetworkMagic → NetworkId
+
+postulate
+  getNetworkId : GenesisData → NetworkId

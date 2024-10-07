@@ -19,6 +19,11 @@ module Cardano.Wallet.Read.Chain.Genesis
     , readGenesisData
     , genesisHashMainnet
     , mockGenesisDataMainnet
+
+    -- * NetworkId
+    , NetworkId (Mainnet, Testnet)
+    , NetworkMagic (..)
+    , getNetworkId
     ) where
 
 import Prelude
@@ -26,11 +31,20 @@ import Prelude
 import Cardano.Crypto.Hashing
     ( decodeAbstractHash
     )
+import Cardano.Crypto.ProtocolMagic
+    ( ProtocolMagicId (..)
+    )
 import Control.Monad.Trans.Except
     ( runExceptT
     )
 import Data.Time.Clock
     ( UTCTime (..)
+    )
+import Data.Word
+    ( Word32
+    )
+import GHC.Generics
+    ( Generic
     )
 
 import qualified Cardano.Chain.Common as Byron
@@ -114,3 +128,31 @@ mkLovelacePortionFromGenesisJSON :: Rational -> Byron.LovelacePortion
 mkLovelacePortionFromGenesisJSON n =
     Byron.rationalToLovelacePortion (n / 10^(15 :: Integer))
 
+{-----------------------------------------------------------------------------
+    Network ID
+------------------------------------------------------------------------------}
+-- | Identification of a Cardano blockchain network.
+--
+-- * 'Mainnet' refers to the Cardano mainnet.
+-- * 'Testnet' refers to a testing network. These networks are distinguished
+--   by 'NetworkMagic'.
+data NetworkId
+    = Mainnet
+    | Testnet NetworkMagic
+    deriving (Eq, Ord, Generic, Show)
+
+-- | Magic number that identifiers a Cardano testing network.
+--
+-- (Mainnet has a magic number, too, but please use 'NetworkId'
+-- for distinguishing mainnet from testnets.)
+newtype NetworkMagic = NetworkMagic {unNetworkMagic :: Word32}
+    deriving (Eq, Ord, Enum, Generic, Show)
+
+-- | Get the 'NetworkId' for the given 'GenesisData'.
+getNetworkId :: GenesisData -> NetworkId
+getNetworkId genesisData =
+    if magic == Byron.mainnetProtocolMagicId
+    then Mainnet
+    else Testnet (NetworkMagic magicword)
+  where
+    magic@(ProtocolMagicId magicword) = Byron.gdProtocolMagicId genesisData
