@@ -1,6 +1,12 @@
 {-# OPTIONS --erasure #-}
 
--- Synchronized manually with the corresponding Haskell module.
+{- Synchronized manually with the corresponding Haskell module.
+
+Unfortunately, mirroring the hidden child modules is not supported
+— we have to define here all the identifiers that are exported by
+Cardano.Wallet.Read.Chain *here*.
+
+-}
 module Cardano.Wallet.Read.Chain where
 
 open import Haskell.Reasoning
@@ -19,6 +25,9 @@ open import Cardano.Wallet.Read.Block using
 
 import Cardano.Wallet.Read.Block as Block
 
+{-----------------------------------------------------------------------------
+    Cardano.Wallet.Read.Chain.Point
+------------------------------------------------------------------------------}
 {-----------------------------------------------------------------------------
     Slot
 ------------------------------------------------------------------------------}

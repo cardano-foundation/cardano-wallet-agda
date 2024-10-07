@@ -101,6 +101,7 @@ library
     Cardano.Wallet.Read.Tx.Gen.TxParameters
     Cardano.Wallet.Read.Value
   other-modules:
+    Cardano.Wallet.Read.Chain.Point
     Cardano.Wallet.Read.Eras.EraValue
     Cardano.Wallet.Read.Tx.CollateralInputs
     Cardano.Wallet.Read.Tx.Inputs
