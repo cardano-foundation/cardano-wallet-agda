@@ -111,3 +111,14 @@ getChainPoint block =
     BlockPoint
         (Block.getEraSlotNo (Block.getEraBHeader block))
         (Block.getRawHeaderHash (Block.getEraHeaderHash block))
+
+{-----------------------------------------------------------------------------
+    Cardano.Wallet.Read.Chain.Genesis
+------------------------------------------------------------------------------}
+postulate
+  GenesisData : Set
+  GenesisHash : Set
+  GenesisDataError : Set
+
+  genesisHashMainnet : GenesisHash
+  mockGenesisDataMainnet : GenesisData

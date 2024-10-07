@@ -22,8 +22,25 @@ module Cardano.Wallet.Read.Chain
     , ChainTip (..)
     , getChainTip
     , prettyChainTip
+
+    -- * Genesis
+    -- ** Genesis Data
+    , GenesisData
+    , GenesisHash
+    , GenesisDataError
+    , readGenesisData
+    , genesisHashMainnet
+    , mockGenesisDataMainnet
     ) where
 
+import Cardano.Wallet.Read.Chain.Genesis
+    ( GenesisData
+    , GenesisDataError
+    , GenesisHash
+    , genesisHashMainnet
+    , mockGenesisDataMainnet
+    , readGenesisData
+    )
 import Cardano.Wallet.Read.Chain.Point
     ( ChainPoint (..)
     , ChainTip (..)
