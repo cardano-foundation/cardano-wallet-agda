@@ -10,10 +10,14 @@ module Language.Agda2hs.Agda.Types
     , DocString
     , DocItem (..)
     , TypeSignature
+    , filterProperties
     ) where
 
 import Prelude
 
+import Data.List
+    ( isPrefixOf
+    )
 import Data.Map
     ( Map
     )
@@ -41,3 +45,13 @@ data DocItem = DocItem
     -- ^ Type signature of the thing to be documented (multiline).
     }
 
+{-----------------------------------------------------------------------------
+    Operations
+------------------------------------------------------------------------------}
+-- | Keep those documentation items that are logical properties.
+filterProperties :: AgdaDocumentation -> AgdaDocumentation
+filterProperties = Map.filterWithKey isProperty
+
+-- My naming convention for logical properties.
+isProperty :: AgdaIdentifier -> DocItem -> Bool
+isProperty name _ = "prop-" `isPrefixOf` name

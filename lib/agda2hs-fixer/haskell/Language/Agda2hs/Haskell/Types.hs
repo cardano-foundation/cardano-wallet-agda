@@ -12,6 +12,7 @@ module Language.Agda2hs.Haskell.Types
     , LineNo
     , prependHaddockLines
     , appendHaddockNamedChunks
+    , appendHaddockSection
     , HaskellIdentifier
     , fromAgdaIdentifier
     ) where
@@ -60,6 +61,28 @@ prependHaddockLines haddocks m = m
     { comments =
         Map.unionWith (<>) (Map.map unlines haddocks) (comments m)
     }
+
+-- | Append a Haddock section title.
+appendHaddockSection
+    :: String
+    -> HaskellModule
+    -> HaskellModule
+appendHaddockSection title m =
+    m { contents = contents m <> ["-- * " <> title]}
+
+-- | Append named chunks of Haddock documentation.
+appendHaddockNamedChunks
+    :: Map String [Line]
+    -> HaskellModule
+    -> HaskellModule
+appendHaddockNamedChunks chunks m = m
+    { contents =
+        contents m
+            <> mconcat (map renderNamedChunk $ Map.toList chunks)
+    }
+  where
+    renderNamedChunk (name, chunk) =
+        ["{- $" <> name] <> chunk <> ["-}"]
 
 -- | Pretty print a Haskell module
 prettyHaskellModule :: HaskellModule -> String

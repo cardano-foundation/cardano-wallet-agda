@@ -22,12 +22,16 @@ import Language.Agda2hs.Agda.Parser
 import Language.Agda2hs.Agda.Types
     ( AgdaDocumentation
     , DocItem (..)
+    , filterProperties
     )
 import Language.Agda2hs.Haskell.Parser
     ( parseFileHaskellModule
     )
 import Language.Agda2hs.Haskell.Types
     ( HaskellModule
+    , Line
+    , appendHaddockNamedChunks
+    , appendHaddockSection
     , prependHaddockLines
     , prettyHaskellModule
     )
@@ -82,4 +86,26 @@ modifyFileAddingDocumentation agdaPath haskellPath = do
 patchAgdaDocumentation
     :: AgdaDocumentation -> HaskellModule -> HaskellModule
 patchAgdaDocumentation agdaDoc =
-    prependHaddockLines (Map.map (lines . docString) agdaDoc)
+    appendHaddockNamedChunks (Map.map renderAgdaProperty agdaProperties)
+    . (if Map.null agdaProperties then id else appendHaddockSection "Properties")
+    . prependHaddockLines (Map.map (lines . docString) agdaDoc)
+  where
+    agdaProperties = filterProperties agdaDoc
+
+renderAgdaProperty :: DocItem -> [Line]
+renderAgdaProperty doc =
+    [prettyAnchor, newline, "[" <> identifier doc <> "]:"]
+    <> indent 4 (dropNewLinesAtEnd prettyDoc <> [newline] <> prettyType)
+  where
+    prettyAnchor = "#" <> identifier doc <> "#"
+    prettyDoc = lines (docString doc)
+    prettyType = ["@"] <> lines (typeSignature doc) <> ["@"]
+ 
+dropNewLinesAtEnd :: [Line] -> [Line]
+dropNewLinesAtEnd = reverse . dropWhile (== newline) . reverse
+
+newline :: Line
+newline = ""
+
+indent :: Int -> [Line] -> [Line]
+indent n = map (replicate n ' ' <>)
