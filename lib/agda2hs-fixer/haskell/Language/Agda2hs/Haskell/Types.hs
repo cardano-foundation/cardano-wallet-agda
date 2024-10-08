@@ -11,6 +11,7 @@ module Language.Agda2hs.Haskell.Types
     , Line
     , LineNo
     , prependHaddockLines
+    , appendHaddockNamedChunks
     , HaskellIdentifier
     , fromAgdaIdentifier
     ) where
@@ -55,8 +56,8 @@ prependHaddockLines
     :: Map HaskellIdentifier [String]
     -> HaskellModule
     -> HaskellModule
-prependHaddockLines haddocks m =
-    m { comments =
+prependHaddockLines haddocks m = m
+    { comments =
         Map.unionWith (<>) (Map.map unlines haddocks) (comments m)
     }
 
