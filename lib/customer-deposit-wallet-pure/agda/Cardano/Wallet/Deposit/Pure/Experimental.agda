@@ -49,6 +49,9 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
     ( XPub
     )
+open import Cardano.Wallet.Address.Encoding using
+    ( NetworkTag
+    )
 open import Cardano.Wallet.Deposit.Pure.Address public using
     ( deriveCustomerAddress
     )
@@ -82,6 +85,7 @@ open import Cardano.Wallet.Read using
     ; ChainPoint
       ; getChainPoint
     ; IsEra
+    ; NetworkId
     ; Slot
     ; Tx
     ; TxId
@@ -139,7 +143,11 @@ open WalletState public
 getXPub : WalletState → XPub
 getXPub = Addr.getXPub ∘ addresses
 
+getNetworkTag : WalletState → NetworkTag
+getNetworkTag s = Addr.getNetworkTag (addresses s)
+
 {-# COMPILE AGDA2HS getXPub #-}
+{-# COMPILE AGDA2HS getNetworkTag #-}
 
 {-----------------------------------------------------------------------------
     Mapping between Customers and Address
@@ -203,7 +211,7 @@ prop-create-derive
   : ∀ (c : Customer)
       (s0 : WalletState)
   → let (address , _) = createAddress c s0
-    in  deriveCustomerAddress (getXPub s0) c ≡ address
+    in  deriveCustomerAddress (getNetworkTag s0) (getXPub s0) c ≡ address
 --
 prop-create-derive c s0 = Addr.prop-create-derive c (addresses s0)
  

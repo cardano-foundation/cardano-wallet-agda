@@ -67,10 +67,12 @@ postulate
   instance
     iLawfulEqByteString : IsLawfulEq ByteString
 
+--
 prop-pack-injective
   : ∀ (x y : List Word8)
   → pack x ≡ pack y
   → x ≡ y
+--
 prop-pack-injective x y eq =
   begin
     x
@@ -82,10 +84,12 @@ prop-pack-injective x y eq =
     y
   ∎
 
+--
 prop-unpack-injective
   : ∀ (x y : ByteString)
   → unpack x ≡ unpack y
   → x ≡ y
+--
 prop-unpack-injective x y eq =
   begin
     x
@@ -97,9 +101,11 @@ prop-unpack-injective x y eq =
     y
   ∎
 
+--
 prop-pack-morphism
   : ∀ (x y : List Word8)
   → pack x <> pack y ≡ pack (x ++ y)
+--
 prop-pack-morphism x y =
   begin
     pack x <> pack y
@@ -111,9 +117,11 @@ prop-pack-morphism x y =
     pack (x ++ y)
   ∎
 
+--
 prop-unpack-morphism
   : ∀ (x y : ByteString)
   → unpack (x <> y) ≡ unpack x ++ unpack y
+--
 prop-unpack-morphism x y =
   begin
     unpack (x <> y)
@@ -123,10 +131,12 @@ prop-unpack-morphism x y =
     unpack x ++ unpack y
   ∎
 
+--
 prop-<>-cancel-left
   : ∀ (x y z : ByteString)
   → x <> y ≡ x <> z
   → y ≡ z
+--
 prop-<>-cancel-left x y z =
   prop-unpack-injective _ _
   ∘ ++-cancel-left (unpack x) (unpack y)

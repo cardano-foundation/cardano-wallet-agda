@@ -89,7 +89,8 @@ pairFromTxOut =
 @0 properties : DepositWallet.Properties operations
 properties = record
     { prop-create-known = Wallet.prop-create-known
-    ; deriveAddress = Wallet.deriveCustomerAddress ∘ Wallet.getXPub
+    ; deriveAddress = λ s →
+        Wallet.deriveCustomerAddress (Wallet.getNetworkTag s) (Wallet.getXPub s)
     ; prop-create-derive = Wallet.prop-create-derive
 
     ; summarize = {!  !}

@@ -5,9 +5,16 @@ import Cardano.Wallet.Address.BIP32
     , DerivationType (Hardened, Soft)
     )
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, deriveXPubSoft)
-import Cardano.Wallet.Address.Encoding (mkEnterpriseAddress)
+import Cardano.Wallet.Address.Encoding
+    ( EnterpriseAddr (EnterpriseAddrC)
+    , NetworkTag
+    , compactAddrFromEnterpriseAddr
+    , credentialFromXPub
+    , fromNetworkId
+    )
 import Cardano.Wallet.Deposit.Read.Temp (Address)
 import qualified Cardano.Wallet.Read.Address (CompactAddr)
+import Cardano.Wallet.Read.Chain (NetworkId)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word.Odd (Word31)
 import qualified Haskell.Data.Map as Map (Map, empty, insert, lookup, toAscList)
@@ -56,15 +63,18 @@ xpubFromDerivationPath xpub (DerivationCustomer c) =
 -- Derive an address from the wallet public key.
 --
 -- (Internal, exported for technical reasons.)
-deriveAddress :: XPub -> DerivationPath -> Address
-deriveAddress xpub =
-    mkEnterpriseAddress . xpubFromDerivationPath xpub
+deriveAddress :: NetworkTag -> XPub -> DerivationPath -> Address
+deriveAddress net xpub =
+    compactAddrFromEnterpriseAddr
+        . EnterpriseAddrC net
+        . credentialFromXPub
+        . xpubFromDerivationPath xpub
 
 -- |
 -- Derive an address for a customer from the wallet public key.
-deriveCustomerAddress :: XPub -> Customer -> Address
-deriveCustomerAddress xpub c =
-    deriveAddress xpub (DerivationCustomer c)
+deriveCustomerAddress :: NetworkTag -> XPub -> Customer -> Address
+deriveCustomerAddress net xpub c =
+    deriveAddress net xpub (DerivationCustomer c)
 
 -- |
 -- Data type that keeps track of addresses
@@ -73,10 +83,16 @@ deriveCustomerAddress xpub c =
 -- NOTE: The fields are mean to be read-only,
 -- they are exported for technical reasons.
 data AddressState = AddressStateC
-    { stateXPub :: XPub
+    { networkId :: NetworkId
+    , stateXPub :: XPub
     , addresses :: Map.Map Address Customer
     , change :: Address
     }
+
+-- |
+-- Network for which this 'AddressState' tracks addresses.
+getNetworkTag :: AddressState -> NetworkTag
+getNetworkTag s = fromNetworkId (networkId s)
 
 -- |
 -- Test whether an 'Address' belongs to known 'Customer'.
@@ -146,13 +162,20 @@ createAddress c s0 = (addr, s1)
   where
     xpub :: XPub
     xpub = stateXPub s0
+    net :: NetworkTag
+    net = getNetworkTag s0
     addr :: Address
-    addr = deriveCustomerAddress xpub c
+    addr = deriveCustomerAddress net xpub c
     addresses1
         :: Map.Map Cardano.Wallet.Read.Address.CompactAddr Word31
     addresses1 = Map.insert addr c (addresses s0)
     s1 :: AddressState
-    s1 = AddressStateC (stateXPub s0) addresses1 (change s0)
+    s1 =
+        AddressStateC
+            (networkId s0)
+            (stateXPub s0)
+            addresses1
+            (change s0)
 
 -- |
 -- Public key of the wallet.
@@ -160,23 +183,24 @@ getXPub :: AddressState -> XPub
 getXPub = \r -> stateXPub r
 
 -- |
--- Create an empty 'AddressState' from a public key.
-emptyFromXPub :: XPub -> AddressState
-emptyFromXPub xpub =
+-- Create an empty 'AddressState' for a given 'NetworkId' from a public key.
+emptyFromXPub :: NetworkId -> XPub -> AddressState
+emptyFromXPub net xpub =
     AddressStateC
+        net
         xpub
         Map.empty
-        (deriveAddress xpub DerivationChange)
+        (deriveAddress (fromNetworkId net) xpub DerivationChange)
 
 -- |
--- Create an 'AddressState' from a public key and
+-- Create an 'AddressState' for a given 'NetworkId' from a public key and
 -- a count of known customers.
-fromXPubAndCount :: XPub -> Word31 -> AddressState
-fromXPubAndCount xpub knownCustomerCount =
+fromXPubAndCount :: NetworkId -> XPub -> Word31 -> AddressState
+fromXPubAndCount net xpub knownCustomerCount =
     foldl (\s c -> snd (createAddress c s)) s0 customers
   where
     s0 :: AddressState
-    s0 = emptyFromXPub xpub
+    s0 = emptyFromXPub net xpub
     customers :: [Word31]
     customers = [0 .. knownCustomerCount]
 

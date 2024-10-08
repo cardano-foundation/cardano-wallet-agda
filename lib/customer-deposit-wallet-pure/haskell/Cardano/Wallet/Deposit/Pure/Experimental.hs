@@ -1,9 +1,11 @@
 module Cardano.Wallet.Deposit.Pure.Experimental where
 
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub)
+import Cardano.Wallet.Address.Encoding (NetworkTag)
 import Cardano.Wallet.Deposit.Pure.Address (AddressState, Customer)
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
     ( createAddress
+    , getNetworkTag
     , getXPub
     , isOurs
     , listCustomers
@@ -50,6 +52,9 @@ data WalletState = WalletState
 
 getXPub :: WalletState -> XPub
 getXPub = Addr.getXPub . \r -> addresses r
+
+getNetworkTag :: WalletState -> NetworkTag
+getNetworkTag s = Addr.getNetworkTag (addresses s)
 
 listCustomers :: WalletState -> [(Customer, Address)]
 listCustomers = Addr.listCustomers . \r -> addresses r
