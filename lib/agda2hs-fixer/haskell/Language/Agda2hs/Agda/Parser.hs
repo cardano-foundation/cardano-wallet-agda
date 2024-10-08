@@ -11,13 +11,18 @@ module Language.Agda2hs.Agda.Parser
 
 import Prelude
 
+import Data.List
+    ( isPrefixOf
+    )
 import Data.Void
     ( Void
     )
 import Language.Agda2hs.Agda.Types
     ( AgdaIdentifier
     , AgdaDocumentation
+    , DocItem (..)
     , DocString
+    , TypeSignature
     )
 import Text.Megaparsec
     ( MonadParsec (notFollowedBy, takeWhileP, try)
@@ -62,7 +67,7 @@ haddocks = mkHaddocks <$> sections
     mkHaddocks xs = Map.fromList $ do
         (doc, ys) <- xs
         Just ident <- [getIdentifier ys]
-        [(ident, doc)]
+        [(ident, DocItem ident doc (getTypeSignature ys))]
 
 sections :: Parser [(DocString, [Line])]
 sections =
@@ -72,12 +77,18 @@ section :: Parser (DocString, [Line])
 section = (,) <$> documentationPre <*> many codeLine
 
 -- | Get an 'AgdaIdentifier' from a list of code lines.
+-- Not very robust — parses an Agda name part from the first line.
 getIdentifier :: [Line] -> Maybe AgdaIdentifier
 getIdentifier [] = Nothing
 getIdentifier (x:_) =
     case parse agdaDeclarationIdentifier "" x of
         Left _ -> Nothing
         Right a -> Just a
+
+-- | Get a type signature from a list of code lines.
+-- Not very robust — takes all lines until the first single-line comment.
+getTypeSignature :: [Line] -> TypeSignature
+getTypeSignature = unlines . takeWhile (not . ("--" `isPrefixOf`))
 
 {-----------------------------------------------------------------------------
     Lexer
@@ -129,8 +140,8 @@ agdaDeclarationIdentifier :: Parser String
 agdaDeclarationIdentifier =
     option () (() <$ keyword) *> agdaNamePart
   where
-    keyword =
-        L.lexeme C.space1 (C.string "data" <|> C.string "record")
+    keyword = L.lexeme C.space1 (foldr1 (<|>) $ map C.string keywords)
+    keywords = ["data", "record", "@0"]
 
 agdaNamePart :: Parser String
 agdaNamePart =

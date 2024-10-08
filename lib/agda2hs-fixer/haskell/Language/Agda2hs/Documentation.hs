@@ -19,11 +19,20 @@ import Control.Exception
 import Language.Agda2hs.Agda.Parser
     ( parseFileAgdaDocumentation
     )
+import Language.Agda2hs.Agda.Types
+    ( AgdaDocumentation
+    , DocItem (..)
+    , filterProperties
+    )
 import Language.Agda2hs.Haskell.Parser
     ( parseFileHaskellModule
     )
 import Language.Agda2hs.Haskell.Types
-    ( prependHaddockLines
+    ( HaskellModule
+    , Line
+    , appendHaddockNamedChunks
+    , appendHaddockSection
+    , prependHaddockLines
     , prettyHaskellModule
     )
 import System.IO
@@ -68,7 +77,35 @@ modifyFileAddingDocumentation agdaPath haskellPath = do
             maybe (throw $ ErrParseErrorHaskell haskellPath) pure
                 $ parseFileHaskellModule haskellPath haskellCode
 
-        let haskell1 = prependHaddockLines (Map.map lines agdaDoc) haskell0
+        let haskell1 = patchAgdaDocumentation agdaDoc haskell0
 
 --        putStrLn $ prettyHaskellModule haskell1
         writeFile haskellPath $ prettyHaskellModule haskell1
+
+-- | Add documentation from the .agda module to a generated .hs module.
+patchAgdaDocumentation
+    :: AgdaDocumentation -> HaskellModule -> HaskellModule
+patchAgdaDocumentation agdaDoc =
+    appendHaddockNamedChunks (Map.map renderAgdaProperty agdaProperties)
+    . (if Map.null agdaProperties then id else appendHaddockSection "Properties")
+    . prependHaddockLines (Map.map (lines . docString) agdaDoc)
+  where
+    agdaProperties = filterProperties agdaDoc
+
+renderAgdaProperty :: DocItem -> [Line]
+renderAgdaProperty doc =
+    [prettyAnchor, newline, "[" <> identifier doc <> "]:"]
+    <> indent 4 (dropNewLinesAtEnd prettyDoc <> [newline] <> prettyType)
+  where
+    prettyAnchor = "#" <> identifier doc <> "#"
+    prettyDoc = lines (docString doc)
+    prettyType = ["@"] <> lines (typeSignature doc) <> ["@"]
+ 
+dropNewLinesAtEnd :: [Line] -> [Line]
+dropNewLinesAtEnd = reverse . dropWhile (== newline) . reverse
+
+newline :: Line
+newline = ""
+
+indent :: Int -> [Line] -> [Line]
+indent n = map (replicate n ' ' <>)

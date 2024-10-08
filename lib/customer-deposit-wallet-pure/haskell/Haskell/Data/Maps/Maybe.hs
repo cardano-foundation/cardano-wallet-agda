@@ -21,3 +21,18 @@ union = unionWith (\x y -> x)
 intersectionWith :: (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
 intersectionWith f (Just x) (Just y) = Just (f x y)
 intersectionWith _ _ _ = Nothing
+
+-- * Properties
+
+-- $prop-unionWith-sym
+-- #prop-unionWith-sym#
+--
+-- [prop-unionWith-sym]:
+--     'unionWith' is symmetric if we 'flip' the function.
+--     Note that 'union' is left-biased, not symmetric.
+--
+--     @
+--     prop-unionWith-sym
+--       : ∀ {f : a → a → a} {ma mb : Maybe a}
+--       → unionWith f ma mb ≡ unionWith (flip f) mb ma
+--     @

@@ -174,7 +174,8 @@ module _ {time : Set} {{_ : Ord time}} where
 {-----------------------------------------------------------------------------
     Properties
 ------------------------------------------------------------------------------}
---
+-- |
+-- The 'tip' is always a 'member' of a 'RollbackWindow'.
 @0 prop-tip-member
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (w : RollbackWindow time)
@@ -193,7 +194,8 @@ prop-tip-member w =
     True
   ∎
 
---
+-- |
+-- The 'finality' is always a 'member' of a 'RollbackWindow'.
 @0 prop-finality-member
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (w : RollbackWindow time)
@@ -246,7 +248,9 @@ lemma-between-max-min t1 t2 t3 t4 t =
     shuffle True False True b4 = refl
     shuffle True True b3 b4 = refl
 
---
+-- |
+-- A time @t@ is a 'member' of an intersection
+-- if it is a member of both 'RollbackWindow's.
 @0 prop-member-intersect
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (w1 w2 w3 : RollbackWindow time)
