@@ -140,8 +140,8 @@ agdaDeclarationIdentifier :: Parser String
 agdaDeclarationIdentifier =
     option () (() <$ keyword) *> agdaNamePart
   where
-    keyword =
-        L.lexeme C.space1 (C.string "data" <|> C.string "record")
+    keyword = L.lexeme C.space1 (foldr1 (<|>) $ map C.string keywords)
+    keywords = ["data", "record", "@0"]
 
 agdaNamePart :: Parser String
 agdaNamePart =
