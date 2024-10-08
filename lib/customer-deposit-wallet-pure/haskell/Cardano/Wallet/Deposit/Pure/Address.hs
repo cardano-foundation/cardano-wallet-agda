@@ -208,3 +208,51 @@ fromXPubAndCount net xpub knownCustomerCount =
 -- Change address generator employed by 'AddressState'.
 newChangeAddress :: AddressState -> ChangeAddressGen ()
 newChangeAddress s = \_ -> (change s, ())
+
+-- * Properties
+
+-- $prop-changeAddress-not-Customer
+-- #prop-changeAddress-not-Customer#
+--
+-- [prop-changeAddress-not-Customer]:
+--     /Essential property./
+--
+--     Customer addresses are never change addresses.
+--
+--     @
+--     @0 prop-changeAddress-not-Customer
+--       : ∀ (s : AddressState)
+--           (addr : Address)
+--       → knownCustomerAddress addr s ≡ True
+--       → ¬(isChange (newChangeAddress s) addr)
+--     @
+
+-- $prop-create-derive
+-- #prop-create-derive#
+--
+-- [prop-create-derive]:
+--     Creating a customer address is deterministic,
+--     and depends essentially on the 'XPub'.
+--
+--     @
+--     prop-create-derive
+--       : ∀ (c : Customer)
+--           (s0 : AddressState)
+--       → let (address , _) = createAddress c s0
+--         in  deriveCustomerAddress (getNetworkTag s0) (stateXPub s0) c ≡ address
+--     @
+
+-- $prop-create-known
+-- #prop-create-known#
+--
+-- [prop-create-known]:
+--
+--     Creating an address makes it known.
+--
+--     @
+--     @0 prop-create-known
+--       : ∀ (c  : Customer)
+--           (s0 : AddressState)
+--       → let (address , s1) = createAddress c s0
+--         in  knownCustomerAddress address s1 ≡ True
+--     @

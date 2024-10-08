@@ -76,3 +76,88 @@ append x y =
 -- Combine a sequence of 'DeltaUTxO' using `append`
 concat :: [DeltaUTxO] -> DeltaUTxO
 concat = foldr append empty
+
+-- * Properties
+
+-- $prop-apply-append
+-- #prop-apply-append#
+--
+-- [prop-apply-append]:
+--     Defining property of 'append':
+--     Applying the combination of two deltas is the same as
+--     applying each delta in turn (right-to-left),
+--     assuming that the delta and the utxo have disjoint 'TxIn's.
+--
+--     @
+--     prop-apply-append
+--       : ∀ (x y : DeltaUTxO) (utxo : UTxO)
+--       → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
+--       → apply (append x y) utxo ≡ apply x (apply y utxo)
+--     @
+
+-- $prop-apply-empty
+-- #prop-apply-empty#
+--
+-- [prop-apply-empty]:
+--
+--     Applying the empty delta does nothing.
+--
+--     @
+--     @0 prop-apply-empty
+--       : ∀ (utxo : UTxO)
+--       → apply empty utxo ≡ utxo
+--     @
+
+-- $prop-apply-excludingD
+-- #prop-apply-excludingD#
+--
+-- [prop-apply-excludingD]:
+--     Applying the 'DeltaUTxO' returned by 'excludingD'
+--     to the argument 'UTxO' yields the result 'UTxO'.
+--
+--     @
+--     @0 prop-apply-excludingD
+--       : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+--       → let (du , u1) = excludingD u0 txins
+--         in  apply du u0 ≡ u1
+--     @
+
+-- $prop-apply-receiveD
+-- #prop-apply-receiveD#
+--
+-- [prop-apply-receiveD]:
+--     Applying the 'DeltaUTxO' returned by 'receiveD'
+--     to the argument 'UTxO' yields the result 'UTxO'.
+--
+--     @
+--     @0 prop-apply-receiveD
+--       : ∀ {ua : UTxO} {u0 : UTxO}
+--       → let (du , u1) = receiveD u0 ua
+--         in  apply du u0 ≡ u1
+--     @
+
+-- $prop-excluding-excludingD
+-- #prop-excluding-excludingD#
+--
+-- [prop-excluding-excludingD]:
+--     The 'UTxO' returned by 'excludingD' is the same as 'excluding'.
+--
+--     @
+--     prop-excluding-excludingD
+--       : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+--       → let (du , u1) = excludingD u0 txins
+--         in  u1 ≡ UTxO.excluding u0 txins
+--     @
+
+-- $prop-union-receiveD
+-- #prop-union-receiveD#
+--
+-- [prop-union-receiveD]:
+--     The 'UTxO' returned by 'receiveD' is the same as 'union'.
+--
+--     @
+--     prop-union-receiveD
+--       : ∀ {ua : UTxO} {u0 : UTxO}
+--       → let (du , u1) = receiveD u0 ua
+--         in  u1 ≡ UTxO.union ua u0
+--     @

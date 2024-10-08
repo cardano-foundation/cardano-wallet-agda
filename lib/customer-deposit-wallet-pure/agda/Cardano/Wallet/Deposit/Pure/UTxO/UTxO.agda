@@ -74,6 +74,12 @@ _∪_ : UTxO → UTxO → UTxO
 _∪_ = union
 
 -- | Exclude a set of inputs.
+--
+-- Infix synonym: @x ⋪ utxo  =  excluding utxo x@.
+--
+-- Notable properties:
+-- [prop-excluding-intersection](#prop-excluding-intersection),
+-- [prop-excluding-sym](#prop-excluding-sym)
 excluding : UTxO → Set.ℙ TxIn → UTxO
 excluding = Map.withoutKeys
 

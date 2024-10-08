@@ -67,3 +67,35 @@ bytesFromEnterpriseAddr
 compactAddrFromEnterpriseAddr :: EnterpriseAddr -> CompactAddr
 compactAddrFromEnterpriseAddr addr =
     fromJust (fromShortByteString (bytesFromEnterpriseAddr addr))
+
+-- * Properties
+
+-- $prop-compactAddrFromEnterpriseAddr-injective
+-- #prop-compactAddrFromEnterpriseAddr-injective#
+--
+-- [prop-compactAddrFromEnterpriseAddr-injective]:
+--
+--     Two 'EnterpriseAddr' with the same serialized 'CompactAddr' are equal
+--     — assuming that inverting a cryptographic hash is difficult.
+--
+--     @
+--     @0 prop-compactAddrFromEnterpriseAddr-injective
+--       : ∀ (x y : EnterpriseAddr)
+--       → compactAddrFromEnterpriseAddr x ≡ compactAddrFromEnterpriseAddr y
+--       → x ≡ y
+--     @
+
+-- $prop-credentialFromXPub-injective
+-- #prop-credentialFromXPub-injective#
+--
+-- [prop-credentialFromXPub-injective]:
+--
+--     Two 'XPub' that yield the same credential are equal
+--     — assuming that inverting a cryptographic hash is difficult.
+--
+--     @
+--     prop-credentialFromXPub-injective
+--       : ∀ (x y : XPub)
+--       → credentialFromXPub x ≡ credentialFromXPub y
+--       → x ≡ y
+--     @

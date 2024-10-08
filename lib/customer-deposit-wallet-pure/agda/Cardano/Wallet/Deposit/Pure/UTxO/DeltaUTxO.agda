@@ -146,7 +146,8 @@ prop-null-empty du eq =
     lem2 : Map.null (received du) ≡ True
     lem2 = projr (prop-&&-⋀ eq)
 
---
+-- |
+-- Applying the empty delta does nothing.
 @0 prop-apply-empty
   : ∀ (utxo : UTxO)
   → apply empty utxo ≡ utxo
@@ -211,7 +212,7 @@ prop-apply-excludingD {txins} {u0} =
     du = fst (excludingD u0 txins)
     u1 = snd (excludingD u0 txins)
 
--- | The 'UTxO' returned by 'receiveD' is obtained by 'union'.
+-- | The 'UTxO' returned by 'receiveD' is the same as 'union'.
 --
 prop-union-receiveD
   : ∀ {ua : UTxO} {u0 : UTxO}
@@ -242,13 +243,16 @@ prop-apply-receiveD {ua} {u0} =
     du = fst (receiveD u0 ua)
     u1 = snd (receiveD u0 ua)
 
+-- | Defining property of 'append':
+-- Applying the combination of two deltas is the same as
+-- applying each delta in turn (right-to-left),
+-- assuming that the delta and the utxo have disjoint 'TxIn's.
 --
--- This is the most important property:
--- The semigroup operation `_<>_` is an application of `apply`.
 prop-apply-append
   : ∀ (x y : DeltaUTxO) (utxo : UTxO)
   → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
   → apply (append x y) utxo ≡ apply x (apply y utxo)
+--
 prop-apply-append x y utxo cond =
     begin
       apply (append x y) utxo

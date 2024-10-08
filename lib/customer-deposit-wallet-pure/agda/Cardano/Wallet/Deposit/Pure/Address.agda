@@ -544,7 +544,8 @@ createAddress c s0 = ( addr , s1 )
 
 {-# COMPILE AGDA2HS createAddress #-}
 
---
+-- | Creating a customer address is deterministic,
+-- and depends essentially on the 'XPub'.
 prop-create-derive
   : ∀ (c : Customer)
       (s0 : AddressState)
@@ -573,7 +574,8 @@ lemma-lookup-insert-same a c m =
     Just c
   ∎
 
---
+-- |
+-- Creating an address makes it known.
 @0 prop-create-known
   : ∀ (c  : Customer)
       (s0 : AddressState)
@@ -649,7 +651,9 @@ lemma-isChange-isChangeAddress
 lemma-isChange-isChangeAddress s addr (_c0 `witness` eq) =
   equality' _ _ eq
 
+-- | /Essential property./
 --
+-- Customer addresses are never change addresses.
 @0 prop-changeAddress-not-Customer
   : ∀ (s : AddressState)
       (addr : Address)

@@ -150,7 +150,9 @@ compactAddrFromEnterpriseAddr addr =
 {-----------------------------------------------------------------------------
     Properties
 ------------------------------------------------------------------------------}
---
+-- |
+-- Two 'XPub' that yield the same credential are equal
+-- — assuming that inverting a cryptographic hash is difficult.
 prop-credentialFromXPub-injective
   : ∀ (x y : XPub)
   → credentialFromXPub x ≡ credentialFromXPub y
@@ -177,7 +179,9 @@ prop-bytesFromEnterpriseAddr-injective
       prop-singleton-<>-injective (toEnterpriseTag netx) _ hashx hashy eq
     eqNet = prop-toEnterpriseTag-injective _ _ (projl eqPair)
 
---
+-- |
+-- Two 'EnterpriseAddr' with the same serialized 'CompactAddr' are equal
+-- — assuming that inverting a cryptographic hash is difficult.
 @0 prop-compactAddrFromEnterpriseAddr-injective
   : ∀ (x y : EnterpriseAddr)
   → compactAddrFromEnterpriseAddr x ≡ compactAddrFromEnterpriseAddr y

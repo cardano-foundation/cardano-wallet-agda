@@ -94,3 +94,50 @@ intersect w1 w2 =
     fin3 = max (finality w1) (finality w2)
     tip3 :: time
     tip3 = min (tip w1) (tip w2)
+
+-- * Properties
+
+-- $prop-finality-member
+-- #prop-finality-member#
+--
+-- [prop-finality-member]:
+--
+--     The 'finality' is always a 'member' of a 'RollbackWindow'.
+--
+--     @
+--     @0 prop-finality-member
+--       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--           (w : RollbackWindow time)
+--       → member (finality w) w ≡ True
+--     @
+
+-- $prop-member-intersect
+-- #prop-member-intersect#
+--
+-- [prop-member-intersect]:
+--
+--     A time @t@ is a 'member' of an intersection
+--     if it is a member of both 'RollbackWindow's.
+--
+--     @
+--     @0 prop-member-intersect
+--       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--           (w1 w2 w3 : RollbackWindow time)
+--           (t : time)
+--       → intersect w1 w2 ≡ Just w3
+--       → member t w3 ≡ (member t w1 && member t w2)
+--     @
+
+-- $prop-tip-member
+-- #prop-tip-member#
+--
+-- [prop-tip-member]:
+--
+--     The 'tip' is always a 'member' of a 'RollbackWindow'.
+--
+--     @
+--     @0 prop-tip-member
+--       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--           (w : RollbackWindow time)
+--       → member (tip w) w ≡ True
+--     @
