@@ -177,6 +177,14 @@ deleteAfter
 deleteAfter t = takeWhileAntitone (<= t)
 
 -- |
+-- Drop all items whose timestamp is after a given time.
+--
+-- > dropAfter t = snd ∘ deleteAfter t
+dropAfter
+    :: (Ord time, Ord a) => time -> Timeline time a -> Timeline time a
+dropAfter t = (\r -> snd r) . deleteAfter t
+
+-- |
 -- Restrict the items to timestamps @from < time && time <= to@.
 restrictRange
     :: (Ord time, Ord a)
