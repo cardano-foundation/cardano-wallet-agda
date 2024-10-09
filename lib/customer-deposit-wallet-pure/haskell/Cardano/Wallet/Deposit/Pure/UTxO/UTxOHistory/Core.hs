@@ -103,8 +103,8 @@ data DeltaUTxOHistory
 -- Include the information contained in the block at 'SlotNo'
 -- into the 'UTxOHistory'.
 -- We expect that the block has already been digested into a single 'DeltaUTxO'.
-appendBlock :: SlotNo -> DeltaUTxO -> UTxOHistory -> UTxOHistory
-appendBlock newTip delta old =
+rollForward :: SlotNo -> DeltaUTxO -> UTxOHistory -> UTxOHistory
+rollForward newTip delta old =
     case RollbackWindow.rollForward (At newTip) (window old) of
         Nothing -> old
         Just window' ->
@@ -127,8 +127,8 @@ appendBlock newTip delta old =
 -- |
 -- Roll back the 'UTxOHistory' to the given 'Slot',
 -- i.e. forget about all blocks that are strictly later than this slot.
-rollback :: Slot -> UTxOHistory -> UTxOHistory
-rollback newTip old =
+rollBackward :: Slot -> UTxOHistory -> UTxOHistory
+rollBackward newTip old =
     case RollbackWindow.rollBackward newTip (window old) of
         RollbackWindow.Future -> old
         RollbackWindow.Past -> empty (boot old)

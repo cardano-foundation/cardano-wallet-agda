@@ -135,8 +135,8 @@ Include the information contained in the block at 'SlotNo'
 into the 'UTxOHistory'.
 We expect that the block has already been digested into a single 'DeltaUTxO'.
 -}
-appendBlock : SlotNo → DeltaUTxO → UTxOHistory → UTxOHistory
-appendBlock newTip delta old =
+rollForward : SlotNo → DeltaUTxO → UTxOHistory → UTxOHistory
+rollForward newTip delta old =
   case RollbackWindow.rollForward (WithOrigin.At newTip) window of λ
     { Nothing → old
     ; (Just window') →
@@ -163,14 +163,14 @@ appendBlock newTip delta old =
             (Set.intersection (DeltaUTxO.excluded delta) (dom history))
             (Map.keysSet (Timeline.getMapTime spent))
 
-{-# COMPILE AGDA2HS appendBlock #-}
+{-# COMPILE AGDA2HS rollForward #-}
 
 {-|
 Roll back the 'UTxOHistory' to the given 'Slot',
 i.e. forget about all blocks that are strictly later than this slot.
 -}
-rollback : Slot → UTxOHistory → UTxOHistory
-rollback newTip old =
+rollBackward : Slot → UTxOHistory → UTxOHistory
+rollBackward newTip old =
   case RollbackWindow.rollBackward newTip window of λ
     { RollbackWindow.Future → old
     ; RollbackWindow.Past → empty boot
@@ -195,7 +195,7 @@ rollback newTip old =
   where
     open UTxOHistory old
 
-{-# COMPILE AGDA2HS rollback #-}
+{-# COMPILE AGDA2HS rollBackward #-}
 
 {-|
 Remove the ability to 'rollback' before the given 'SlotNo',
@@ -230,9 +230,9 @@ prune newFinality old =
 applyDeltaUTxOHistory
     : DeltaUTxOHistory → UTxOHistory → UTxOHistory
 applyDeltaUTxOHistory (AppendBlock newTip delta) =
-    appendBlock newTip delta
+    rollForward newTip delta
 applyDeltaUTxOHistory (Rollback newTip) =
-    rollback newTip
+    rollBackward newTip
 applyDeltaUTxOHistory (Prune newFinality) =
     prune newFinality
 
