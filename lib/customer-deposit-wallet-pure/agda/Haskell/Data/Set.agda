@@ -81,6 +81,11 @@ module _ {a : Set} {{_ : Ord a}} where
       : ∀ (x : a) (s : ℙ a)
       → (elem x ∘ toAscList) s ≡ member x s
 
+    prop-member-fromList
+      : ∀ (x : a) (xs : List a)
+      → member x (fromList xs)
+        ≡ elem x xs
+
     prop-member-union
       : ∀ (x : a) (s1 s2 : ℙ a)
       → member x (union s1 s2)
@@ -125,9 +130,11 @@ instance
   iSetMonoid = record {DefaultMonoid (record {mempty = empty})}
 
 module _ {a : Set} {{_ : Ord a}} where
+  --
   prop-union-sym
     : ∀ {s1 s2 : ℙ a}
     → union s1 s2 ≡ union s2 s1
+  --
   prop-union-sym {s1} {s2} =
       prop-equality eq
     where
@@ -142,9 +149,12 @@ module _ {a : Set} {{_ : Ord a}} where
           member x (union s2 s1)
         ∎
 
+  --
   prop-union-assoc
     : ∀ {s1 s2 s3 : ℙ a}
-    → union (union s1 s2) s3 ≡ union s1 (union s2 s3)
+    → union (union s1 s2) s3
+      ≡ union s1 (union s2 s3)
+  --
   prop-union-assoc {s1} {s2} {s3} =
       prop-equality eq
     where
@@ -161,4 +171,23 @@ module _ {a : Set} {{_ : Ord a}} where
           (member x s1 || member x (union s2 s3))
         ≡⟨ sym (prop-member-union _ _ _) ⟩
           member x (union s1 (union s2 s3))
+        ∎
+
+  --
+  prop-intersection-empty-right
+    : ∀ {s : ℙ a}
+    → intersection s empty ≡ empty
+  --
+  prop-intersection-empty-right {s} = prop-equality eq
+    where
+      eq = λ x → begin
+          member x (intersection s empty)
+        ≡⟨ prop-member-intersection x s empty ⟩
+          (member x s && member x empty)
+        ≡⟨ cong (λ o → member x s && o) (prop-member-empty x) ⟩
+          (member x s && False)
+        ≡⟨ prop-x-&&-False (member x s) ⟩
+          False
+        ≡⟨ sym (prop-member-empty x) ⟩
+          member x empty
         ∎
