@@ -24,6 +24,55 @@ intersectionWith _ _ _ = Nothing
 
 -- * Properties
 
+-- $prop-filt-||
+-- #prop-filt-||#
+--
+-- [prop-filt-||]:
+--
+--     Since 'union' is left-biased,
+--     filtering commutes with union if the predicate is constant.
+--
+--     If the predicate is not constant, there are counterexamples.
+--
+--     @
+--     prop-filt-||
+--       : ∀ (x y : Bool) {m : Maybe a}
+--       → filt (x || y) m
+--         ≡ union (filt x m) (filt y m)
+--     @
+
+-- $prop-filter-filt
+-- #prop-filter-filt#
+--
+-- [prop-filter-filt]:
+--
+--     'filt' is a special case of 'filter'.
+--
+--     @
+--     prop-filter-filt
+--       : ∀ (b : Bool) (m : Maybe a)
+--       → filter (λ x → b) m
+--         ≡ filt b m
+--     @
+
+-- $prop-filter-union
+-- #prop-filter-union#
+--
+-- [prop-filter-union]:
+--
+--     Since 'union' is left-biased,
+--     filtering commutes with union if the predicate is constant.
+--
+--     If the predicate is not constant, there are counterexamples.
+--
+--     @
+--     prop-filter-union
+--       : ∀ (p : a → Bool) {m1 m2 : Maybe a}
+--       → (∀ (x y : a) → p x ≡ p y)
+--       → filter p (union m1 m2)
+--         ≡ union (filter p m1) (filter p m2)
+--     @
+
 -- $prop-unionWith-sym
 -- #prop-unionWith-sym#
 --

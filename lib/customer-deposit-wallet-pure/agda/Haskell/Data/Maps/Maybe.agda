@@ -27,6 +27,12 @@ filter : (a → Bool) → Maybe a → Maybe a
 filter p Nothing = Nothing
 filter p (Just x) = if p x then Just x else Nothing
 
+-- | Degenerate 'filter', does not look at the contents.
+-- Similar to 'guard'.
+filt : Bool → Maybe a → Maybe a
+filt True m = m
+filt False m = Nothing
+
 mapMaybe : (a → Maybe b) → Maybe a → Maybe b
 mapMaybe f Nothing = Nothing
 mapMaybe f (Just x) = f x
@@ -93,6 +99,32 @@ prop-union-left
 prop-union-left x Nothing = refl
 prop-union-left x (Just y) = refl
 
+{-----------------------------------------------------------------------------
+    Properties
+    filter
+------------------------------------------------------------------------------}
+-- |
+-- Since 'union' is left-biased,
+-- filtering commutes with union if the predicate is constant.
+--
+-- If the predicate is not constant, there are counterexamples.
+prop-filter-union
+  : ∀ (p : a → Bool) {m1 m2 : Maybe a}
+  → (∀ (x y : a) → p x ≡ p y)
+  → filter p (union m1 m2)
+    ≡ union (filter p m1) (filter p m2)
+--
+prop-filter-union p {Nothing} {m2} flat = refl
+prop-filter-union p {Just x} {Nothing} flat
+  with p x
+... | True = refl
+... | False = refl
+prop-filter-union p {Just x} {Just y} flat
+  rewrite flat x y
+  with p y
+... | True = refl
+... | False = refl
+
 --
 @0 prop-filter-||
   : ∀ {ma : Maybe a} {p q : a → Bool}
@@ -143,3 +175,59 @@ prop-filter-|| {_} {Just x} {p} {q} =
           (if q x then Just x else Nothing)
       ∎
     }
+
+-- |
+-- 'filt' is a special case of 'filter'.
+prop-filter-filt
+  : ∀ (b : Bool) (m : Maybe a)
+  → filter (λ x → b) m
+    ≡ filt b m
+--
+prop-filter-filt False Nothing = refl
+prop-filter-filt True Nothing = refl
+prop-filter-filt False (Just x) = refl
+prop-filter-filt True (Just x) = refl
+
+{-----------------------------------------------------------------------------
+    Properties
+    filt
+------------------------------------------------------------------------------}
+-- |
+-- Since 'union' is left-biased,
+-- filtering commutes with union if the predicate is constant.
+--
+-- If the predicate is not constant, there are counterexamples.
+prop-filt-||
+  : ∀ (x y : Bool) {m : Maybe a}
+  → filt (x || y) m
+    ≡ union (filt x m) (filt y m)
+--
+prop-filt-|| False y {Nothing} = refl
+prop-filt-|| False y {Just x} = refl
+prop-filt-|| True False {Nothing} = refl
+prop-filt-|| True False {Just x} = refl
+prop-filt-|| True True {Nothing} = refl
+prop-filt-|| True True {Just x} = refl
+
+--
+prop-filt-union
+  : ∀ (x : Bool) {m1 m2 : Maybe a}
+  → filt x (union m1 m2)
+    ≡ union (filt x m1) (filt x m2)
+--
+prop-filt-union False {Nothing} {m2} = refl
+prop-filt-union True {Nothing} {m2} = refl
+prop-filt-union False {Just y} {Nothing} = refl
+prop-filt-union True {Just y} {Nothing} = refl
+prop-filt-union False {Just y} {Just z} = refl
+prop-filt-union True {Just y} {Just z} = refl
+
+--
+prop-filt-filt
+  : ∀ (x y : Bool) (m : Maybe a)
+  → filt x (filt y m) ≡ filt (x && y) m
+--
+prop-filt-filt False False m = refl
+prop-filt-filt False True m = refl
+prop-filt-filt True False m = refl
+prop-filt-filt True True m = refl
