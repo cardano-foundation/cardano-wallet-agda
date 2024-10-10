@@ -1,6 +1,27 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Cardano.Wallet.Deposit.Pure.RollbackWindow where
+module Cardano.Wallet.Deposit.Pure.RollbackWindow
+    ( -- * Definition
+      RollbackWindow (..)
+      -- $prop-RollbackWindow-invariant
+    , member
+      -- $prop-member-tip
+      -- $prop-member-finality
+    , singleton
+      -- $prop-member-singleton
+
+      -- * Operations
+
+      -- ** Rolling
+    , rollForward
+    , MaybeRollback (..)
+    , rollBackward
+    , prune
+
+      -- ** Other
+    , intersection
+    )
+where
 
 import Prelude hiding (null, subtract)
 
@@ -29,7 +50,7 @@ member :: Ord time => time -> RollbackWindow time -> Bool
 member time w = finality w <= time && time <= tip w
 
 -- |
--- Interval containing a single point
+-- Interval containing a single point.
 singleton :: Ord time => time -> RollbackWindow time
 singleton time = RollbackWindowC time time
 
@@ -42,9 +63,10 @@ rollForward
     -> RollbackWindow time
     -> Maybe (RollbackWindow time)
 rollForward newTip w =
-    if tip w < newTip
-        then Just (RollbackWindowC (finality w) newTip)
-        else Nothing
+    if'
+        (tip w < newTip)
+        (Just (RollbackWindowC (finality w) newTip))
+        Nothing
 
 -- |
 -- Potential results of a 'rollBackwards'.
@@ -62,12 +84,14 @@ rollBackward
     -> RollbackWindow time
     -> MaybeRollback (RollbackWindow time)
 rollBackward newTip w =
-    if tip w < newTip
-        then Future
-        else
-            if finality w <= newTip
-                then Present (RollbackWindowC (finality w) newTip)
-                else Past
+    if'
+        (tip w <= newTip)
+        Future
+        ( if'
+            (finality w <= newTip)
+            (Present (RollbackWindowC (finality w) newTip))
+            Past
+        )
 
 -- |
 -- Move forward the finality of the 'RollbackWindow'.
@@ -83,13 +107,13 @@ prune newFinality w =
         else Nothing
 
 -- | Intersection of two 'RollbackWindow'.
-intersect
+intersection
     :: forall time
      . Ord time
     => RollbackWindow time
     -> RollbackWindow time
     -> Maybe (RollbackWindow time)
-intersect w1 w2 =
+intersection w1 w2 =
     if' (fin3 <= tip3) (Just (RollbackWindowC fin3 tip3)) Nothing
   where
     fin3 :: time
@@ -99,46 +123,74 @@ intersect w1 w2 =
 
 -- * Properties
 
--- $prop-finality-member
--- #prop-finality-member#
+-- $prop-RollbackWindow-invariant
+-- #prop-RollbackWindow-invariant#
 --
--- [prop-finality-member]:
+-- [prop-RollbackWindow-invariant]:
+--
+--     Invariant required for 'RollbackWindow'.
+--
+--     @
+--     @0 prop-RollbackWindow-invariant
+--       : ∀ {time} {{_ : Ord time}}
+--           (w : RollbackWindow time)
+--       → (finality w <= tip w) ≡ True
+--     @
+
+-- $prop-member-finality
+-- #prop-member-finality#
+--
+-- [prop-member-finality]:
 --
 --     The 'finality' is always a 'member' of a 'RollbackWindow'.
 --
 --     @
---     @0 prop-finality-member
+--     @0 prop-member-finality
 --       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
 --           (w : RollbackWindow time)
 --       → member (finality w) w ≡ True
 --     @
 
--- $prop-member-intersect
--- #prop-member-intersect#
+-- $prop-member-intersection
+-- #prop-member-intersection#
 --
--- [prop-member-intersect]:
+-- [prop-member-intersection]:
 --
 --     A time @t@ is a 'member' of an intersection
 --     if it is a member of both 'RollbackWindow's.
 --
 --     @
---     @0 prop-member-intersect
+--     @0 prop-member-intersection
 --       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
 --           (w1 w2 w3 : RollbackWindow time)
 --           (t : time)
---       → intersect w1 w2 ≡ Just w3
+--       → intersection w1 w2 ≡ Just w3
 --       → member t w3 ≡ (member t w1 && member t w2)
 --     @
 
--- $prop-tip-member
--- #prop-tip-member#
+-- $prop-member-singleton
+-- #prop-member-singleton#
 --
--- [prop-tip-member]:
+-- [prop-member-singleton]:
+--
+--     'singleton' contains exactly one point.
+--
+--     @
+--     @0 prop-member-singleton
+--       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--           (t1 t2 : time)
+--       → member t1 (singleton t2) ≡ (t1 == t2)
+--     @
+
+-- $prop-member-tip
+-- #prop-member-tip#
+--
+-- [prop-member-tip]:
 --
 --     The 'tip' is always a 'member' of a 'RollbackWindow'.
 --
 --     @
---     @0 prop-tip-member
+--     @0 prop-member-tip
 --       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
 --           (w : RollbackWindow time)
 --       → member (tip w) w ≡ True
