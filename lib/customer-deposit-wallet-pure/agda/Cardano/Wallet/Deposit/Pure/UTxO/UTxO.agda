@@ -92,6 +92,11 @@ _⋪_ x u = excluding u x
 restrictedBy : UTxO → Set.ℙ TxIn → UTxO
 restrictedBy = Map.restrictKeys
 
+-- | Infix synonym for 'restrictedBy'.
+-- (Not exported to Haskell.)
+_⊲_ : Set.ℙ TxIn → UTxO → UTxO
+_⊲_ x u = restrictedBy u x
+
 -- | Exclude the inputs of a 'UTxO' from a 'Set' of inputs.
 excludingS : Set.ℙ TxIn → UTxO → Set.ℙ TxIn
 excludingS s utxo = Set.filter (not ∘ (λ txin → Map.member txin utxo)) s
@@ -140,7 +145,7 @@ prop-union-empty-right = Map.prop-union-empty-right
   → excluding utxo Set.empty ≡ utxo
 --
 prop-excluding-empty utxo =
-  Map.prop-equality (λ key → Map.prop-withoutKeys-empty key utxo)
+  Map.prop-withoutKeys-empty utxo
 
 -- |
 -- 'union' is associative.
@@ -155,20 +160,28 @@ prop-union-assoc = Map.prop-union-assoc
 -- Excluding from a union is the same as excluding
 -- from each member of the union.
 --
-postulate
- prop-excluding-union
-  : ∀ (x : Set.ℙ TxIn) (ua ub : UTxO)
+@0 prop-excluding-union
+  : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
   → x ⋪ (ua ∪ ub) ≡ (x ⋪ ua) ∪ (x ⋪ ub)
 --
+prop-excluding-union {x} {ua} {ub} =
+  Map.prop-withoutKeys-union ua ub x
 
 -- |
 -- Excluding from an exclusion is the same as excluding the union.
 --
-postulate
- prop-excluding-excluding
+prop-excluding-excluding
   : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
   → x ⋪ (y ⋪ utxo) ≡ (Set.union x y) ⋪ utxo
 --
+prop-excluding-excluding {x} {y} {utxo} =
+  begin
+    x ⋪ (y ⋪ utxo)
+  ≡⟨ Map.prop-withoutKeys-withoutKeys utxo y x ⟩
+    (Set.union y x) ⋪ utxo
+  ≡⟨ cong (λ o → o ⋪ utxo) Set.prop-union-sym ⟩
+    (Set.union x y) ⋪ utxo
+  ∎
 
 -- |
 -- Excluding the intersection is the same as the union of the exclusions.
@@ -181,12 +194,72 @@ prop-excluding-intersection {x} {y} {utxo} =
   Map.prop-withoutKeys-intersection utxo x y
 
 -- |
+-- Taking the union of a 'UTxO' with one of its exclusions
+-- does nothing.
+--
+@0 prop-excluding-absorb
+  : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
+  → (x ⋪ utxo) ∪ utxo ≡ utxo
+--
+prop-excluding-absorb {x} {utxo} =
+  begin
+    (x ⋪ utxo) ∪ utxo
+  ≡⟨ sym (cong (λ o → (x ⋪ utxo) ∪ o) (prop-excluding-empty utxo)) ⟩
+    (x ⋪ utxo) ∪ (Set.empty ⋪ utxo)
+  ≡⟨ sym prop-excluding-intersection ⟩
+    (Set.intersection x Set.empty) ⋪ utxo
+  ≡⟨ cong (λ o → o ⋪ utxo) Set.prop-intersection-empty-right ⟩
+    Set.empty ⋪ utxo
+  ≡⟨ prop-excluding-empty utxo ⟩
+    utxo
+  ∎
+
+-- |
+-- Excluding the difference is the same as excluding
+-- everything and putting back the difference.
+--
+postulate
+ prop-excluding-difference
+  : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
+  → (Set.difference x y) ⋪ utxo ≡ (x ⋪ utxo) ∪ (y ⊲ utxo)
+
+-- |
 -- Excluding the entire domain gives the empty 'UTxO'.
 --
 postulate
  prop-excluding-dom
   : ∀ {utxo : UTxO}
   → dom utxo ⋪ utxo ≡ empty
+--
+
+-- |
+-- Restricting to the entire domain does nothing.
+--
+postulate
+ prop-restrictedBy-dom
+  : ∀ {utxo : UTxO}
+  → dom utxo ⊲ utxo ≡ utxo
+--
+
+-- |
+-- Restricting a union is the same as restricting
+-- from each member of the union.
+--
+postulate
+ prop-restrictedBy-union
+  : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
+  → x ⊲ (ua ∪ ub) ≡ (x ⊲ ua) ∪ (x ⊲ ub)
+--
+
+-- |
+-- Since 'union' is left-biased,
+-- taking the union with a 'UTxO' whose domain is a subset
+-- does nothing.
+--
+postulate
+ prop-union-restrictedBy-absorbs
+  : ∀ {ua ub : UTxO}
+  → ua ∪ (dom ua ⊲ ub) ≡ ua
 --
 
 -- |
