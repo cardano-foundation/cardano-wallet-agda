@@ -8,7 +8,8 @@ open import Haskell.Prelude hiding
 open import Haskell.Reasoning
 
 open import Haskell.Data.Maybe using
-    ( prop-Just-injective
+    ( isJust
+    ; prop-Just-injective
     )
 open import Haskell.Data.Set using
     ( ℙ
@@ -32,20 +33,20 @@ if' False thn els = els refl
 {-# COMPILE AGDA2HS if' #-}
 
 prop-if'-False
-  : ∀ (b : Bool)
+  : ∀ {b : Bool}
   → (cond : b ≡ False)
   → {thn : @0 (b ≡ True) → a}
   → {els : @0 (b ≡ False) → a}
   → if' b thn els ≡ els cond
-prop-if'-False .False refl = refl
+prop-if'-False {a} .{False} refl = refl
 
 prop-if'-True
-  : ∀ (b : Bool)
+  : ∀ {b : Bool}
   → (cond : b ≡ True)
   → {thn : @0 (b ≡ True) → a}
   → {els : @0 (b ≡ False) → a}
   → if' b thn els ≡ thn cond
-prop-if'-True .True refl = refl
+prop-if'-True {a} .{True} refl = refl
 
 -- Substitution that also amends an equality proof.
 substWithEq
@@ -94,16 +95,17 @@ rollForward
     : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
     → time → RollbackWindow time → Maybe (RollbackWindow time)
 rollForward newTip w =
-    if tip w < newTip
-       then (λ {{cond}} → Just (record
-          { finality = finality w
-          ; tip = newTip
-          ; invariant =
-            transitivity
-              (finality w) (tip w) newTip
-              (prop-⋀-&& (invariant w `and` (lt2lte (tip w) newTip cond)))
-          }))
-       else Nothing
+  if'
+    (tip w < newTip)
+    (λ cond → Just (record
+      { finality = finality w
+      ; tip = newTip
+      ; invariant =
+        transitivity
+          (finality w) (tip w) newTip
+          (prop-⋀-&& (invariant w `and` (lt2lte (tip w) newTip cond)))
+      }))
+    (λ cond → Nothing)
 
 -- | Potential results of a 'rollBackwards'.
 data MaybeRollback (a : Set) : Set where
@@ -117,15 +119,17 @@ rollBackward
     : ∀ {time} {{_ : Ord time}}
     → time → RollbackWindow time → MaybeRollback (RollbackWindow time)
 rollBackward newTip w =
-  if tip w < newTip
-    then Future
-    else if finality w <= newTip
-      then (λ {{cond}} → Present (record
-        { tip = newTip
-        ; finality = finality w
-        ; invariant = cond
-        }))
-      else Past
+  if' (tip w < newTip)
+    (λ cond0 → Future)
+    (λ cond0 →
+      if' (finality w <= newTip)
+        (λ cond → Present (record
+          { tip = newTip
+          ; finality = finality w
+          ; invariant = cond
+          }))
+        (λ cond → Past)
+    )
 
 -- | Move forward the finality of the 'RollbackWindow'.
 -- Return 'Nothing' if the finality is not moving forward, or too far.
@@ -173,6 +177,7 @@ module _ {time : Set} {{_ : Ord time}} where
 
 {-----------------------------------------------------------------------------
     Properties
+    Simple
 ------------------------------------------------------------------------------}
 -- |
 -- The 'tip' is always a 'member' of a 'RollbackWindow'.
@@ -212,15 +217,67 @@ prop-finality-member w =
     True
   ∎
 
-{-
-Remark: 
-Somehow, we want to make an argument based on the result of a function.
-"If it returns Just, then some precondition has to hold".
-I think that this is a regularly occuring pattern which we need to
-handle better than this, where we undo the structure of the function.
-Somehow, taking the contrapositive is very classical reasoning.
--}
+{-----------------------------------------------------------------------------
+    Properties
+    Contrapositives
+------------------------------------------------------------------------------}
+--
+@0 prop-isJust-rollForward
+  : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+      (newTip : time) (w : RollbackWindow time)
+  → isJust (rollForward newTip w) ≡ (tip w < newTip)
+--
+prop-isJust-rollForward newTip w =
+  case (tip w < newTip) of λ
+    { True {{eq}} →
+      begin
+        isJust (rollForward newTip w)
+      ≡⟨ cong isJust (prop-if'-True eq) ⟩
+        True
+      ≡⟨ sym eq ⟩
+        tip w < newTip
+      ∎
+    ; False {{eq}} →
+      begin
+        isJust (rollForward newTip w)
+      ≡⟨ cong isJust (prop-if'-False eq) ⟩
+        False
+      ≡⟨ sym eq ⟩
+        tip w < newTip
+      ∎
+    }
 
+--
+postulate
+ prop-tip-rollForward
+  : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+      (newTip : time) (w w' : RollbackWindow time)
+  → rollForward newTip w ≡ Just w'
+  → tip w' ≡ newTip
+--
+
+--
+@0 prop-isFuture-rollBackward
+  : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+      (newTip : time) (w : RollbackWindow time)
+  → rollBackward newTip w ≡ Future
+  → (tip w < newTip) ≡ True
+--
+prop-isFuture-rollBackward newTip w eq0 =
+  case (tip w < newTip) of λ
+    { True {{eqTip}} → eqTip
+    ; False {{eqTip}} → case (finality w <= newTip) of λ
+      { True {{eqFin}} →
+        case trans (sym (eq0)) (trans (prop-if'-False eqTip) (prop-if'-True eqFin)) of λ ()
+      ; False {{eqFin}} →
+        case trans (sym (eq0)) (trans (prop-if'-False eqTip) (prop-if'-False eqFin)) of λ ()
+      }
+    }
+
+{-----------------------------------------------------------------------------
+    Properties
+    intersection
+------------------------------------------------------------------------------}
 --
 @0 lemma-between-max-min
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
@@ -284,7 +341,7 @@ prop-member-intersect w1 w2 w3 t eq0 =
             intersect w1 w2
           ≡⟨⟩
             if' (fin3 <= tip3) _ (λ eq → Nothing)
-          ≡⟨ prop-if'-False (fin3 <= tip3) cond ⟩
+          ≡⟨ prop-if'-False cond ⟩
             Nothing
           ∎
 
@@ -300,16 +357,7 @@ prop-member-intersect w1 w2 w3 t eq0 =
         Just w3
       ≡⟨ sym eq0 ⟩
         intersect w1 w2
-      ≡⟨⟩
-        if' (fin3 <= tip3)
-          (λ eq → Just (record
-            { tip = tip3
-            ; finality = fin3
-            ; invariant = eq
-            })
-          )
-          (λ eq → Nothing)
-      ≡⟨ prop-if'-True (fin3 <= tip3) contra ⟩
+      ≡⟨ prop-if'-True contra ⟩
         Just (record
           { tip = tip3
           ; finality = fin3
@@ -322,3 +370,4 @@ prop-member-intersect w1 w2 w3 t eq0 =
 
     eqTip : tip w3 ≡ tip3
     eqTip = cong tip (prop-Just-injective _ _ eqJust)
+  
