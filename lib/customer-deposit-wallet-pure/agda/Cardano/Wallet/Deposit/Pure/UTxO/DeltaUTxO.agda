@@ -248,7 +248,7 @@ prop-apply-receiveD {ua} {u0} =
 -- applying each delta in turn (right-to-left),
 -- assuming that the delta and the utxo have disjoint 'TxIn's.
 --
-prop-apply-append
+@0 prop-apply-append
   : ∀ (x y : DeltaUTxO) (utxo : UTxO)
   → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
   → apply (append x y) utxo ≡ apply x (apply y utxo)
@@ -267,7 +267,7 @@ prop-apply-append x y utxo cond =
     ≡⟨ cong (λ o → received x ∪ ((excluded x ⋪ received y) ∪ o)) lem1 ⟩
       received x ∪ ((excluded x ⋪ received y)
         ∪ (excluded x ⋪ (excluded y ⋪ utxo)))
-    ≡⟨ cong (λ o → received x ∪ o) (sym (UTxO.prop-excluding-union (excluded x) _ _)) ⟩
+    ≡⟨ cong (λ o → received x ∪ o) (sym (UTxO.prop-excluding-union {excluded x})) ⟩
       received x ∪ (excluded x ⋪ (received y ∪ (excluded y ⋪ utxo)))
     ≡⟨⟩
       apply x (received y ∪ (excluded y ⋪ utxo))
