@@ -1,8 +1,8 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core where
 
-import qualified Cardano.Wallet.Deposit.Pure.RollbackWindow as RollbackWindow
+import Cardano.Wallet.Deposit.Pure.RollbackWindow (RollbackWindow)
+import qualified Cardano.Wallet.Deposit.Pure.RollbackWindow
     ( MaybeRollback (Future, Past, Present)
-    , RollbackWindow (tip)
     , prune
     , rollBackward
     , rollForward
@@ -23,13 +23,14 @@ import Data.Set (Set)
 import Haskell.Data.Map (Map)
 import qualified Haskell.Data.Map as Map (keysSet)
 import qualified Haskell.Data.Maps.Timeline as Timeline
-    ( deleteAfter
+    ( Timeline
+    , deleteAfter
     , difference
+    , dropAfter
     , dropWhileAntitone
     , empty
     , getMapTime
     , insertMany
-    , takeWhileAntitone
     )
 import qualified Haskell.Data.Set as Set (difference, intersection)
 
@@ -39,12 +40,6 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     )
 
 -- |
--- (Internal, exported for technical reasons.)
-guard :: Bool -> Maybe ()
-guard True = Just ()
-guard False = Nothing
-
--- |
 -- An empty UTxO history
 empty :: UTxO -> UTxOHistory
 empty utxo =
@@ -52,7 +47,7 @@ empty utxo =
         utxo
         (Timeline.insertMany Origin (dom utxo) Timeline.empty)
         Timeline.empty
-        (RollbackWindow.singleton Origin)
+        (Cardano.Wallet.Deposit.Pure.RollbackWindow.singleton Origin)
         utxo
 
 -- |
@@ -69,8 +64,7 @@ getUTxO us =
 -- The tip of the history is also the upper end of this window.
 -- The UTxO history includes information from all blocks
 -- between genesis and the tip, and including the block at the tip.
-getRollbackWindow
-    :: UTxOHistory -> RollbackWindow.RollbackWindow Slot
+getRollbackWindow :: UTxOHistory -> RollbackWindow Slot
 getRollbackWindow x = window x
 
 -- |
@@ -88,20 +82,18 @@ data DeltaUTxOHistory
     | Prune SlotNo
 
 -- |
--- Include the information contained in the block at 'SlotNo'
--- into the 'UTxOHistory'.
--- We expect that the block has already been digested into a single 'DeltaUTxO'.
-rollForward :: SlotNo -> DeltaUTxO -> UTxOHistory -> UTxOHistory
-rollForward newTip delta old =
-    case RollbackWindow.rollForward (At newTip) (window old) of
-        Nothing -> old
-        Just window' ->
-            UTxOHistory
-                (UTxO.union (history old) (received delta))
-                (Timeline.insertMany (At newTip) receivedTxIns (created old))
-                (Timeline.insertMany newTip excludedTxIns (spent old))
-                window'
-                (boot old)
+-- (Internal, exported for technical reasons.)
+--
+-- Roll forward under the assumption that we are moving to the future.
+rollForwardBare
+    :: SlotNo -> DeltaUTxO -> UTxOHistory -> UTxOHistory
+rollForwardBare newTip delta old =
+    UTxOHistory
+        (UTxO.union (history old) (received delta))
+        (Timeline.insertMany (At newTip) receivedTxIns (created old))
+        (Timeline.insertMany newTip excludedTxIns (spent old))
+        (window old)
+        (boot old)
   where
     receivedTxIns :: Set TxIn
     receivedTxIns =
@@ -113,41 +105,113 @@ rollForward newTip delta old =
             (Map.keysSet (Timeline.getMapTime (spent old)))
 
 -- |
+-- (Internal, exported for technical reasons.)
+rollForwardCases
+    :: SlotNo
+    -> DeltaUTxO
+    -> UTxOHistory
+    -> Maybe (RollbackWindow Slot)
+    -> UTxOHistory
+rollForwardCases newTip delta old Nothing = old
+rollForwardCases newTip delta old (Just window') =
+    UTxOHistory
+        (history new')
+        (created new')
+        (spent new')
+        window'
+        (boot new')
+  where
+    new' :: UTxOHistory
+    new' = rollForwardBare newTip delta old
+
+-- |
+-- Include the information contained in the block at 'SlotNo'
+-- into the 'UTxOHistory'.
+-- We expect that the block has already been digested into a single 'DeltaUTxO'.
+rollForward :: SlotNo -> DeltaUTxO -> UTxOHistory -> UTxOHistory
+rollForward newTip delta old =
+    rollForwardCases
+        newTip
+        delta
+        old
+        ( Cardano.Wallet.Deposit.Pure.RollbackWindow.rollForward
+            (At newTip)
+            (window old)
+        )
+
+-- |
+-- (Internal, exported for technical reasons.)
+rollBackwardBareSpent
+    :: Slot
+    -> Timeline.Timeline SlotNo TxIn
+    -> Timeline.Timeline SlotNo TxIn
+rollBackwardBareSpent Origin spents = Timeline.empty
+rollBackwardBareSpent (At slot) spents =
+    Timeline.dropAfter slot spents
+
+-- |
+-- (Internal, exported for technical reasons.)
+--
+-- Roll backwards under the assumption that we are moving to the past.
+rollBackwardBare :: Slot -> UTxOHistory -> UTxOHistory
+rollBackwardBare newTip old =
+    UTxOHistory
+        (excluding (history old) rolledCreated)
+        created'
+        (rollBackwardBareSpent newTip (spent old))
+        (window old)
+        (boot old)
+  where
+    deletedAfter
+        :: (Set TxIn, Timeline.Timeline (WithOrigin SlotNo) TxIn)
+    deletedAfter = Timeline.deleteAfter newTip (created old)
+    rolledCreated :: Set TxIn
+    rolledCreated = fst deletedAfter
+    created' :: Timeline.Timeline (WithOrigin SlotNo) TxIn
+    created' = snd deletedAfter
+
+-- |
+-- (Internal, exported for technical reasons.)
+rollBackwardCases
+    :: Slot
+    -> UTxOHistory
+    -> Cardano.Wallet.Deposit.Pure.RollbackWindow.MaybeRollback
+        (RollbackWindow Slot)
+    -> UTxOHistory
+rollBackwardCases
+    newTip
+    old
+    Cardano.Wallet.Deposit.Pure.RollbackWindow.Future = old
+rollBackwardCases
+    newTip
+    old
+    Cardano.Wallet.Deposit.Pure.RollbackWindow.Past = empty (boot old)
+rollBackwardCases
+    newTip
+    old
+    (Cardano.Wallet.Deposit.Pure.RollbackWindow.Present window') =
+        UTxOHistory
+            (history new')
+            (created new')
+            (spent new')
+            window'
+            (boot new')
+      where
+        new' :: UTxOHistory
+        new' = rollBackwardBare newTip old
+
+-- |
 -- Roll back the 'UTxOHistory' to the given 'Slot',
 -- i.e. forget about all blocks that are strictly later than this slot.
 rollBackward :: Slot -> UTxOHistory -> UTxOHistory
 rollBackward newTip old =
-    case RollbackWindow.rollBackward newTip (window old) of
-        RollbackWindow.Future -> old
-        RollbackWindow.Past -> empty (boot old)
-        RollbackWindow.Present window' ->
-            UTxOHistory
-                ( excluding
-                    (history old)
-                    ( fst
-                        ( Timeline.deleteAfter
-                            (RollbackWindow.tip window')
-                            (created old)
-                        )
-                    )
-                )
-                ( snd
-                    ( Timeline.deleteAfter
-                        (RollbackWindow.tip window')
-                        (created old)
-                    )
-                )
-                ( case RollbackWindow.tip window' of
-                    Origin -> Timeline.empty
-                    At slot'' ->
-                        snd
-                            ( Timeline.takeWhileAntitone
-                                (<= slot'')
-                                (spent old)
-                            )
-                )
-                window'
-                (boot old)
+    rollBackwardCases
+        newTip
+        old
+        ( Cardano.Wallet.Deposit.Pure.RollbackWindow.rollBackward
+            newTip
+            (window old)
+        )
 
 -- |
 -- Remove the ability to 'rollback' before the given 'SlotNo',
@@ -157,7 +221,9 @@ rollBackward newTip old =
 -- can be summarized and discarded.
 prune :: SlotNo -> UTxOHistory -> UTxOHistory
 prune newFinality old =
-    case RollbackWindow.prune (At newFinality) (window old) of
+    case Cardano.Wallet.Deposit.Pure.RollbackWindow.prune
+        (At newFinality)
+        (window old) of
         Nothing -> old
         Just window' ->
             UTxOHistory
@@ -172,3 +238,43 @@ prune newFinality old =
                 (snd (Timeline.dropWhileAntitone (<= newFinality) (spent old)))
                 window'
                 (boot old)
+
+-- * Properties
+
+-- $prop-rollBackward-rollForward
+-- #prop-rollBackward-rollForward#
+--
+-- [prop-rollBackward-rollForward]:
+--     Rolling backward after a 'rollForward' will restore the original state.
+--
+--     @
+--     @0 prop-rollBackward-rollForward
+--       : ∀ (u : UTxOHistory) (du : DeltaUTxO) (slot : SlotNo)
+--       → rollBackward (getTip u) (rollForward slot du u) ≡ u
+--     @
+
+-- $prop-rollBackward-rollForward-cancel
+-- #prop-rollBackward-rollForward-cancel#
+--
+-- [prop-rollBackward-rollForward-cancel]:
+--     Rolling backward will cancel rolling forward.
+--
+--     @
+--     @0 prop-rollBackward-rollForward-cancel
+--       : ∀ (u : UTxOHistory) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
+--       → (slot1 < WithOrigin.At slot2) ≡ True
+--       → rollBackward slot1 (rollForward slot2 du u)
+--         ≡ rollBackward slot1 u
+--     @
+
+-- $prop-rollBackward-tip-id
+-- #prop-rollBackward-tip-id#
+--
+-- [prop-rollBackward-tip-id]:
+--     Rolling backward to the tip does nothing, as we are already at the tip.
+--
+--     @
+--     prop-rollBackward-tip-id
+--       : ∀ (u : UTxOHistory)
+--       → rollBackward (getTip u) u ≡ u
+--     @
