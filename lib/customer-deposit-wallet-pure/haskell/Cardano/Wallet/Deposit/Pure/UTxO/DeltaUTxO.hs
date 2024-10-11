@@ -89,7 +89,7 @@ concat = foldr append empty
 --     assuming that the delta and the utxo have disjoint 'TxIn's.
 --
 --     @
---     prop-apply-append
+--     @0 prop-apply-append
 --       : ∀ (x y : DeltaUTxO) (utxo : UTxO)
 --       → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
 --       → apply (append x y) utxo ≡ apply x (apply y utxo)

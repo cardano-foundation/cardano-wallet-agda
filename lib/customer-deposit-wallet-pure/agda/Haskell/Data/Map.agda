@@ -22,9 +22,9 @@ AntitonicPred {a} p =
   ∀ {x y : a} → ((x <= y) ≡ True) → ((p x >= p y) ≡ True)
 
 {-----------------------------------------------------------------------------
-    Data.Map
+    Functions
+    involving 1 value type
 ------------------------------------------------------------------------------}
-
 postulate
   Map : ∀ (k : Set) → Set → Set
 
@@ -34,6 +34,25 @@ module _ {k a : Set} {{_ : Ord k}} where
     null      : Map k a → Bool
     toAscList : Map k a → List (k × a)
 
+  member : k → Map k a → Bool
+  member key = isJust ∘ lookup key
+
+  elems : Map k a → List a
+  elems = List.map snd ∘ toAscList
+
+  keys : Map k a → List k
+  keys = List.map fst ∘ toAscList
+
+  keysSet : Map k a → Set.ℙ k
+  keysSet = Set.fromList ∘ keys
+
+  postulate
+    prop-elem-keys
+      : ∀ (key : k) (m : Map k a)
+      → elem key (keys m)
+        ≡ member key m
+
+  postulate
     empty     : Map k a
     insert    : k → a → Map k a → Map k a
     delete    : k → Map k a → Map k a
@@ -43,17 +62,11 @@ module _ {k a : Set} {{_ : Ord k}} where
 
     unionWith     : (a → a → a) → Map k a → Map k a → Map k a
     filterWithKey : (k → a → Bool) → Map k a → Map k a
-    mapMaybeWithKey : (k → a → Maybe b) → Map k a → Map k b
 
     takeWhileAntitone : (k → Bool) → Map k a → Map k a
     dropWhileAntitone : (k → Bool) → Map k a → Map k a
 
-    instance
-      iMapFunctor : Functor (Map k)
-
-    mapWithKey : (k → a → b) → Map k a → Map k b
-
-    prop-member-null
+    prop-lookup-null
       : ∀ (m : Map k a)
           (_ : ∀ (key : k) → lookup key m ≡ Nothing)
       → null m ≡ True
@@ -62,7 +75,7 @@ module _ {k a : Set} {{_ : Ord k}} where
       : ∀ (m : Map k a)
       → null m ≡ True
       → m ≡ empty
-
+  
     prop-equality
       : ∀ {m1 m2 : Map k a}
       → (∀ (key : k) → lookup key m1 ≡ lookup key m2)
@@ -92,17 +105,6 @@ module _ {k a : Set} {{_ : Ord k}} where
       → lookup key (update f keyi m)
         ≡ (if (key == keyi) then (lookup keyi m >>= f) else lookup key m)
 
-
-    prop-lookup-toAscList-Just
-      : ∀ (key : k) (x : a) (m : Map k a)
-      → lookup key m ≡ Just x
-      → (elem key ∘ L.map fst ∘ toAscList) m ≡ True
-
-    prop-lookup-toAscList-Nothing
-      : ∀ (key : k) (m : Map k a)
-      → lookup key m ≡ Nothing
-      → (elem key ∘ L.map fst ∘ toAscList) m ≡ False
-
     prop-lookup-unionWith
       : ∀ (key : k) (f : a → a → a) (m n : Map k a)
       → lookup key (unionWith f m n)
@@ -125,20 +127,6 @@ module _ {k a : Set} {{_ : Ord k}} where
       → lookup key (dropWhileAntitone p m)
         ≡ lookup key (filterWithKey (λ k _ → not (p k)) m)
 
-  map : ∀ {b : Set} → (a → b) → Map k a → Map k b
-  map = fmap
-
-  member : k → Map k a → Bool
-  member key = isJust ∘ lookup key
-
-  elems : Map k a → List a
-  elems = List.map snd ∘ toAscList
-
-  keys : Map k a → List k
-  keys = List.map fst ∘ toAscList
-
-  keysSet : Map k a → Set.ℙ k
-  keysSet = Set.fromList ∘ keys
 
   singleton : k → a → Map k a
   singleton = λ k x → insert k x empty
@@ -168,31 +156,38 @@ module _ {k a : Set} {{_ : Ord k}} where
   spanAntitone : (k → Bool) → Map k a → (Map k a × Map k a)
   spanAntitone p m = (takeWhileAntitone p m , dropWhileAntitone p m)
 
-  prop-lookup-singleton
-    : ∀ (key keyi : k) (x : a)
-    → lookup key (singleton keyi x)
-      ≡ (if (key == keyi) then Just x else Nothing)
-  prop-lookup-singleton key keyi x =
-    begin
-      lookup key (singleton keyi x)
-    ≡⟨⟩
-      lookup key (insert keyi x empty)
-    ≡⟨ prop-lookup-insert key keyi x empty ⟩
-      (if (key == keyi) then Just x else lookup key empty)
-    ≡⟨ cong (λ f → if (key == keyi) then Just x else f) (prop-lookup-empty key) ⟩
-      (if (key == keyi) then Just x else Nothing)
-    ∎
-
   foldMap' : ∀ {{_ : Monoid b}} → (a → b) → Map k a → b
-  foldMap' f = foldMap f ∘ L.map snd ∘ toAscList
+  foldMap' f = foldMap f ∘ List.map snd ∘ toAscList
 
--- Properties involving 2 type variables.
+instance
+  iMapFoldable : ∀ {k : Set} {{_ : Ord k}} → Foldable (Map k)
+  iMapFoldable =
+    record {DefaultFoldable (record {foldMap = foldMap'})}
+
+instance
+  iEqMap : ∀ {k v : Set} {{_ : Ord k}} {{_ : Eq v}} → Eq (Map k v)
+  iEqMap ._==_ m1 m2 = toAscList m1 == toAscList m2
+
+{-----------------------------------------------------------------------------
+    Functions
+    involving 2 value types
+------------------------------------------------------------------------------}
 module _ {k a b : Set} {{_ : Ord k}} where
   postulate
 
+    instance
+      iMapFunctor : Functor (Map k)
+
+    mapWithKey : (k → a → b) → Map k a → Map k b
+    mapMaybeWithKey : (k → a → Maybe b) → Map k a → Map k b
+
+  map : (a → b) → Map k a → Map k b
+  map = fmap
+
+  postulate
     prop-lookup-fmap
       : ∀ (key : k) (m : Map k a) (f : a → b)
-      → lookup key (fmap {{iMapFunctor {k} {a}}} f m)
+      → lookup key (fmap {{iMapFunctor}} f m)
         ≡ fmap f (lookup key m)
 
     prop-lookup-mapWithKey
@@ -205,16 +200,10 @@ module _ {k a b : Set} {{_ : Ord k}} where
       → lookup key (mapMaybeWithKey f m)
         ≡ Maybe.mapMaybe (f key) (lookup key m)
 
-instance
-  iMapFoldable : ∀ {k : Set} {{_ : Ord k}} → Foldable (Map k)
-  iMapFoldable =
-    record {DefaultFoldable (record {foldMap = foldMap'})}
-
-instance
-  iEqMap : ∀ {k v : Set} {{_ : Ord k}} {{_ : Eq v}} → Eq (Map k v)
-  iEqMap ._==_ m1 m2 = toAscList m1 == toAscList m2
-
--- Properties involving three type variables.
+{-----------------------------------------------------------------------------
+    Functions
+    involving 3 value types
+------------------------------------------------------------------------------}
 module _ {k a b c : Set} {{_ : Ord k}} where
   postulate
 
@@ -228,13 +217,78 @@ module _ {k a b c : Set} {{_ : Ord k}} where
 
 {-----------------------------------------------------------------------------
     Proofs
+    involving 1 value type
 ------------------------------------------------------------------------------}
 module _ {k a : Set} {{_ : Ord k}} where
 
+  --
+  prop-member-keysSet
+    : ∀ (key : k) (m : Map k a)
+    → Set.member key (keysSet m)
+      ≡ member key m
+  --
+  prop-member-keysSet key m =
+    begin
+      Set.member key (keysSet m)
+    ≡⟨ Set.prop-member-fromList key (keys m) ⟩
+      elem key (keys m)
+    ≡⟨ prop-elem-keys key m ⟩
+      member key m
+    ∎
+
+  --
+  prop-lookup-toAscList-Just
+    : ∀ (key : k) (x : a) (m : Map k a)
+    → lookup key m ≡ Just x
+    → (elem key ∘ List.map fst ∘ toAscList) m ≡ True
+  --
+  prop-lookup-toAscList-Just key x m eq =
+    begin
+      (elem key ∘ List.map fst ∘ toAscList) m
+    ≡⟨ prop-elem-keys key m ⟩
+      member key m
+    ≡⟨ cong isJust eq ⟩
+      True
+    ∎
+
+  --
+  prop-lookup-toAscList-Nothing
+    : ∀ (key : k) (m : Map k a)
+    → lookup key m ≡ Nothing
+    → (elem key ∘ List.map fst ∘ toAscList) m ≡ False
+  --
+  prop-lookup-toAscList-Nothing key m eq =
+    begin
+      (elem key ∘ List.map fst ∘ toAscList) m
+    ≡⟨ prop-elem-keys key m ⟩
+      member key m
+    ≡⟨ cong isJust eq ⟩
+      False
+    ∎
+
+  --
+  prop-lookup-singleton
+    : ∀ (key keyi : k) (x : a)
+    → lookup key (singleton keyi x)
+      ≡ (if (key == keyi) then Just x else Nothing)
+  --
+  prop-lookup-singleton key keyi x =
+    begin
+      lookup key (singleton keyi x)
+    ≡⟨⟩
+      lookup key (insert keyi x empty)
+    ≡⟨ prop-lookup-insert key keyi x empty ⟩
+      (if (key == keyi) then Just x else lookup key empty)
+    ≡⟨ cong (λ f → if (key == keyi) then Just x else f) (prop-lookup-empty key) ⟩
+      (if (key == keyi) then Just x else Nothing)
+    ∎
+
+  --
   prop-lookup-union
     : ∀ (key : k) (m n : Map k a)
     → lookup key (union m n)
       ≡ Maybe.union (lookup key m) (lookup key n)
+  --
   prop-lookup-union key m n = prop-lookup-unionWith key (λ x y → x) m n
 
   --
@@ -315,8 +369,7 @@ module _ {k a : Set} {{_ : Ord k}} where
 
   -- 
   prop-lookup-filter
-    : ∀ {k a} {{_ : Ord k}}
-      (key : k) (m : Map k a) (p : a → Bool)
+    : ∀ (key : k) (m : Map k a) (p : a → Bool)
     → lookup key (filter p m)
       ≡ Maybe.filter p (lookup key m)
   --
@@ -341,119 +394,264 @@ module _ {k a : Set} {{_ : Ord k}} where
       (if p key x then Just x else Nothing)
     ∎
 
+{-----------------------------------------------------------------------------
+    Proofs
+    involving withoutKeys and restrictKeys
+------------------------------------------------------------------------------}
+module _ {k a : Set} {{_ : Ord k}} where
+
   --
-  prop-lookup-filterWithKey-Nothing
-    : ∀ (key : k) (m : Map k a) (p : k → a → Bool)
-    → lookup key m ≡ Nothing
-    → lookup key (filterWithKey p m) ≡ Nothing
+  prop-lookup-withoutKeys
+    : ∀ (key : k) (m : Map k a) (ks : Set.ℙ k)
+    → lookup key (withoutKeys m ks)
+      ≡ Maybe.filt (not (Set.member key ks)) (lookup key m)
   --
-  prop-lookup-filterWithKey-Nothing key m p eq =
-    begin
-      lookup key (filterWithKey p m)
-    ≡⟨ prop-lookup-filterWithKey key m p ⟩
-      Maybe.filter (p key) (lookup key m)
-    ≡⟨ cong (Maybe.filter (p key)) eq ⟩    
-      Maybe.filter (p key) Nothing
-    ≡⟨⟩
-      Nothing
-    ∎
+  prop-lookup-withoutKeys key m ks =
+      begin
+        lookup key (withoutKeys m ks)
+      ≡⟨ prop-lookup-filterWithKey key m p ⟩
+        Maybe.filter (p key) (lookup key m)
+      ≡⟨ Maybe.prop-filter-filt (not (Set.member key ks)) (lookup key m) ⟩
+        Maybe.filt (not (Set.member key ks)) (lookup key m)
+      ∎
+    where
+      p : k → a → Bool
+      p = λ kx _ → not (Set.member kx ks)
+
+  --
+  prop-lookup-restrictKeys
+    : ∀ (key : k) (m : Map k a) (ks : Set.ℙ k)
+    → lookup key (restrictKeys m ks)
+      ≡ Maybe.filt (Set.member key ks) (lookup key m)
+  --
+  prop-lookup-restrictKeys key m ks =
+      begin
+        lookup key (restrictKeys m ks)
+      ≡⟨ prop-lookup-filterWithKey key m p ⟩
+        Maybe.filter (p key) (lookup key m)
+      ≡⟨ Maybe.prop-filter-filt (Set.member key ks) (lookup key m) ⟩
+        Maybe.filt (Set.member key ks) (lookup key m)
+      ∎
+    where
+      p : k → a → Bool
+      p = λ kx _ → Set.member kx ks
+
+  --
+  prop-withoutKeys-empty
+    : ∀ (m : Map k a)
+    → withoutKeys m Set.empty ≡ m
+  --
+  prop-withoutKeys-empty m = prop-equality eq-key
+    where
+      eq-key = λ key →
+        begin
+          lookup key (withoutKeys m Set.empty)
+        ≡⟨ prop-lookup-withoutKeys key m Set.empty ⟩
+          Maybe.filt (not (Set.member key Set.empty)) (lookup key m)
+        ≡⟨ cong (λ o → Maybe.filt (not o) (lookup key m)) (Set.prop-member-empty key) ⟩
+          Maybe.filt True (lookup key m)
+        ≡⟨⟩
+          lookup key m
+        ∎
+
+  --
+  prop-withoutKeys-keysSet
+    : ∀ (m : Map k a)
+    → withoutKeys m (keysSet m) ≡ empty
+  --
+  prop-withoutKeys-keysSet m = prop-equality eq-key
+    where
+      ks = keysSet m
+
+      lem1
+        : ∀ (mx : Maybe a)
+        → Maybe.filt (not (isJust mx)) mx ≡ Nothing
+      lem1 Nothing = refl
+      lem1 (Just x) = refl
+
+      eq-key = λ key →
+        begin
+          lookup key (withoutKeys m ks)
+        ≡⟨ prop-lookup-withoutKeys key m ks ⟩
+          Maybe.filt (not (Set.member key ks)) (lookup key m)
+        ≡⟨ cong (λ o → Maybe.filt (not o) (lookup key m)) (prop-member-keysSet key m) ⟩
+          Maybe.filt (not (isJust (lookup key m))) (lookup key m)
+        ≡⟨ lem1 (lookup key m) ⟩
+          Nothing
+        ≡⟨ sym (prop-lookup-empty key) ⟩
+          lookup key empty
+        ∎
+
+  --
+  prop-withoutKeys-union
+    : ∀ (ma mb : Map k a) (ks : Set.ℙ k)
+    → withoutKeys (union ma mb) ks
+      ≡ union (withoutKeys ma ks) (withoutKeys mb ks)
+  --
+  prop-withoutKeys-union ma mb ks = prop-equality eq-key
+    where
+      eq-key = λ key → let p = not (Set.member key ks) in
+        begin
+          lookup key (withoutKeys (union ma mb) ks)
+        ≡⟨ prop-lookup-withoutKeys key (union ma mb) ks ⟩
+          Maybe.filt p (lookup key (union ma mb))
+        ≡⟨ cong (Maybe.filt p) (prop-lookup-union key ma mb)  ⟩
+          Maybe.filt p
+            (Maybe.union (lookup key ma) (lookup key mb))
+        ≡⟨ Maybe.prop-filt-union p {lookup key ma} {lookup key mb} ⟩
+          Maybe.union
+            (Maybe.filt p (lookup key ma))
+            (Maybe.filt p (lookup key mb))
+        ≡⟨ cong (λ o → Maybe.union o (Maybe.filt p (lookup key mb))) (sym (prop-lookup-withoutKeys key ma ks)) ⟩
+          Maybe.union
+            (lookup key (withoutKeys ma ks))
+            (Maybe.filt p (lookup key mb))
+        ≡⟨ cong (λ o → Maybe.union (lookup key (withoutKeys ma ks)) o) (sym (prop-lookup-withoutKeys key mb ks)) ⟩
+          Maybe.union
+            (lookup key (withoutKeys ma ks))
+            (lookup key (withoutKeys mb ks))
+        ≡⟨ sym (prop-lookup-union key _ _) ⟩
+          lookup key (union (withoutKeys ma ks) (withoutKeys mb ks))
+        ∎
+
+  --
+  prop-withoutKeys-difference
+    : ∀ (m : Map k a) (ka kb : Set.ℙ k)
+    → withoutKeys m (Set.difference ka kb)
+      ≡ union (withoutKeys m ka) (restrictKeys m kb)
+  --
+  prop-withoutKeys-difference m ka kb = prop-equality eq-key
+    where
+      eq-key
+        : ∀ (key : k)
+        → lookup key (withoutKeys m (Set.difference ka kb))
+          ≡ lookup key (union (withoutKeys m ka) (restrictKeys m kb))
+      eq-key key =
+        begin
+          lookup key (withoutKeys m (Set.difference ka kb))
+        ≡⟨ prop-lookup-withoutKeys key _ (Set.difference ka kb) ⟩
+          Maybe.filt pab (lookup key m)
+        ≡⟨ cong (λ o → Maybe.filt o (lookup key m)) lem-pab ⟩
+          Maybe.filt (pa || not-pb) (lookup key m)
+        ≡⟨ Maybe.prop-filt-|| pa not-pb {lookup key m} ⟩
+          Maybe.union
+            (Maybe.filt pa (lookup key m))
+            (Maybe.filt not-pb (lookup key m))
+        ≡⟨ cong (λ o → Maybe.union o (Maybe.filt not-pb (lookup key m))) (sym (prop-lookup-withoutKeys key m ka)) ⟩
+          Maybe.union
+            (lookup key (withoutKeys m ka))
+            (Maybe.filt not-pb (lookup key m))
+        ≡⟨ cong (λ o → Maybe.union (lookup key (withoutKeys m ka)) o) (sym (prop-lookup-restrictKeys key m kb)) ⟩
+          Maybe.union
+            (lookup key (withoutKeys m ka))
+            (lookup key (restrictKeys m kb))
+        ≡⟨ sym (prop-lookup-union key _ _) ⟩
+          lookup key (union (withoutKeys m ka) (restrictKeys m kb))
+        ∎
+        where
+          pa = not (Set.member key ka)
+          not-pb = Set.member key kb
+          pab = not (Set.member key (Set.difference ka kb))
+
+          lem-pab : pab ≡ (pa || not-pb)
+          lem-pab =
+            begin
+              not (Set.member key (Set.difference ka kb))
+            ≡⟨ cong not (Set.prop-member-difference key ka kb) ⟩
+              not (Set.member key ka && not (Set.member key kb))
+            ≡⟨ prop-deMorgan-not-&& (Set.member key ka) (not (Set.member key kb)) ⟩
+              (not (Set.member key ka) || not (not (Set.member key kb)))
+            ≡⟨ cong (λ o → not (Set.member key ka) || o) (not-not (Set.member key kb)) ⟩
+              (not (Set.member key ka) || Set.member key kb)
+            ∎
+
+  --
+  prop-withoutKeys-withoutKeys
+    : ∀ (m : Map k a) (ka kb : Set.ℙ k)
+    → withoutKeys (withoutKeys m ka) kb
+      ≡ withoutKeys m (Set.union ka kb)
+  --
+  prop-withoutKeys-withoutKeys m ka kb = prop-equality eq-key
+    where
+      eq-key
+        : ∀ (key : k)
+        → lookup key (withoutKeys (withoutKeys m ka) kb)
+          ≡ lookup key (withoutKeys m (Set.union ka kb))
+      eq-key key =
+        begin
+          lookup key (withoutKeys (withoutKeys m ka) kb)
+        ≡⟨ prop-lookup-withoutKeys key _ kb ⟩
+          Maybe.filt pb (lookup key (withoutKeys m ka))
+        ≡⟨ cong (Maybe.filt pb) (prop-lookup-withoutKeys key _ ka) ⟩
+          Maybe.filt pb (Maybe.filt pa (lookup key m))
+        ≡⟨ Maybe.prop-filt-filt pb pa (lookup key m) ⟩
+          Maybe.filt (pb && pa) (lookup key m)
+        ≡⟨ cong (λ o → Maybe.filt o (lookup key m)) (sym lem-pab) ⟩
+          Maybe.filt pab (lookup key m)
+        ≡⟨ sym (prop-lookup-withoutKeys key _ (Set.union ka kb)) ⟩
+          lookup key (withoutKeys m (Set.union ka kb))
+        ∎
+        where
+          pa = not (Set.member key ka)
+          pb = not (Set.member key kb)
+          pab = not (Set.member key (Set.union ka kb))
+
+          lem-pab : pab ≡ (pb && pa)
+          lem-pab =
+            begin
+              not (Set.member key (Set.union ka kb))
+            ≡⟨ cong not (Set.prop-member-union key ka kb) ⟩
+              not (Set.member key ka || Set.member key kb)
+            ≡⟨ prop-deMorgan-not-|| (Set.member key ka) (Set.member key kb) ⟩
+              (not (Set.member key ka) && not (Set.member key kb))
+            ≡⟨ &&-sym (not (Set.member key ka)) (not (Set.member key kb)) ⟩
+              (not (Set.member key kb) && not (Set.member key ka))
+            ∎
 
   --
   @0 prop-withoutKeys-intersection
     : ∀ (m : Map k a) (ka kb : Set.ℙ k)
     → withoutKeys m (Set.intersection ka kb)
       ≡ union (withoutKeys m ka) (withoutKeys m kb)
-  prop-withoutKeys-intersection m ka kb =
-      prop-equality eq-key
+  prop-withoutKeys-intersection m ka kb = prop-equality eq-key
     where
-      pIntersection : k → a → Bool
-      pIntersection = λ kx _ → not (Set.member kx (Set.intersection ka kb))
-
-      pPlainA : k → a → Bool
-      pPlainA = λ kx _ → not (Set.member kx ka)
-
-      pPlainB : k → a → Bool
-      pPlainB = λ kx _ → not (Set.member kx kb)
-
-      lem1 = λ key x →
-        begin
-          pIntersection key x
-        ≡⟨⟩
-          not (Set.member key (Set.intersection ka kb))
-        ≡⟨ cong not (Set.prop-member-intersection key ka kb) ⟩
-          not ((Set.member key ka) && (Set.member key kb))
-        ≡⟨ prop-deMorgan-not-&& (Set.member key ka) (Set.member key kb) ⟩
-          (not (Set.member key ka) || not (Set.member key kb))
-        ≡⟨⟩
-          (pPlainA key x || pPlainB key x)
-        ∎
-
-      lem2 = λ key ma →
-        begin
-          Maybe.filter (pIntersection key) ma
-        ≡⟨ cong (λ o → Maybe.filter o ma) (ext (lem1 key)) ⟩
-          Maybe.filter (λ x → pPlainA key x || pPlainB key x) ma
-        ≡⟨ Maybe.prop-filter-|| {_} {ma} {pPlainA key} {pPlainB key}⟩
-          Maybe.union
-            (Maybe.filter (pPlainA key) ma)
-            (Maybe.filter (pPlainB key) ma)
-        ∎
-
-      eq-key = λ key → 
+      eq-key
+        : ∀ (key : k)
+        → lookup key (withoutKeys m (Set.intersection ka kb))
+          ≡ lookup key (union (withoutKeys m ka) (withoutKeys m kb))
+      eq-key key =
         begin
           lookup key (withoutKeys m (Set.intersection ka kb))
-        ≡⟨⟩
-          lookup key (filterWithKey pIntersection m)
-        ≡⟨ prop-lookup-filterWithKey key m pIntersection ⟩
-          Maybe.filter (pIntersection key) (lookup key m)
-       ≡⟨ lem2 key (lookup key m) ⟩
+        ≡⟨ prop-lookup-withoutKeys key m (Set.intersection ka kb) ⟩
+          Maybe.filt pab (lookup key m)
+        ≡⟨ cong (λ o → Maybe.filt o (lookup key m)) lem-pab ⟩
+          Maybe.filt (pa || pb) (lookup key m)
+        ≡⟨ Maybe.prop-filt-|| pa pb {lookup key m} ⟩
           Maybe.union
-            (Maybe.filter (pPlainA key) (lookup key m))
-            (Maybe.filter (pPlainB key) (lookup key m))
-        ≡⟨ cong (λ o → Maybe.union o (Maybe.filter (pPlainB key) (lookup key m))) (sym (prop-lookup-filterWithKey key m pPlainA)) ⟩
+            (Maybe.filt pa (lookup key m))
+            (Maybe.filt pb (lookup key m))
+        ≡⟨ cong (λ o → Maybe.union o (Maybe.filt pb (lookup key m))) (sym (prop-lookup-withoutKeys key m ka)) ⟩
           Maybe.union
-            (lookup key (filterWithKey pPlainA m))
-            (Maybe.filter (pPlainB key) (lookup key m))
-        ≡⟨ cong (λ o → Maybe.union (lookup key (filterWithKey pPlainA m)) o) (sym (prop-lookup-filterWithKey key m pPlainB)) ⟩
+            (lookup key (withoutKeys m ka))
+            (Maybe.filt pb (lookup key m))
+        ≡⟨ cong (λ o → Maybe.union (lookup key (withoutKeys m ka)) o) (sym (prop-lookup-withoutKeys key m kb)) ⟩
           Maybe.union
-            (lookup key (filterWithKey pPlainA m))
-            (lookup key (filterWithKey pPlainB m))
+            (lookup key (withoutKeys m ka))
+            (lookup key (withoutKeys m kb))
         ≡⟨ sym (prop-lookup-union key _ _) ⟩
           lookup key (union (withoutKeys m ka) (withoutKeys m kb))
         ∎
+        where
+          pa = not (Set.member key ka)
+          pb = not (Set.member key kb)
+          pab = not (Set.member key (Set.intersection ka kb))
 
-{-----------------------------------------------------------------------------
-    Test proofs
-------------------------------------------------------------------------------}
-
---
-@0 prop-withoutKeys-empty
-  : ∀ {k a} {{_ : Ord k}}
-      (key : k) (m : Map k a)
-  → lookup key (withoutKeys m Set.empty)
-    ≡ lookup key m
---
-prop-withoutKeys-empty {k} {a} key m =
-  case (lookup key m) of λ where
-    (Just x) {{eq}} →
-      begin
-        lookup key (withoutKeys m Set.empty)
-      ≡⟨ prop-lookup-filterWithKey-Just key x m p eq ⟩
-        (if p key x then Just x else Nothing)
-      ≡⟨ cong (λ b → if not b then Just x else Nothing) (Set.prop-member-empty key) ⟩
-        (if True then Just x else Nothing)
-      ≡⟨ sym eq ⟩
-        lookup key m
-      ∎
-    Nothing {{eq}} →
-      begin
-        lookup key (withoutKeys m Set.empty)
-      ≡⟨ prop-lookup-filterWithKey-Nothing key m p eq ⟩
-        Nothing
-      ≡⟨ sym eq ⟩
-        lookup key m
-      ∎
-  where
-    p : k → a → Bool
-    p = λ k _ → not (Set.member k Set.empty)
- 
+          lem-pab : pab ≡ (pa || pb)
+          lem-pab =
+            begin
+              not (Set.member key (Set.intersection ka kb))
+            ≡⟨ cong not (Set.prop-member-intersection key ka kb) ⟩
+              not (Set.member key ka && Set.member key kb)
+            ≡⟨ prop-deMorgan-not-&& (Set.member key ka) (Set.member key kb) ⟩
+              (not (Set.member key ka) || not (Set.member key kb))
+            ∎
