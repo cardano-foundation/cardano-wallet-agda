@@ -8,6 +8,7 @@ module Language.Agda2hs.Agda.Types
     ( -- * Identifiers
       AgdaIdentifier
     , TypeSignature
+    , isProperty
 
     -- * Documentation
     , AgdaDocumentation
@@ -77,7 +78,7 @@ type ExportList = [ExportItem]
 filterProperties :: AgdaDocumentation -> AgdaDocumentation
 filterProperties = Map.filterWithKey (const . isProperty)
 
--- My naming convention for logical properties.
+-- | My naming convention for logical properties.
 isProperty :: AgdaIdentifier -> Bool
 isProperty name = "prop-" `isPrefixOf` name
 
