@@ -1,4 +1,23 @@
-module Cardano.Wallet.Address.Encoding where
+module Cardano.Wallet.Address.Encoding
+    ( -- * Credentials
+      KeyHash
+    , keyHashFromXPub
+    , Credential (..)
+    , credentialFromXPub
+      -- $prop-credentialFromXPub-injective
+
+      -- * Addresses
+
+      -- ** Algebraic types
+    , NetworkTag (..)
+    , fromNetworkId
+    , EnterpriseAddr (..)
+
+      -- ** Binary format
+    , compactAddrFromEnterpriseAddr
+      -- $prop-compactAddrFromEnterpriseAddr-injective
+    )
+where
 
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, rawSerialiseXPub)
 import Cardano.Wallet.Address.Hash (blake2b'224)
@@ -8,8 +27,16 @@ import Data.Word (Word8)
 import Haskell.Data.ByteString.Short (ShortByteString, singleton, toShort)
 import Haskell.Data.Maybe (fromJust)
 
+-- |
+-- Hash of a public key.
 type KeyHash = ShortByteString
 
+-- |
+-- A 'Credential' is the hash of a public key or a script.
+-- Credentials represent the owner of the corresponding private keys,
+-- or the script.
+--
+-- (Work in progress: Script hashes are not represented yet.)
 data Credential = KeyHashObj KeyHash
 
 -- |
@@ -31,17 +58,23 @@ fromNetworkId (Testnet x) = TestnetTag
 
 -- |
 -- Algebraic representation of an enterprise address.
+--
+-- An enterprise address consists of a single payment credential
+-- which guards who can spend funds at this address.
+-- Enterprise addresses do not participate in stake delegation.
 data EnterpriseAddr = EnterpriseAddrC
     { net :: NetworkTag
     , pay :: Credential
     }
 
+-- |
+-- Hash a public key.
 keyHashFromXPub :: XPub -> KeyHash
 keyHashFromXPub xpub =
     toShort (blake2b'224 (rawSerialiseXPub xpub))
 
 -- |
--- Hash public key to obtain a payment or stake credential.
+-- Hash a public key to obtain a 'Credential'.
 credentialFromXPub :: XPub -> Credential
 credentialFromXPub xpub =
     KeyHashObj (toShort (blake2b'224 (rawSerialiseXPub xpub)))
@@ -63,7 +96,7 @@ bytesFromEnterpriseAddr
         singleton (toEnterpriseTag network0) <> hash
 
 -- |
--- Compact from of an 'EnterpriseAddr'.
+-- Compact / serialized form of an 'EnterpriseAddr'.
 compactAddrFromEnterpriseAddr :: EnterpriseAddr -> CompactAddr
 compactAddrFromEnterpriseAddr addr =
     fromJust (fromShortByteString (bytesFromEnterpriseAddr addr))

@@ -1,4 +1,32 @@
-module Cardano.Wallet.Deposit.Pure.Address where
+module Cardano.Wallet.Deposit.Pure.Address
+    ( -- * Deriving addresses
+      Customer
+    , deriveCustomerAddress
+
+      -- * AddressState
+
+      -- ** Construction
+    , AddressState
+    , getNetworkTag
+    , getXPub
+    , emptyFromXPub
+    , fromXPubAndCount
+
+      -- ** Address observation
+    , isCustomerAddress
+    , isOurs
+    , getBIP32Path
+    , listCustomers
+    , knownCustomerAddress
+
+      -- ** Address creation
+    , createAddress
+      -- $prop-create-derive
+      -- $prop-create-known
+    , newChangeAddress
+      -- $prop-changeAddress-not-Customer
+    )
+where
 
 import Cardano.Wallet.Address.BIP32
     ( BIP32Path (Root, Segment)

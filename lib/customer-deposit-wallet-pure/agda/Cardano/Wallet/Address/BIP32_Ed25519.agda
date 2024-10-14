@@ -1,6 +1,25 @@
 {-# OPTIONS --erasure #-}
 
-module Cardano.Wallet.Address.BIP32_Ed25519 where
+module Cardano.Wallet.Address.BIP32_Ed25519
+  {-|
+  -- * Types
+  ; XPub
+  ; XPrv
+  ; XSignature
+    ; toXPub
+    ; sign
+    ; verify
+
+  -- * Serialization
+  ; rawSerialiseXPub
+  ; rawSerialiseXPrv
+  ; rawSerialiseXSignature
+
+  -- * Key derivation
+  ; deriveXPubSoft
+  ; deriveXPrvSoft
+  ; deriveXPrvHard
+  -} where
 
 open import Haskell.Prelude hiding (fromJust)
 open import Haskell.Reasoning
@@ -55,6 +74,8 @@ postulate
       in  verify xpub msg (sign xprv msg) ≡ True
 
 {-# FOREIGN AGDA2HS
+  -- * Types
+
   -- FIXME: We define type synonyms here so that
   -- they can be exported. Ideally, we would re-export from
   -- the Cardano.Wallet.Crypto module.
@@ -104,6 +125,8 @@ postulate
     → x ≡ y
 
 {-# FOREIGN AGDA2HS
+  -- * Serialization
+
   -- | Serialize an 'XPub' to a sequence of bytes.
   rawSerialiseXPub :: XPub → ByteString
   rawSerialiseXPub = CC.unXPub
@@ -160,6 +183,8 @@ postulate
     → ix1 ≡ ix2
 
 {-# FOREIGN AGDA2HS
+  -- * Key derivation
+
   -- | Embed a smaller Word into a larger Word.
   word32fromWord31 :: Word31 → Word32
   word32fromWord31 = fromInteger . toInteger

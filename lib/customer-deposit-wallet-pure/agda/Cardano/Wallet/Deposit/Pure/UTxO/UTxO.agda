@@ -1,22 +1,38 @@
 {-# OPTIONS --erasure #-}
 
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
-    {-
+    {-|
     ; UTxO
       ; null
       ; empty
       ; dom
       ; balance
       ; union
+        ; prop-union-empty-left
+        ; prop-union-empty-right
+        ; prop-union-assoc
       ; excluding
+        ; prop-excluding-empty
+        ; prop-excluding-dom
+        ; prop-excluding-absorb
+        ; prop-excluding-excluding
+        ; prop-excluding-difference
+        ; prop-excluding-intersection
+        ; prop-excluding-union
       ; restrictedBy
       ; excludingS
+        ; prop-excluding-excludingS
       ; filterByAddress
+        ; prop-filterByAddress-filters
     -}
     where
 
 open import Haskell.Reasoning
 open import Haskell.Prelude hiding (null; f)
+
+{-# FOREIGN ADGA2HS
+import Prelude hiding (null)
+#-}
 
 open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
@@ -148,6 +164,16 @@ prop-excluding-empty utxo =
   Map.prop-withoutKeys-empty utxo
 
 -- |
+-- Excluding the entire domain gives the empty 'UTxO'.
+--
+prop-excluding-dom
+  : ∀ {utxo : UTxO}
+  → dom utxo ⋪ utxo ≡ empty
+--
+prop-excluding-dom {utxo} =
+  Map.prop-withoutKeys-keysSet utxo
+
+-- |
 -- 'union' is associative.
 --
 prop-union-assoc
@@ -225,16 +251,6 @@ prop-excluding-difference
 --
 prop-excluding-difference {x} {y} {utxo} =
   Map.prop-withoutKeys-difference utxo x y
-
--- |
--- Excluding the entire domain gives the empty 'UTxO'.
---
-prop-excluding-dom
-  : ∀ {utxo : UTxO}
-  → dom utxo ⋪ utxo ≡ empty
---
-prop-excluding-dom {utxo} =
-  Map.prop-withoutKeys-keysSet utxo
 
 -- |
 -- Restricting to the entire domain does nothing.
