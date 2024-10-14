@@ -19,6 +19,9 @@ import Control.Exception
 import Language.Agda2hs.Agda.Parser
     ( parseFileAgdaDocumentation
     )
+import Language.Agda2hs.Agda.Parser.ExportList
+    ( parseFileExportList
+    )
 import Language.Agda2hs.Agda.Types
     ( AgdaDocumentation
     , DocItem (..)
@@ -28,7 +31,7 @@ import Language.Agda2hs.Haskell.Parser
     ( parseFileHaskellModule
     )
 import Language.Agda2hs.Haskell.Types
-    ( HaskellModule
+    ( HaskellModule (..)
     , Line
     , appendHaddockNamedChunks
     , appendHaddockSection
@@ -71,16 +74,20 @@ modifyFileAddingDocumentation agdaPath haskellPath = do
         agdaDoc <-
             maybe (throw $ ErrParseErrorAgda agdaPath) pure
                 $ parseFileAgdaDocumentation agdaPath agdaCode
+        exports <-
+            maybe (throw $ ErrParseErrorAgda agdaPath) pure
+                $ parseFileExportList agdaPath agdaCode
 
         haskellCode <- readFile' haskellPath
         haskell0 <-
             maybe (throw $ ErrParseErrorHaskell haskellPath) pure
                 $ parseFileHaskellModule haskellPath haskellCode
 
-        let haskell1 = patchAgdaDocumentation agdaDoc haskell0
+        let haskell1 = haskell0 { exportList = exports }
+            haskell2 = patchAgdaDocumentation agdaDoc haskell1
 
---        putStrLn $ prettyHaskellModule haskell1
-        writeFile haskellPath $ prettyHaskellModule haskell1
+--        putStrLn $ prettyHaskellModule haskell2
+        writeFile haskellPath $ prettyHaskellModule haskell2
 
 -- | Add documentation from the .agda module to a generated .hs module.
 patchAgdaDocumentation
