@@ -40,6 +40,7 @@ import qualified Haskell.Data.Map as Map
     , withoutKeys
     )
 import qualified Haskell.Data.Set as Set (filter)
+import Prelude hiding (null, subtract)
 
 -- |
 -- The type 'UTxO' is used to keep track of unspent transaction outputs.

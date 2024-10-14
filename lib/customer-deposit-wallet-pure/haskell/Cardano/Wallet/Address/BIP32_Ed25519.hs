@@ -2,6 +2,8 @@
 
 module Cardano.Wallet.Address.BIP32_Ed25519 where
 
+import Prelude hiding (null, subtract)
+
 import qualified Cardano.Crypto.Wallet as CC
 import Data.ByteString
     ( ByteString

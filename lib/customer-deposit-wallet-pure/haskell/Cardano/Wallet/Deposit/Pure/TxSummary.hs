@@ -6,6 +6,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
 import Cardano.Wallet.Read.Chain (ChainPoint (GenesisPoint))
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (Tx, TxId, getTxId)
+import Prelude hiding (null, subtract)
 
 -- |
 -- A 'TxSummary' summarizes a transaction.

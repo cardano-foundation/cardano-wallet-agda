@@ -1,5 +1,7 @@
 module Haskell.Data.Maybe where
 
+import Prelude hiding (null, subtract)
+
 isNothing :: Maybe a -> Bool
 isNothing (Just _) = False
 isNothing Nothing = True

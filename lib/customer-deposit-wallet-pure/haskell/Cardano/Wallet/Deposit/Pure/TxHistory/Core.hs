@@ -52,6 +52,7 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , toAscList
     )
 import qualified Haskell.Data.Set as Set (fromList)
+import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.TxHistory.Type

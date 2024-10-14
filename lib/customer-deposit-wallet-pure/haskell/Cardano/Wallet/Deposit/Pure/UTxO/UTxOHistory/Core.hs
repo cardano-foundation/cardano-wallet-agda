@@ -49,6 +49,7 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , takeWhileAntitone
     )
 import qualified Haskell.Data.Set as Set (difference, intersection)
+import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type

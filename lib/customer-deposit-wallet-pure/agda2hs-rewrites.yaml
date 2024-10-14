@@ -1,5 +1,8 @@
 prelude:
   implicit: true
+  hiding:
+    - "null"
+    - "subtract"
 
 rewrites:
   - from: "Haskell.Data.Set.ℙ"

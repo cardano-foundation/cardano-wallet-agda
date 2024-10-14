@@ -3,6 +3,7 @@
 module Cardano.Wallet.Address.BIP32 where
 
 import Data.Word.Odd (Word31)
+import Prelude hiding (null, subtract)
 
 -- |
 -- Method for deriving child keys.

@@ -26,6 +26,7 @@ import Cardano.Wallet.Read.Chain (NetworkId (Mainnet, Testnet))
 import Data.Word (Word8)
 import Haskell.Data.ByteString.Short (ShortByteString, singleton, toShort)
 import Haskell.Data.Maybe (fromJust)
+import Prelude hiding (null, subtract)
 
 -- |
 -- Hash of a public key.

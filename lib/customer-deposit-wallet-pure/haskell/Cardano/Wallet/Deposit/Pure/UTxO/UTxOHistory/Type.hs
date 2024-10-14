@@ -6,6 +6,7 @@ import Cardano.Wallet.Read.Block (SlotNo)
 import Cardano.Wallet.Read.Chain (Slot)
 import Cardano.Wallet.Read.Tx (TxIn)
 import Haskell.Data.Maps.Timeline (Timeline)
+import Prelude hiding (null, subtract)
 
 -- |
 -- UTxO history.

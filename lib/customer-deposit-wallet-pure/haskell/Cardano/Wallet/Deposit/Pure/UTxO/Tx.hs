@@ -57,6 +57,7 @@ import qualified Haskell.Data.Map as Map
     , map
     , unionWith
     )
+import Prelude hiding (null, subtract)
 
 -- |
 -- Remove unspent outputs that are consumed by the given transaction.
