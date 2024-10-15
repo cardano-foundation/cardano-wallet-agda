@@ -22,6 +22,7 @@ import qualified Haskell.Data.Maps.InverseMap as InverseMap
     )
 import Haskell.Data.Maybe (fromMaybe)
 import qualified Haskell.Data.Set as Set (empty, toAscList)
+import Prelude hiding (null, subtract)
 
 -- |
 -- Insert a set of keys into a 'Map' that all have the same value.

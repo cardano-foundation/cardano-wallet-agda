@@ -45,6 +45,7 @@ parseFileHaskellModule filename file =
         HaskellModule
         { contents = lines file
         , topLevelDeclarations = collectTopLevelDeclarations parsedModule
+        , exportList = Nothing
         , comments = Map.empty
         }
 

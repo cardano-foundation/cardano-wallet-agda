@@ -2,28 +2,23 @@
 -- 'UTxOHistory' represents a history of a UTxO set that can be rolled
 -- back (up to the 'finality' point).
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core
-    {-
-      -- * Types
-      UTxOHistory
-    , Spent (..)
+    {-|
+      -- * UTxOHistory
+    ; UTxOHistory
 
-      -- * Observations
-    , getTip
-    , getFinality
-    , empty
-    , getUTxO
+    ; empty
+    ; getUTxO
+    ; getRollbackWindow
 
       -- * Changes
-    , DeltaUTxOHistory (..)
+    ; DeltaUTxOHistory (..)
+    ; applyDeltaUTxOHistory
+    ; appendBlock
+    ; rollback
+    ; prune
 
-      -- * For testing
-    , getSpent
-
-      -- * Store helpers
-    , constrainingPrune
-    , constrainingRollback
-    , constrainingAppendBlock
-    , reverseMapOfSets
+      -- * Internal
+    ; getSpent
     -}
     where
 
@@ -75,13 +70,6 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
 
 variable
   key v : Set
-
--- | (Internal, exported for technical reasons.)
-guard : Bool → Maybe ⊤
-guard True = Just tt
-guard False = Nothing
-
-{-# COMPILE AGDA2HS guard #-}
 
 {-----------------------------------------------------------------------------
     Basic functions
@@ -247,3 +235,5 @@ applyDeltaUTxOHistory (Rollback newTip) =
     rollback newTip
 applyDeltaUTxOHistory (Prune newFinality) =
     prune newFinality
+
+{-# COMPILE AGDA2HS applyDeltaUTxOHistory #-}

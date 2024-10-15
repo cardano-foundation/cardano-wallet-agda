@@ -1,4 +1,21 @@
-module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core where
+module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core
+    ( -- * UTxOHistory
+      UTxOHistory
+    , empty
+    , getUTxO
+    , getRollbackWindow
+
+      -- * Changes
+    , DeltaUTxOHistory (..)
+    , applyDeltaUTxOHistory
+    , appendBlock
+    , rollback
+    , prune
+
+      -- * Internal
+    , getSpent
+    )
+where
 
 import qualified Cardano.Wallet.Deposit.Pure.RollbackWindow as RollbackWindow
     ( MaybeRollback (Future, Past, Present)
@@ -32,17 +49,12 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , takeWhileAntitone
     )
 import qualified Haskell.Data.Set as Set (difference, intersection)
+import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     ( UTxOHistory (..)
     )
-
--- |
--- (Internal, exported for technical reasons.)
-guard :: Bool -> Maybe ()
-guard True = Just ()
-guard False = Nothing
 
 -- |
 -- An empty UTxO history
@@ -172,3 +184,12 @@ prune newFinality old =
                 (snd (Timeline.dropWhileAntitone (<= newFinality) (spent old)))
                 window'
                 (boot old)
+
+-- |
+-- How to apply a DeltaUTxOHistory to a UTxOHistory
+applyDeltaUTxOHistory
+    :: DeltaUTxOHistory -> UTxOHistory -> UTxOHistory
+applyDeltaUTxOHistory (AppendBlock newTip delta) =
+    appendBlock newTip delta
+applyDeltaUTxOHistory (Rollback newTip) = rollback newTip
+applyDeltaUTxOHistory (Prune newFinality) = prune newFinality

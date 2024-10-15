@@ -15,6 +15,7 @@ import qualified Haskell.Data.Map as Map
     , update
     )
 import Haskell.Data.Maybe (fromMaybe)
+import Prelude hiding (null, subtract)
 
 explicitEmpty :: Ord a => Map a v -> Maybe (Map a v)
 explicitEmpty m = if Map.null m then Nothing else Just m

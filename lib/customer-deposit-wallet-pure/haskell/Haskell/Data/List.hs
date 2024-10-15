@@ -2,6 +2,8 @@
 
 module Haskell.Data.List where
 
+import Prelude hiding (null, subtract)
+
 import qualified Data.List
 
 foldl'

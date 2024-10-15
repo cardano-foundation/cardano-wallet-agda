@@ -1,6 +1,25 @@
 {-# OPTIONS --erasure #-}
 
-module Cardano.Wallet.Address.Encoding where
+module Cardano.Wallet.Address.Encoding
+  {-|
+  -- * Credentials
+  ; KeyHash
+    ; keyHashFromXPub
+  ; Credential (..)
+    ; credentialFromXPub
+    ; prop-credentialFromXPub-injective
+
+  -- * Addresses
+  -- ** Algebraic types
+  ; NetworkTag (..)
+    ; fromNetworkId
+  ; EnterpriseAddr (..)
+
+  -- ** Binary format
+  ; compactAddrFromEnterpriseAddr
+    ; prop-compactAddrFromEnterpriseAddr-injective
+  -}
+  where
 
 open import Haskell.Reasoning
 open import Haskell.Prelude hiding (fromJust)
@@ -42,9 +61,15 @@ open import Haskell.Data.Word using
 {-----------------------------------------------------------------------------
     Algebraic data type for Enterprise addresses
 ------------------------------------------------------------------------------}
+-- | Hash of a public key.
 KeyHash : Set
 KeyHash = ShortByteString
 
+-- | A 'Credential' is the hash of a public key or a script.
+-- Credentials represent the owner of the corresponding private keys,
+-- or the script.
+--
+-- (Work in progress: Script hashes are not represented yet.)
 data Credential : Set where
   KeyHashObj : KeyHash → Credential
 
@@ -64,6 +89,10 @@ fromNetworkId Mainnet = MainnetTag
 fromNetworkId (Testnet x) = TestnetTag
 
 -- | Algebraic representation of an enterprise address.
+--
+-- An enterprise address consists of a single payment credential
+-- which guards who can spend funds at this address.
+-- Enterprise addresses do not participate in stake delegation.
 record EnterpriseAddr : Set where
   constructor EnterpriseAddrC
   field
@@ -89,10 +118,11 @@ prop-KeyHashObj-injective x y refl = refl
 {-----------------------------------------------------------------------------
     XPubs and hashes
 ------------------------------------------------------------------------------}
+-- | Hash a public key.
 keyHashFromXPub : XPub → KeyHash
 keyHashFromXPub xpub = toShort (blake2b'224 (rawSerialiseXPub xpub))
 
--- | Hash public key to obtain a payment or stake credential.
+-- | Hash a public key to obtain a 'Credential'.
 credentialFromXPub : XPub → Credential
 credentialFromXPub xpub =
   KeyHashObj (toShort (blake2b'224 (rawSerialiseXPub xpub)))
@@ -137,7 +167,7 @@ postulate
     : ∀ (addr : EnterpriseAddr)
     → isJust (fromShortByteString (bytesFromEnterpriseAddr addr)) ≡ True
 
--- | Compact from of an 'EnterpriseAddr'.
+-- | Compact / serialized form of an 'EnterpriseAddr'.
 compactAddrFromEnterpriseAddr : EnterpriseAddr → CompactAddr
 compactAddrFromEnterpriseAddr addr =
   fromJust

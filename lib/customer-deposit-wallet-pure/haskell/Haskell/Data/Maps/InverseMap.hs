@@ -11,6 +11,7 @@ import qualified Haskell.Data.Map as Map
     , update
     )
 import qualified Haskell.Data.Set as Set (delete, null, singleton, union)
+import Prelude hiding (null, subtract)
 
 type InverseMap key v = Map v (Set key)
 

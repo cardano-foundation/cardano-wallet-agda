@@ -58,6 +58,9 @@ executable agda2hs-fixer
   main-is:          agda2hs-fixer.hs
   other-modules:
     Language.Agda2hs.Agda.Parser
+    Language.Agda2hs.Agda.Parser.ExportList
+    Language.Agda2hs.Agda.Parser.Lexer
+    Language.Agda2hs.Agda.Parser.Types
     Language.Agda2hs.Agda.Types
     Language.Agda2hs.Documentation
     Language.Agda2hs.Haskell.Parser

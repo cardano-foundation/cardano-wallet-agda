@@ -14,8 +14,8 @@ import Prelude
 import Data.List
     ( isPrefixOf
     )
-import Data.Void
-    ( Void
+import Language.Agda2hs.Agda.Parser.Types
+    ( Parser
     )
 import Language.Agda2hs.Agda.Types
     ( AgdaIdentifier
@@ -26,7 +26,6 @@ import Language.Agda2hs.Agda.Types
     )
 import Text.Megaparsec
     ( MonadParsec (notFollowedBy, takeWhileP, try)
-    , Parsec
     , (<|>)
     , anySingle
     , empty
@@ -41,8 +40,6 @@ import Text.Megaparsec
 import qualified Data.Map.Strict as Map
 import qualified Text.Megaparsec.Char as C
 import qualified Text.Megaparsec.Char.Lexer as L
-
-type Parser = Parsec Void String
 
 {-----------------------------------------------------------------------------
     Parser functions

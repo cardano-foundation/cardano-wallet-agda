@@ -2,6 +2,8 @@
 
 module Cardano.Wallet.Address.BIP32_Ed25519 where
 
+import Prelude hiding (null, subtract)
+
 import qualified Cardano.Crypto.Wallet as CC
 import Data.ByteString
     ( ByteString
@@ -16,6 +18,8 @@ import Data.Word
 import Data.Word.Odd
     ( Word31
     )
+
+-- * Types
 
 -- FIXME: We define type synonyms here so that
 -- they can be exported. Ideally, we would re-export from
@@ -54,6 +58,8 @@ sign = CC.sign BS.empty
 verify :: XPub -> ByteString -> XSignature -> Bool
 verify = CC.verify
 
+-- * Serialization
+
 -- | Serialize an 'XPub' to a sequence of bytes.
 rawSerialiseXPub :: XPub -> ByteString
 rawSerialiseXPub = CC.unXPub
@@ -65,6 +71,8 @@ rawSerialiseXPrv = CC.unXPrv
 -- | Serialize an 'XSignature' to a sequence of bytes.
 rawSerialiseXSignature :: XSignature -> ByteString
 rawSerialiseXSignature = CC.unXSignature
+
+-- * Key derivation
 
 -- | Embed a smaller Word into a larger Word.
 word32fromWord31 :: Word31 -> Word32

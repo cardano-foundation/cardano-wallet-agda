@@ -2,6 +2,8 @@
 
 module Cardano.Wallet.Address.Hash where
 
+import Prelude hiding (null, subtract)
+
 import Cardano.Crypto.Hash
     ( Blake2b_224
     , Blake2b_256

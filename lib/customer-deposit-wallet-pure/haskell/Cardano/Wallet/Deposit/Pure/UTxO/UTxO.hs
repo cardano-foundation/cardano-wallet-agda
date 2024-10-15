@@ -1,4 +1,28 @@
-module Cardano.Wallet.Deposit.Pure.UTxO.UTxO where
+module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
+    ( UTxO
+    , null
+    , empty
+    , dom
+    , balance
+    , union
+      -- $prop-union-empty-left
+      -- $prop-union-empty-right
+      -- $prop-union-assoc
+    , excluding
+      -- $prop-excluding-empty
+      -- $prop-excluding-dom
+      -- $prop-excluding-absorb
+      -- $prop-excluding-excluding
+      -- $prop-excluding-difference
+      -- $prop-excluding-intersection
+      -- $prop-excluding-union
+    , restrictedBy
+    , excludingS
+      -- $prop-excluding-excludingS
+    , filterByAddress
+      -- $prop-filterByAddress-filters
+    )
+where
 
 import Cardano.Wallet.Deposit.Read.Temp (Address)
 import Cardano.Wallet.Read.Tx (TxIn, TxOut, getCompactAddr, getValue)
@@ -16,6 +40,7 @@ import qualified Haskell.Data.Map as Map
     , withoutKeys
     )
 import qualified Haskell.Data.Set as Set (filter)
+import Prelude hiding (null, subtract)
 
 -- |
 -- The type 'UTxO' is used to keep track of unspent transaction outputs.

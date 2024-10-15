@@ -2,21 +2,30 @@
 
 -- Address management for the Customer Deposit Wallet
 module Cardano.Wallet.Deposit.Pure.Address
-    {-
-    ; deriveAddress
+    {-|
+    -- * Deriving addresses
     ; Customer
       ; deriveCustomerAddress
+
+    -- * AddressState
+    -- ** Construction
     ; AddressState
+      ; getNetworkTag
+      ; getXPub
+      ; emptyFromXPub
+      ; fromXPubAndCount
+
+    -- ** Address observation
+      ; isCustomerAddress
       ; isOurs
+      ; getBIP32Path
       ; listCustomers
       ; knownCustomerAddress
 
+    -- ** Address creation
       ; createAddress
       ; prop-create-derive
       ; prop-create-known
-
-      ; fromXPubAndCount
-      ; getXPub
 
       ; newChangeAddress
       ; prop-changeAddress-not-Customer

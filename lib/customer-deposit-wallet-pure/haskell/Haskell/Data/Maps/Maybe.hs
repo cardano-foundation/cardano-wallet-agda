@@ -1,5 +1,7 @@
 module Haskell.Data.Maps.Maybe where
 
+import Prelude hiding (null, subtract)
+
 update :: (a -> Maybe a) -> Maybe a -> Maybe a
 update f Nothing = Nothing
 update f (Just x) = f x

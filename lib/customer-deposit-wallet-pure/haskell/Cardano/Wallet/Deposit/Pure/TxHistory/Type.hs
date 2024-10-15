@@ -7,6 +7,7 @@ import Cardano.Wallet.Read.Tx (TxId)
 import Haskell.Data.Map (Map)
 import Haskell.Data.Maps.PairMap (PairMap)
 import Haskell.Data.Maps.Timeline (Timeline)
+import Prelude hiding (null, subtract)
 
 -- |
 -- 'TxHistory'.

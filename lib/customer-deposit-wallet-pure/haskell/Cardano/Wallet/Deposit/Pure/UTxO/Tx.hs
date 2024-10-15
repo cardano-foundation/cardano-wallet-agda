@@ -1,4 +1,17 @@
-module Cardano.Wallet.Deposit.Pure.UTxO.Tx where
+module Cardano.Wallet.Deposit.Pure.UTxO.Tx
+    ( -- * Applying Transactions to UTxO
+      IsOurs
+    , applyTx
+
+      -- * Resolved Transactions
+    , ResolvedTx (..)
+    , resolveInputs
+
+      -- * Value transfer from transactions
+    , valueTransferFromDeltaUTxO
+    , valueTransferFromResolvedTx
+    )
+where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     ( DeltaUTxO (excluded, received)
@@ -44,6 +57,7 @@ import qualified Haskell.Data.Map as Map
     , map
     , unionWith
     )
+import Prelude hiding (null, subtract)
 
 -- |
 -- Remove unspent outputs that are consumed by the given transaction.
@@ -66,7 +80,7 @@ utxoFromTxOutputs :: IsEra era => Tx era -> UTxO
 utxoFromTxOutputs = utxoFromEraTx
 
 -- |
--- Tyep for a predicate that tests whether @addr@ belongs to us.
+-- Type for a predicate that tests whether @addr@ belongs to us.
 type IsOurs addr = addr -> Bool
 
 -- |

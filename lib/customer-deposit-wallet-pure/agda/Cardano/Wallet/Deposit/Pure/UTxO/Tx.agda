@@ -1,7 +1,20 @@
 {-# OPTIONS --erasure #-}
 
 -- | Applying transactions to a UTxO set.
-module Cardano.Wallet.Deposit.Pure.UTxO.Tx where
+module Cardano.Wallet.Deposit.Pure.UTxO.Tx
+  {-|
+  -- * Applying Transactions to UTxO
+  ; IsOurs
+  ; applyTx
+
+  -- * Resolved Transactions
+  ; ResolvedTx (..)
+  ; resolveInputs
+  
+  -- * Value transfer from transactions
+  ; valueTransferFromDeltaUTxO
+  ; valueTransferFromResolvedTx
+  -} where
 
 open import Haskell.Prelude
 
@@ -63,7 +76,7 @@ utxoFromTxOutputs = utxoFromEraTx
 {-----------------------------------------------------------------------------
     Apply Transactions
 ------------------------------------------------------------------------------}
--- | Tyep for a predicate that tests whether @addr@ belongs to us.
+-- | Type for a predicate that tests whether @addr@ belongs to us.
 IsOurs : Set → Set
 IsOurs addr = addr -> Bool
 

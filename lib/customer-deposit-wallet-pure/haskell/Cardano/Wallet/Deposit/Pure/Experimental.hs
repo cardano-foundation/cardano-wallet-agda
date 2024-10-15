@@ -27,6 +27,7 @@ import Cardano.Write.Tx.Balance
     , balanceTransaction
     )
 import qualified Haskell.Data.Map as Map (Map, lookup)
+import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.Address

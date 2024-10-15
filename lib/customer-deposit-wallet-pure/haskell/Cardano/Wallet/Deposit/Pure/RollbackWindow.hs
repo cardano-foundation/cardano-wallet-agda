@@ -2,6 +2,8 @@
 
 module Cardano.Wallet.Deposit.Pure.RollbackWindow where
 
+import Prelude hiding (null, subtract)
+
 -- |
 -- (Internal function, exported for technical reasons.)
 if' :: Bool -> a -> a -> a

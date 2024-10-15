@@ -1,4 +1,32 @@
-module Cardano.Wallet.Deposit.Pure.Address where
+module Cardano.Wallet.Deposit.Pure.Address
+    ( -- * Deriving addresses
+      Customer
+    , deriveCustomerAddress
+
+      -- * AddressState
+
+      -- ** Construction
+    , AddressState
+    , getNetworkTag
+    , getXPub
+    , emptyFromXPub
+    , fromXPubAndCount
+
+      -- ** Address observation
+    , isCustomerAddress
+    , isOurs
+    , getBIP32Path
+    , listCustomers
+    , knownCustomerAddress
+
+      -- ** Address creation
+    , createAddress
+      -- $prop-create-derive
+      -- $prop-create-known
+    , newChangeAddress
+      -- $prop-changeAddress-not-Customer
+    )
+where
 
 import Cardano.Wallet.Address.BIP32
     ( BIP32Path (Root, Segment)
@@ -19,6 +47,7 @@ import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word.Odd (Word31)
 import qualified Haskell.Data.Map as Map (Map, empty, insert, lookup, toAscList)
 import Haskell.Data.Maybe (isJust)
+import Prelude hiding (null, subtract)
 
 -- |
 -- A 'Customer' is represented as a numerical ID.
