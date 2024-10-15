@@ -3,6 +3,7 @@
 module Haskell.Data.Maps.Timeline where
 
 open import Haskell.Prelude hiding (fromMaybe)
+open import Haskell.Reasoning
 
 open import Haskell.Data.List using
     ( foldl'
@@ -161,6 +162,14 @@ deleteAfter
     → time → Timeline time a → (ℙ a × Timeline time a)
 deleteAfter t = takeWhileAntitone (_<= t)
 
+-- | Drop all items whose timestamp is after a given time.
+--
+-- > dropAfter t = snd ∘ deleteAfter t
+dropAfter
+    : ∀ {{_ : Ord time}} {{_ : Ord a}}
+    → time → Timeline time a → Timeline time a
+dropAfter t = snd ∘ deleteAfter t
+
 -- | Restrict the items to timestamps @from < time && time <= to@.
 restrictRange
     : ∀ {{_ : Ord time}} {{_ : Ord a}}
@@ -183,4 +192,24 @@ restrictRange (from , to) =
 {-# COMPILE AGDA2HS takeWhileAntitone #-}
 {-# COMPILE AGDA2HS dropWhileAntitone #-}
 {-# COMPILE AGDA2HS deleteAfter #-}
+{-# COMPILE AGDA2HS dropAfter #-}
 {-# COMPILE AGDA2HS restrictRange #-}
+
+{-----------------------------------------------------------------------------
+    Properties
+------------------------------------------------------------------------------}
+postulate
+ -- | 'dropAfter' cancels 'insertMany' from the future.
+ prop-dropAfter-insertMany
+  : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
+      (t1 t2 : time) (ys : ℙ a) (xs : Timeline time a)
+  → (t1 < t2) ≡ True
+  → dropAfter t1 (insertMany t2 ys xs) ≡ dropAfter t1 xs
+
+ -- | 'deleteAfter' deletes all items from the future.
+ prop-deleteAfter-insertMany
+  : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
+      (t1 t2 : time) (ys : ℙ a) (xs : Timeline time a)
+  → (t1 < t2) ≡ True
+  → fst (deleteAfter t1 (insertMany t2 ys xs))
+    ≡ Set.union (fst (deleteAfter t1 xs)) ys
