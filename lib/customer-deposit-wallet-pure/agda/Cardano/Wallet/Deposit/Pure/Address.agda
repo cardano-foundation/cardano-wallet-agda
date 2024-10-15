@@ -21,6 +21,7 @@ module Cardano.Wallet.Deposit.Pure.Address
       ; getBIP32Path
       ; listCustomers
       ; knownCustomerAddress
+      ; getMaxCustomer
 
     -- ** Address creation
       ; createAddress
@@ -235,6 +236,7 @@ record AddressState : Set where
     stateXPub : XPub
     addresses : Map.Map Address Customer
 --    customers : Map.Map Customer Address
+    maxCustomer : Customer
 
     change    : Address
 
@@ -499,6 +501,15 @@ lemma-isCustomerAddress-knownCustomerAddress s addr =
   ∎
 
 {-----------------------------------------------------------------------------
+    Observations
+------------------------------------------------------------------------------}
+-- | Maximum 'Customer' number that is being tracked.
+getMaxCustomer : AddressState → Customer
+getMaxCustomer = maxCustomer
+
+{-# COMPILE AGDA2HS getMaxCustomer #-}
+
+{-----------------------------------------------------------------------------
     Operations
     Create address
 ------------------------------------------------------------------------------}
@@ -546,6 +557,7 @@ createAddress c s0 = ( addr , s1 )
       { networkId = networkId s0
       ; stateXPub = stateXPub s0
       ; addresses = addresses1
+      ; maxCustomer = max c (maxCustomer s0)
       ; change = change s0
       ; invariant-change = invariant-change s0
       ; invariant-customer = lem2
@@ -620,6 +632,7 @@ emptyFromXPub net xpub =
     { networkId = net
     ; stateXPub = xpub
     ; addresses = Map.empty
+    ; maxCustomer = 0
     ; change = deriveAddress (fromNetworkId net) xpub DerivationChange
     ; invariant-change = refl
     ; invariant-customer = λ addr eq →

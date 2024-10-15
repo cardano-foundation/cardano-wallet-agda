@@ -18,6 +18,7 @@ module Cardano.Wallet.Deposit.Pure.Address
     , getBIP32Path
     , listCustomers
     , knownCustomerAddress
+    , getMaxCustomer
 
       -- ** Address creation
     , createAddress
@@ -115,6 +116,7 @@ data AddressState = AddressStateC
     { networkId :: NetworkId
     , stateXPub :: XPub
     , addresses :: Map.Map Address Customer
+    , maxCustomer :: Customer
     , change :: Address
     }
 
@@ -184,6 +186,11 @@ knownCustomerAddress address =
     elem address . map (\r -> snd r) . listCustomers
 
 -- |
+-- Maximum 'Customer' number that is being tracked.
+getMaxCustomer :: AddressState -> Customer
+getMaxCustomer = \r -> maxCustomer r
+
+-- |
 -- Create a new associated between 'Customer' and known 'Address'.
 createAddress
     :: Customer -> AddressState -> (Address, AddressState)
@@ -204,6 +211,7 @@ createAddress c s0 = (addr, s1)
             (networkId s0)
             (stateXPub s0)
             addresses1
+            (max c (maxCustomer s0))
             (change s0)
 
 -- |
@@ -219,6 +227,7 @@ emptyFromXPub net xpub =
         net
         xpub
         Map.empty
+        0
         (deriveAddress (fromNetworkId net) xpub DerivationChange)
 
 -- |
