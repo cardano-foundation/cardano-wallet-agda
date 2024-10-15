@@ -46,6 +46,9 @@ module _ {k a : Set} {{_ : Ord k}} where
   keysSet : Map k a → Set.ℙ k
   keysSet = Set.fromList ∘ keys
 
+  size : Map k a → Int
+  size = length ∘ toAscList
+
   postulate
     prop-elem-keys
       : ∀ (key : k) (m : Map k a)
