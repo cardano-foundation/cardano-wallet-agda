@@ -212,7 +212,7 @@ lemma-derive-injective {net} =
 @0 lemma-derive-notCustomer
   : ∀ {net : NetworkTag} (xpub : XPub) (c : Customer)
   → ¬(deriveAddress net xpub DerivationChange
-    ≡ deriveCustomerAddress net xpub c)
+      ≡ deriveCustomerAddress net xpub c)
 --
 lemma-derive-notCustomer {net} xpub c eq =
     bang (lemma-derive-injective {net} {xpub} eq)
@@ -291,22 +291,20 @@ isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
   : ∀ (s : AddressState)
   → Map.lookup (change s) (addresses s) ≡ Nothing
 --
-lemma-change-not-known s =
-  case Map.lookup (change s) (addresses s) of λ
-    { (Just _) {{eq}} →
+lemma-change-not-known s
+  with Map.lookup (change s) (addresses s) in eq
+... | Just x =
         let (ix `witness` eq) =
               invariant-customer s (change s) (cong isJust eq)
-            net = getNetworkTag s
-
             lem1
               : deriveAddress net xpub DerivationChange
                 ≡ deriveCustomerAddress net xpub ix
             lem1 = trans (sym (invariant-change s)) eq
-        in  magic (lemma-derive-notCustomer xpub ix lem1)
-    ; Nothing {{eq}} → eq
-    }
-  where
-    xpub = stateXPub s
+        in  case lemma-derive-notCustomer xpub ix lem1 of λ ()
+    where
+      net = getNetworkTag s
+      xpub = stateXPub s
+... | Nothing = refl
 
 --
 @0 lemma-isChange-not-isCustomer
@@ -458,31 +456,14 @@ lemma-known-known' s a =
   ∎
 
 --
-@0 lemma-isCustomerAddress-knownCustomerAddress'
+lemma-isCustomerAddress-knownCustomerAddress'
   : ∀ (s : AddressState)
       (addr : Address)
   → isCustomerAddress s addr
     ≡ knownCustomerAddress' addr s
 --
 lemma-isCustomerAddress-knownCustomerAddress' s addr
-  = case Map.lookup addr (addresses s) of λ
-    { (Just x) {{eq}} →
-        begin
-          isCustomerAddress s addr
-        ≡⟨ cong isJust eq ⟩
-          True
-        ≡⟨ sym (Map.prop-lookup-toAscList-Just addr x (addresses s) eq) ⟩
-          knownCustomerAddress' addr s
-        ∎
-    ; Nothing {{eq}} →
-        begin
-          isCustomerAddress s addr
-        ≡⟨ cong isJust eq ⟩
-          False
-        ≡⟨ sym (Map.prop-lookup-toAscList-Nothing addr (addresses s) eq) ⟩
-          knownCustomerAddress' addr s
-        ∎
-    }
+  = sym (Map.prop-elem-keys addr (addresses s))
 
 --
 @0 lemma-isCustomerAddress-knownCustomerAddress
