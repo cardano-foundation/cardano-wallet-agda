@@ -131,8 +131,10 @@ toBIP32Path = addSuffix prefix
     addSuffix : BIP32Path → DerivationPath → BIP32Path
     addSuffix path DerivationChange =
         (BIP32Path.Segment
+        (BIP32Path.Segment
           path
           Soft 1)
+          Soft 0)
     addSuffix path (DerivationCustomer c) =
         (BIP32Path.Segment
         (BIP32Path.Segment
@@ -146,8 +148,10 @@ toBIP32Path = addSuffix prefix
 -- (Internal, exported for technical reasons.)
 xpubFromDerivationPath : XPub → DerivationPath → XPub
 xpubFromDerivationPath xpub DerivationChange =
+  (deriveXPubSoft
   (deriveXPubSoft xpub
     1)
+    0)
 xpubFromDerivationPath xpub (DerivationCustomer c) =
   (deriveXPubSoft
   (deriveXPubSoft xpub
@@ -184,11 +188,11 @@ deriveCustomerAddress net xpub c =
 lemma-xpubFromDerivationPath-injective {_} {DerivationCustomer x} {DerivationCustomer y} eq =
   cong DerivationCustomer (projr (prop-deriveXPubSoft-injective _ _ _ _ eq))
 lemma-xpubFromDerivationPath-injective {_} {DerivationCustomer x} {DerivationChange} eq =
-  case (prop-deriveXPubSoft-not-identity _ _ (projl (prop-deriveXPubSoft-injective _ _ _ _ eq))) of λ ()
+  case projr (prop-deriveXPubSoft-injective _ _ _ _ (projl (prop-deriveXPubSoft-injective _ _ _ _ eq))) of λ ()
 lemma-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationCustomer y} eq =
-  case (prop-deriveXPubSoft-not-identity _ _ (sym (projl (prop-deriveXPubSoft-injective _ _ _ _ eq)))) of λ ()
+  case projr (prop-deriveXPubSoft-injective _ _ _ _ (projl (prop-deriveXPubSoft-injective _ _ _ _ eq))) of λ ()
 lemma-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationChange} eq =
-  case (prop-deriveXPubSoft-injective _ _ _ _ eq) of λ { (refl `and` refl) → refl }
+  refl
 
 --
 @0 lemma-derive-injective
@@ -280,6 +284,7 @@ isChangeAddress : AddressState → Address → Bool
 isChangeAddress = λ s addr → change s == addr
 
 -- | Test whether an 'Address' belongs to the wallet.
+-- This can be an address of a 'Customer', or an internal change address.
 isOurs : AddressState → Address → Bool
 isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
 
@@ -368,7 +373,8 @@ getDerivationPath s addr =
 
 -- | Retrieve the full 'BIP32Path' of a known 'Address'.
 --
--- Returns 'Nothing' if the address is not known.
+-- Returns 'Nothing' if the address is not from a known 'Customer'
+-- or not equal to an internal change address.
 getBIP32Path : AddressState → Address → Maybe BIP32Path
 getBIP32Path s = fmap toBIP32Path ∘ getDerivationPath s
 
