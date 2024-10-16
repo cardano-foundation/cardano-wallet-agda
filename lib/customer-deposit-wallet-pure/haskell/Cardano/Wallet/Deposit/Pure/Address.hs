@@ -76,7 +76,8 @@ toBIP32Path = addSuffix prefix
             Hardened
             0
     addSuffix :: BIP32Path -> DerivationPath -> BIP32Path
-    addSuffix path DerivationChange = Segment path Soft 1
+    addSuffix path DerivationChange =
+        Segment (Segment path Soft 1) Soft 0
     addSuffix path (DerivationCustomer c) =
         Segment (Segment path Soft 0) Soft c
 
@@ -85,7 +86,7 @@ toBIP32Path = addSuffix prefix
 -- (Internal, exported for technical reasons.)
 xpubFromDerivationPath :: XPub -> DerivationPath -> XPub
 xpubFromDerivationPath xpub DerivationChange =
-    deriveXPubSoft xpub 1
+    deriveXPubSoft (deriveXPubSoft xpub 1) 0
 xpubFromDerivationPath xpub (DerivationCustomer c) =
     deriveXPubSoft (deriveXPubSoft xpub 0) c
 
@@ -138,6 +139,7 @@ isChangeAddress = \s -> (change s ==)
 
 -- |
 -- Test whether an 'Address' belongs to the wallet.
+-- This can be an address of a 'Customer', or an internal change address.
 isOurs :: AddressState -> Address -> Bool
 isOurs =
     \s addr -> isChangeAddress s addr || isCustomerAddress s addr
@@ -163,7 +165,8 @@ getDerivationPath s addr =
 -- |
 -- Retrieve the full 'BIP32Path' of a known 'Address'.
 --
--- Returns 'Nothing' if the address is not known.
+-- Returns 'Nothing' if the address is not from a known 'Customer'
+-- or not equal to an internal change address.
 getBIP32Path :: AddressState -> Address -> Maybe BIP32Path
 getBIP32Path s = fmap toBIP32Path . getDerivationPath s
 
