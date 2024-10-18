@@ -4,6 +4,7 @@
 module Cardano.Wallet.Read.Value where
 
 open import Haskell.Prelude
+open import Haskell.Reasoning
 
 {-----------------------------------------------------------------------------
     Coin
@@ -97,3 +98,7 @@ postulate
   prop-coin-inject
     : ∀ (c : Coin)
     → getCoin (injectCoin c) ≡ c
+
+  instance
+    iIsLawfulSemigroupValue : IsLawfulSemigroup Value
+    iIsLawfulMonoidValue : IsLawfulMonoid Value

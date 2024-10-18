@@ -1,9 +1,12 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer where
 
 open import Haskell.Prelude
+open import Haskell.Reasoning
 
 open import Cardano.Wallet.Read using
     ( Value
+      ; iIsLawfulSemigroupValue
+      ; iIsLawfulMonoidValue
     )
 
 import Cardano.Wallet.Read as Read
@@ -14,6 +17,7 @@ import Cardano.Wallet.Read as Read
 -- | Records a transfer of 'Value'
 -- — some 'Value' is spent, while other 'Value' is received.
 record ValueTransfer : Set where
+  constructor ValueTransferC
   field
     spent    : Value
     received : Value
@@ -54,3 +58,31 @@ instance
 {-# COMPILE AGDA2HS fromReceived #-}
 {-# COMPILE AGDA2HS iSemigroupValueTansfer #-}
 {-# COMPILE AGDA2HS iMonoidValueTransfer #-}
+
+{-----------------------------------------------------------------------------
+    Properties
+------------------------------------------------------------------------------}
+instance
+  
+  iIsLawfulSemigroupValueTransfer : IsLawfulSemigroup ValueTransfer
+  iIsLawfulSemigroupValueTransfer .associativity x y z
+    rewrite associativity iIsLawfulSemigroupValue (spent x) (spent y) (spent z)
+    rewrite associativity iIsLawfulSemigroupValue (received x) (received y) (received z)
+    = refl
+
+  iIsLawfulMonoidValueTransfer : IsLawfulMonoid ValueTransfer
+  iIsLawfulMonoidValueTransfer .rightIdentity x
+    rewrite rightIdentity iIsLawfulMonoidValue (spent x)
+    rewrite rightIdentity iIsLawfulMonoidValue (received x)
+    = refl 
+
+  iIsLawfulMonoidValueTransfer .leftIdentity x
+    rewrite leftIdentity iIsLawfulMonoidValue (spent x)
+    rewrite leftIdentity iIsLawfulMonoidValue (received x)
+    = refl
+
+  iIsLawfulMonoidValueTransfer .concatenation [] = refl
+  iIsLawfulMonoidValueTransfer .concatenation (x ∷ xs)
+    rewrite ++-[] (x ∷ xs)
+      | concatenation xs
+    = refl
