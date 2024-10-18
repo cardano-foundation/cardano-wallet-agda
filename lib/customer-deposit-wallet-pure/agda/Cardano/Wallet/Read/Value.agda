@@ -102,3 +102,7 @@ postulate
   instance
     iIsLawfulSemigroupValue : IsLawfulSemigroup Value
     iIsLawfulMonoidValue : IsLawfulMonoid Value
+
+  prop-Value-<>-comm
+    : ∀ (x y : Value)
+    → x <> y ≡ y <> x
