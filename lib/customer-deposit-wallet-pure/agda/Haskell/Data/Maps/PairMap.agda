@@ -43,17 +43,18 @@ prop-bind-Nothing
 prop-bind-Nothing Nothing = refl
 prop-bind-Nothing (Just x) = refl
 
-@0 prop-elem-keys
+--
+prop-elem-keys
   : ∀ {a k : Set} {{_ : Ord k}}
   → ∀ (key : k) (xs : Map k a)
   → elem key (Map.keys xs) ≡ False
   → Map.lookup key xs ≡ Nothing
-prop-elem-keys key xs eq-elem = case Map.lookup key xs of λ
-  { Nothing {{eq}} → eq
-  ; (Just x) {{eq}} →
-      case (trans (sym eq-elem) (Map.prop-lookup-toAscList-Just key x xs eq))
-        of λ ()
-  }
+--
+prop-elem-keys key xs
+  rewrite Map.prop-elem-keys key xs
+  with Map.lookup key xs in eq
+... | Nothing = λ x → refl
+... | Just x = λ ()
 
 {-----------------------------------------------------------------------------
     Helper functions

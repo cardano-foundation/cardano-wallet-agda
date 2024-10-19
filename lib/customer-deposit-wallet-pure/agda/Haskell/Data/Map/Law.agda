@@ -41,21 +41,6 @@ module _ {k a : Set} {{_ : Ord k}} where
     ∎
 
   --
-  prop-lookup-toAscList-Just
-    : ∀ (key : k) (x : a) (m : Map k a)
-    → lookup key m ≡ Just x
-    → (elem key ∘ List.map fst ∘ toAscList) m ≡ True
-  --
-  prop-lookup-toAscList-Just key x m eq =
-    begin
-      (elem key ∘ List.map fst ∘ toAscList) m
-    ≡⟨ prop-elem-keys key m ⟩
-      member key m
-    ≡⟨ cong isJust eq ⟩
-      True
-    ∎
-
-  --
   prop-lookup-singleton
     : ∀ (key keyi : k) (x : a)
     → lookup key (singleton keyi x)
