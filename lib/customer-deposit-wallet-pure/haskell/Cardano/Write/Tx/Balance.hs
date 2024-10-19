@@ -5,7 +5,7 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (balance)
 import Cardano.Wallet.Deposit.Read.Temp (Address, TxBody (TxBodyC))
 import Cardano.Wallet.Read.Tx (TxIn, TxOut, getValue, mkBasicTxOut)
 import Cardano.Wallet.Read.Value (Value, largerOrEqual, subtract)
-import qualified Haskell.Data.Map as Map (toAscList)
+import qualified Haskell.Data.Map.Def as Map (toAscList)
 import Prelude hiding (null, subtract)
 
 import Prelude hiding (subtract)

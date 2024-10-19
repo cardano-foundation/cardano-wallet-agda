@@ -12,7 +12,7 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
     )
 import Cardano.Wallet.Read.Tx (TxIn)
 import Data.Set (Set)
-import qualified Haskell.Data.Map as Map (empty)
+import qualified Haskell.Data.Map.Def as Map (empty)
 import qualified Haskell.Data.Set as Set (empty, intersection, null, union)
 import Prelude hiding (null, subtract)
 

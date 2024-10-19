@@ -43,8 +43,8 @@ import Cardano.Wallet.Read.Block (SlotNo)
 import Cardano.Wallet.Read.Chain (Slot, WithOrigin (At, Origin))
 import Cardano.Wallet.Read.Tx (TxIn)
 import Data.Set (Set)
-import Haskell.Data.Map (Map)
-import qualified Haskell.Data.Map as Map (keysSet)
+import Haskell.Data.Map.Def (Map)
+import qualified Haskell.Data.Map.Def as Map (keysSet)
 import qualified Haskell.Data.Maps.Timeline as Timeline
     ( Timeline
     , deleteAfter

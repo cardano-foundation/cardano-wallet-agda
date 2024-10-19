@@ -28,7 +28,7 @@ import Cardano.Wallet.Deposit.Read.Temp (Address)
 import Cardano.Wallet.Read.Tx (TxIn, TxOut, getCompactAddr, getValue)
 import Cardano.Wallet.Read.Value (Value)
 import Data.Set (Set)
-import qualified Haskell.Data.Map as Map
+import qualified Haskell.Data.Map.Def as Map
     ( Map
     , empty
     , filter

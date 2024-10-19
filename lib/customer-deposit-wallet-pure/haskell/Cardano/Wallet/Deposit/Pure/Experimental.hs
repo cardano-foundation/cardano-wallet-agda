@@ -26,7 +26,7 @@ import Cardano.Write.Tx.Balance
     , PartialTx (PartialTxC)
     , balanceTransaction
     )
-import qualified Haskell.Data.Map as Map (Map, lookup)
+import qualified Haskell.Data.Map.Def as Map (Map, lookup)
 import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
