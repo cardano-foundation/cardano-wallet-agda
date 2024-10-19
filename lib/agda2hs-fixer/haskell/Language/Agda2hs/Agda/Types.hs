@@ -57,7 +57,7 @@ data DocItem = DocItem
     -- ^ Documentation string (multiline)
     , typeSignature :: TypeSignature
     -- ^ Type signature of the thing to be documented (multiline).
-    }
+    } deriving (Eq, Ord, Show)
 
 type ExportConstructors = Bool
 
