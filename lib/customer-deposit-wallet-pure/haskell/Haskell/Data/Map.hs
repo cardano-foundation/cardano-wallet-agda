@@ -1,5 +1,5 @@
-module Haskell.Data.Map
-    ( module Data.Map.Strict
-    ) where
+module Haskell.Data.Map where
 
-import Data.Map.Strict
+import Prelude hiding (null, subtract)
+
+type DummyDataMap = ()

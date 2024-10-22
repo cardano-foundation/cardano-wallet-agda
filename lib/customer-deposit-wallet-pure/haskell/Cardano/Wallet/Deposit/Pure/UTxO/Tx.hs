@@ -50,7 +50,7 @@ import Cardano.Wallet.Read.Tx
     )
 import qualified Cardano.Wallet.Read.Value as Read (Value)
 import Data.Set (Set)
-import qualified Haskell.Data.Map as Map
+import qualified Haskell.Data.Map.Def as Map
     ( Map
     , elems
     , fromListWith

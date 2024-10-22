@@ -22,8 +22,8 @@ import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (TxId)
 import Data.Set (Set)
 import Haskell.Data.List (foldl')
-import Haskell.Data.Map (Map)
-import qualified Haskell.Data.Map as Map
+import Haskell.Data.Map.Def (Map)
+import qualified Haskell.Data.Map.Def as Map
     ( empty
     , fromListWith
     , keysSet

@@ -46,7 +46,13 @@ import qualified Cardano.Wallet.Read.Address (CompactAddr)
 import Cardano.Wallet.Read.Chain (NetworkId)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word.Odd (Word31)
-import qualified Haskell.Data.Map as Map (Map, empty, insert, lookup, toAscList)
+import qualified Haskell.Data.Map.Def as Map
+    ( Map
+    , empty
+    , insert
+    , lookup
+    , toAscList
+    )
 import Haskell.Data.Maybe (isJust)
 import Prelude hiding (null, subtract)
 

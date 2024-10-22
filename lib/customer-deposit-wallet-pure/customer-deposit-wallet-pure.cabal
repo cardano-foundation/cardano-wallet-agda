@@ -85,11 +85,14 @@ library
     Data.Maps.InverseMap
     Data.Maps.PairMap
     Data.Maps.Timeline
+    Data.Map.Law
   other-modules:
     Haskell.Data.ByteString
     Haskell.Data.ByteString.Short
     Haskell.Data.List
     Haskell.Data.Map
+    Haskell.Data.Map.Def
+    Haskell.Data.Map.Law
     Haskell.Data.Maps.Maybe
     Haskell.Data.Maps.InverseMap
     Haskell.Data.Maps.PairMap
