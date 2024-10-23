@@ -53,6 +53,7 @@ library
     Cardano.Read.Ledger.Block.Txs
     Cardano.Read.Ledger.Eras
     Cardano.Read.Ledger.Eras.KnownEras
+    Cardano.Read.Ledger.PParams
     Cardano.Read.Ledger.Tx.Inputs
     Cardano.Read.Ledger.Tx.Outputs
     Cardano.Read.Ledger.Tx.TxId
@@ -87,6 +88,7 @@ library
     Cardano.Wallet.Read.Chain
     Cardano.Wallet.Read.Eras
     Cardano.Wallet.Read.Hash
+    Cardano.Wallet.Read.PParams
     Cardano.Wallet.Read.Tx
     Cardano.Wallet.Read.Tx.CBOR
     Cardano.Wallet.Read.Tx.Gen
