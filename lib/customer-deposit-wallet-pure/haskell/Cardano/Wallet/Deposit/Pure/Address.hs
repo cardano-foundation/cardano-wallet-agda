@@ -14,7 +14,9 @@ module Cardano.Wallet.Deposit.Pure.Address
 
       -- ** Address observation
     , isCustomerAddress
+      -- $prop-isCustomerAddress-deriveCustomerAddress
     , isOurs
+      -- $prop-isOurs-from-isCustomerAddress
     , getBIP32Path
     , listCustomers
     , knownCustomerAddress
@@ -324,6 +326,35 @@ mockMaxLengthChangeAddress s =
 --           (s0 : AddressState)
 --       → let (address , s1) = createAddress c s0
 --         in  knownCustomerAddress address s1 ≡ True
+--     @
+
+-- $prop-isCustomerAddress-deriveCustomerAddress
+-- #prop-isCustomerAddress-deriveCustomerAddress#
+--
+-- [prop-isCustomerAddress-deriveCustomerAddress]:
+--     If an address is a known customer address,
+--     then it was derived from a 'Customer' ID.
+--
+--     @
+--     @0 prop-isCustomerAddress-deriveCustomerAddress
+--       : ∀ (s : AddressState)
+--           (addr : Address)
+--       → isCustomerAddress s addr ≡ True
+--       → ∃ (λ c → addr ≡ deriveCustomerAddress (getNetworkTag s) (getXPub s) c)
+--     @
+
+-- $prop-isOurs-from-isCustomerAddress
+-- #prop-isOurs-from-isCustomerAddress#
+--
+-- [prop-isOurs-from-isCustomerAddress]:
+--     If known customer address belongs to the wallet.
+--
+--     @
+--     @0 prop-isOurs-from-isCustomerAddress
+--       : ∀ (s : AddressState)
+--           (addr : Address)
+--       → isCustomerAddress s addr ≡ True
+--       → isOurs s addr ≡ True
 --     @
 
 -- $prop-isOurs-mockMaxLengthChangeAddress-False
