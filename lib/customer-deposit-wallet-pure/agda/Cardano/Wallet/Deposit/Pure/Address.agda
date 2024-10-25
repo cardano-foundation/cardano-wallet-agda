@@ -30,6 +30,8 @@ module Cardano.Wallet.Deposit.Pure.Address
 
       ; newChangeAddress
       ; prop-changeAddress-not-Customer
+      ; mockMaxLengthChangeAddress
+      ; prop-isOurs-mockMaxLengthChangeAddress-False
     -}
     where
 
@@ -147,19 +149,22 @@ toBIP32Path = addSuffix prefix
 
 {-# COMPILE AGDA2HS toBIP32Path #-}
 
--- |
--- (Internal, exported for technical reasons.)
+-- | Perform two soft derivation steps.
+deriveXPubSoft2 : XPub → Word31 → Word31 → XPub
+deriveXPubSoft2 xpub ix iy =
+  (deriveXPubSoft
+  (deriveXPubSoft xpub
+    ix)
+    iy)
+
+{-# COMPILE AGDA2HS deriveXPubSoft2 #-}
+
+-- | Perform soft derivation from a 'DerivationPath'. 
 xpubFromDerivationPath : XPub → DerivationPath → XPub
 xpubFromDerivationPath xpub DerivationChange =
-  (deriveXPubSoft
-  (deriveXPubSoft xpub
-    1)
-    0)
+  deriveXPubSoft2 xpub 1 0
 xpubFromDerivationPath xpub (DerivationCustomer c) =
-  (deriveXPubSoft
-  (deriveXPubSoft xpub
-    0)
-    c)
+  deriveXPubSoft2 xpub 0 c
 
 {-# COMPILE AGDA2HS xpubFromDerivationPath #-}
 
@@ -181,6 +186,16 @@ deriveCustomerAddress net xpub c =
   deriveAddress net xpub (DerivationCustomer c)
 
 {-# COMPILE AGDA2HS deriveCustomerAddress #-}
+
+--
+prop-deriveXPubSoft2-injective
+  : ∀ {xpub : XPub} {ix1 ix2 iy1 iy2 : Word31}
+  → deriveXPubSoft2 xpub ix1 iy1 ≡ deriveXPubSoft2 xpub ix2 iy2
+  → ix1 ≡ ix2 ⋀ iy1 ≡ iy2
+--
+prop-deriveXPubSoft2-injective eq =
+  let (eqxpub `and` eqy) = prop-deriveXPubSoft-injective _ _ _ _ eq
+  in  (projr (prop-deriveXPubSoft-injective _ _ _ _ eqxpub)) `and` eqy
 
 --
 prop-xpubFromDerivationPath-injective
@@ -266,7 +281,11 @@ open AddressState public
 getNetworkTag : AddressState → NetworkTag
 getNetworkTag s = fromNetworkId (networkId s)
 
--- | Test whether an 'Address' belongs to known 'Customer'.
+-- | Public key of the wallet.
+getXPub : AddressState → XPub
+getXPub = stateXPub
+
+-- | Efficient test whether an 'Address' belongs to a known 'Customer'.
 isCustomerAddress : AddressState → Address → Bool
 isCustomerAddress s = λ addr → isJust $ Map.lookup addr (addresses s)
 
@@ -281,6 +300,7 @@ isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
 
 {-# COMPILE AGDA2HS AddressState #-}
 {-# COMPILE AGDA2HS getNetworkTag #-}
+{-# COMPILE AGDA2HS getXPub #-}
 {-# COMPILE AGDA2HS isCustomerAddress #-}
 {-# COMPILE AGDA2HS isChangeAddress #-}
 {-# COMPILE AGDA2HS isOurs #-}
@@ -308,14 +328,14 @@ lookupDerivationPath s addr =
 {-# COMPILE AGDA2HS lookupDerivationPath #-}
 
 --
-@0 invariant-DerivationPath
+@0 prop-lookup-DerivationPath-Just
   : ∀ (s : AddressState)
       (addr : Address)
       (path : DerivationPath)
   → lookupDerivationPath s addr ≡ Just path
   → addr ≡ deriveAddress (networkTag s) (stateXPub s) path
 --
-invariant-DerivationPath s addr path
+prop-lookup-DerivationPath-Just s addr path
   with (change s == addr) in eqChange
   with Map.lookup addr (addresses s) in eqMap
 ... | False | Just c =
@@ -429,7 +449,7 @@ listCustomers : AddressState → List (Customer × Address)
 listCustomers =
     map swap ∘ Map.toAscList ∘ addresses
 
--- | Test whether an 'Address' is a change address.
+-- | Test whether an 'Address' is a customer address.
 knownCustomerAddress : Address → AddressState → Bool
 knownCustomerAddress address =
     elem address ∘ map snd ∘ listCustomers
@@ -619,12 +639,6 @@ prop-create-known c s0 =
     Construction
 ------------------------------------------------------------------------------}
 
--- | Public key of the wallet.
-getXPub : AddressState → XPub
-getXPub = stateXPub
-
-{-# COMPILE AGDA2HS getXPub #-}
-
 -- | Create an empty 'AddressState' for a given 'NetworkId' from a public key.
 emptyFromXPub : NetworkId → XPub → AddressState
 emptyFromXPub net xpub =
@@ -699,3 +713,66 @@ prop-changeAddress-not-Customer s addr eq-known eq-change =
 
     bang : False ≡ True → ⊥
     bang ()
+
+{-----------------------------------------------------------------------------
+    Operations
+    Mock change address
+------------------------------------------------------------------------------}
+-- | Mock address of maximum length
+--
+-- This address is used by the coin selection algorithm
+-- to get the transaction fees right.
+-- Addresses created by 'newChangeAddress' are required to be no longer
+-- than this address.
+-- This address should not be used in a transaction.
+mockMaxLengthChangeAddress : AddressState → Address
+mockMaxLengthChangeAddress s =
+  compactAddrFromEnterpriseAddr
+  ∘ EnterpriseAddrC (getNetworkTag s)
+  ∘ credentialFromXPub
+  $ deriveXPubSoft2 (stateXPub s) 17 0
+
+{-# COMPILE AGDA2HS mockMaxLengthChangeAddress #-}
+
+-- | 'mockMaxLengthChangeAddress' never belongs to the 'AddressState'.
+--
+@0 prop-isOurs-mockMaxLengthChangeAddress-False
+  : ∀ (s : AddressState)
+  → isOurs s (mockMaxLengthChangeAddress s) ≡ False
+--
+prop-isOurs-mockMaxLengthChangeAddress-False s
+  with lookupDerivationPath s (mockMaxLengthChangeAddress s) in eq
+... | Nothing =
+    trans (sym (prop-lookupDerivationPath-isOurs s _)) (cong isJust eq)
+... | Just path =
+    case lem3 path (prop-lookup-DerivationPath-Just s _ path eq) of λ ()
+  where
+    addr = mockMaxLengthChangeAddress s
+
+    lem1
+      : addr ≡ deriveAddress (networkTag s) (stateXPub s) DerivationChange
+      → 17 ≡ 1
+    lem1 =
+      projl
+      ∘ prop-deriveXPubSoft2-injective
+      ∘ prop-credentialFromXPub-injective _ _
+      ∘ lemma-EnterpriseAddrC-injective _ _
+      ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
+    
+    lem2
+      : (c : Customer)
+      → addr ≡ deriveAddress (networkTag s) (stateXPub s) (DerivationCustomer c)
+      → 17 ≡ 0
+    lem2 c =
+      projl
+      ∘ prop-deriveXPubSoft2-injective
+      ∘ prop-credentialFromXPub-injective _ _
+      ∘ lemma-EnterpriseAddrC-injective _ _
+      ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
+
+    lem3
+      : (path : DerivationPath)
+      → addr ≡ deriveAddress (networkTag s) (stateXPub s) path
+      → ⊥
+    lem3 (DerivationCustomer c) eq = case lem2 c eq of λ ()
+    lem3 DerivationChange eq = case lem1 eq of λ ()
