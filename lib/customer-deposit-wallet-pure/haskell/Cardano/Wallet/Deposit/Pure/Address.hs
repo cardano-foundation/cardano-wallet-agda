@@ -114,6 +114,18 @@ deriveCustomerAddress net xpub c =
     deriveAddress net xpub (DerivationCustomer c)
 
 -- |
+-- Lookup a derivation path from a change address and a map of addresses.
+lookupDerivationPathFun
+    :: Address
+    -> Map.Map Address Customer
+    -> Address
+    -> Maybe DerivationPath
+lookupDerivationPathFun change' addresses' addr =
+    if change' == addr
+        then Just DerivationChange
+        else DerivationCustomer <$> Map.lookup addr addresses'
+
+-- |
 -- Data type that keeps track of addresses
 -- that belong to the Deposit Wallet.
 --
@@ -151,22 +163,11 @@ isOurs =
     \s addr -> isChangeAddress s addr || isCustomerAddress s addr
 
 -- |
---
--- (Internal, exported for technical reasons.)
-getDerivationPath'cases
-    :: AddressState -> Address -> Maybe Customer -> Maybe DerivationPath
-getDerivationPath'cases s addr (Just c) =
-    Just (DerivationCustomer c)
-getDerivationPath'cases s addr Nothing =
-    if isChangeAddress s addr then Just DerivationChange else Nothing
-
--- |
---
--- (Internal, exported for technical reasons.)
-getDerivationPath
+-- Test whether an 'Address' is known and look up its 'DerivationPath'.
+lookupDerivationPath
     :: AddressState -> Address -> Maybe DerivationPath
-getDerivationPath s addr =
-    getDerivationPath'cases s addr (Map.lookup addr (addresses s))
+lookupDerivationPath s addr =
+    lookupDerivationPathFun (change s) (addresses s) addr
 
 -- |
 -- Retrieve the full 'BIP32Path' of a known 'Address'.
@@ -174,7 +175,7 @@ getDerivationPath s addr =
 -- Returns 'Nothing' if the address is not from a known 'Customer'
 -- or not equal to an internal change address.
 getBIP32Path :: AddressState -> Address -> Maybe BIP32Path
-getBIP32Path s = fmap toBIP32Path . getDerivationPath s
+getBIP32Path s = fmap toBIP32Path . lookupDerivationPath s
 
 -- |
 -- Helper function
@@ -293,7 +294,6 @@ newChangeAddress s = \_ -> (change s, ())
 -- #prop-create-known#
 --
 -- [prop-create-known]:
---
 --     Creating an address makes it known.
 --
 --     @
