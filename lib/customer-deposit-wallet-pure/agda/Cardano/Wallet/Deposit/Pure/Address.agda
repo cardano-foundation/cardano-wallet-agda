@@ -17,7 +17,9 @@ module Cardano.Wallet.Deposit.Pure.Address
 
     -- ** Address observation
       ; isCustomerAddress
+        ; prop-isCustomerAddress-deriveCustomerAddress
       ; isOurs
+        ; prop-isOurs-from-isCustomerAddress
       ; getBIP32Path
       ; listCustomers
       ; knownCustomerAddress
@@ -30,6 +32,8 @@ module Cardano.Wallet.Deposit.Pure.Address
 
       ; newChangeAddress
       ; prop-changeAddress-not-Customer
+      ; mockMaxLengthChangeAddress
+      ; prop-isOurs-mockMaxLengthChangeAddress-False
     -}
     where
 
@@ -76,6 +80,7 @@ open import Haskell.Data.List.Prop using
 open import Haskell.Data.Maybe using
     ( isJust
     ; catMaybes
+    ; prop-Just-injective
     )
 open import Haskell.Data.Word using
     ( Word8
@@ -96,9 +101,8 @@ import Haskell.Data.ByteString as BS
 import Haskell.Data.Map as Map
 
 {-----------------------------------------------------------------------------
-    Assumptions
+    Customer
 ------------------------------------------------------------------------------}
-
 -- | A 'Customer' is represented as a numerical ID.
 --
 -- The numerical ID ranges in 'Word31' because that is the range
@@ -107,6 +111,9 @@ Customer = Word31
 
 {-# COMPILE AGDA2HS Customer #-}
 
+{-----------------------------------------------------------------------------
+    Address derivation
+------------------------------------------------------------------------------}
 -- | Description of the derivation path used for the Deposit Wallet:
 -- Either a 'Customer' or a change address.
 data DerivationPath : Set where
@@ -144,19 +151,22 @@ toBIP32Path = addSuffix prefix
 
 {-# COMPILE AGDA2HS toBIP32Path #-}
 
--- |
--- (Internal, exported for technical reasons.)
+-- | Perform two soft derivation steps.
+deriveXPubSoft2 : XPub → Word31 → Word31 → XPub
+deriveXPubSoft2 xpub ix iy =
+  (deriveXPubSoft
+  (deriveXPubSoft xpub
+    ix)
+    iy)
+
+{-# COMPILE AGDA2HS deriveXPubSoft2 #-}
+
+-- | Perform soft derivation from a 'DerivationPath'. 
 xpubFromDerivationPath : XPub → DerivationPath → XPub
 xpubFromDerivationPath xpub DerivationChange =
-  (deriveXPubSoft
-  (deriveXPubSoft xpub
-    1)
-    0)
+  deriveXPubSoft2 xpub 1 0
 xpubFromDerivationPath xpub (DerivationCustomer c) =
-  (deriveXPubSoft
-  (deriveXPubSoft xpub
-    0)
-    c)
+  deriveXPubSoft2 xpub 0 c
 
 {-# COMPILE AGDA2HS xpubFromDerivationPath #-}
 
@@ -180,37 +190,49 @@ deriveCustomerAddress net xpub c =
 {-# COMPILE AGDA2HS deriveCustomerAddress #-}
 
 --
-@0 lemma-xpubFromDerivationPath-injective
+prop-deriveXPubSoft2-injective
+  : ∀ {xpub : XPub} {ix1 ix2 iy1 iy2 : Word31}
+  → deriveXPubSoft2 xpub ix1 iy1 ≡ deriveXPubSoft2 xpub ix2 iy2
+  → ix1 ≡ ix2 ⋀ iy1 ≡ iy2
+--
+prop-deriveXPubSoft2-injective eq =
+  let (eqxpub `and` eqy) = prop-deriveXPubSoft-injective _ _ _ _ eq
+  in  (projr (prop-deriveXPubSoft-injective _ _ _ _ eqxpub)) `and` eqy
+
+--
+prop-xpubFromDerivationPath-injective
   : ∀ {xpub : XPub} {x y : DerivationPath}
   → xpubFromDerivationPath xpub x ≡ xpubFromDerivationPath xpub y
   → x ≡ y
 --
-lemma-xpubFromDerivationPath-injective {_} {DerivationCustomer x} {DerivationCustomer y} eq =
+prop-xpubFromDerivationPath-injective {_} {DerivationCustomer x} {DerivationCustomer y} eq =
   cong DerivationCustomer (projr (prop-deriveXPubSoft-injective _ _ _ _ eq))
-lemma-xpubFromDerivationPath-injective {_} {DerivationCustomer x} {DerivationChange} eq =
+prop-xpubFromDerivationPath-injective {_} {DerivationCustomer x} {DerivationChange} eq =
   case projr (prop-deriveXPubSoft-injective _ _ _ _ (projl (prop-deriveXPubSoft-injective _ _ _ _ eq))) of λ ()
-lemma-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationCustomer y} eq =
+prop-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationCustomer y} eq =
   case projr (prop-deriveXPubSoft-injective _ _ _ _ (projl (prop-deriveXPubSoft-injective _ _ _ _ eq))) of λ ()
-lemma-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationChange} eq =
+prop-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationChange} eq =
   refl
 
 --
-@0 lemma-derive-injective
+lemma-EnterpriseAddrC-injective
+  : ∀ {net : NetworkTag} (x1 y1 : Credential)
+  → EnterpriseAddrC net x1 ≡ EnterpriseAddrC net y1
+  → x1 ≡ y1
+--
+lemma-EnterpriseAddrC-injective _ _ refl = refl
+
+--
+@0 prop-deriveAddress-injective
   : ∀ {net : NetworkTag} {xpub : XPub} {x y : DerivationPath}
   → deriveAddress net xpub x ≡ deriveAddress net xpub y
   → x ≡ y
 --
-lemma-derive-injective {net} =
-  lemma-xpubFromDerivationPath-injective
+prop-deriveAddress-injective {net} =
+  prop-xpubFromDerivationPath-injective
   ∘ prop-credentialFromXPub-injective _ _
-  ∘ lem-EnterpriseAddrC-injective _ _
+  ∘ lemma-EnterpriseAddrC-injective _ _
   ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
-  where
-    lem-EnterpriseAddrC-injective
-      : ∀ (x1 y1 : Credential)
-      → EnterpriseAddrC net x1 ≡ EnterpriseAddrC net y1
-      → x1 ≡ y1
-    lem-EnterpriseAddrC-injective _ _ refl = refl
 
 --
 @0 lemma-derive-notCustomer
@@ -219,7 +241,7 @@ lemma-derive-injective {net} =
       ≡ deriveCustomerAddress net xpub c)
 --
 lemma-derive-notCustomer {net} xpub c eq =
-    bang (lemma-derive-injective {net} {xpub} eq)
+    bang (prop-deriveAddress-injective {net} {xpub} eq)
   where
     bang : DerivationChange ≡ DerivationCustomer c → ⊥
     bang ()
@@ -227,7 +249,6 @@ lemma-derive-notCustomer {net} xpub c eq =
 {-----------------------------------------------------------------------------
     Type definition
 ------------------------------------------------------------------------------}
-
 -- | Data type that keeps track of addresses
 -- that belong to the Deposit Wallet.
 --
@@ -244,9 +265,6 @@ record AddressState : Set where
 
     change    : Address
 
-  @0 isCustomerAddress₁ : Address → Bool
-  isCustomerAddress₁ = λ addr → isJust $ Map.lookup addr addresses
-
   @0 networkTag : NetworkTag
   networkTag = fromNetworkId networkId
 
@@ -255,9 +273,9 @@ record AddressState : Set where
       : change ≡ deriveAddress networkTag stateXPub DerivationChange
 
     @0 invariant-customer
-      : ∀ (addr : Address)
-      → isCustomerAddress₁ addr ≡ True
-      → ∃ (λ ix → addr ≡ deriveCustomerAddress networkTag stateXPub ix)
+      : ∀ (addr : Address) (c : Customer)
+      → Map.lookup addr addresses ≡ Just c
+      → addr ≡ deriveCustomerAddress networkTag stateXPub c
 
 open AddressState public
 
@@ -265,19 +283,13 @@ open AddressState public
 getNetworkTag : AddressState → NetworkTag
 getNetworkTag s = fromNetworkId (networkId s)
 
--- | Test whether an 'Address' belongs to known 'Customer'.
+-- | Public key of the wallet.
+getXPub : AddressState → XPub
+getXPub = stateXPub
+
+-- | Efficient test whether an 'Address' belongs to a known 'Customer'.
 isCustomerAddress : AddressState → Address → Bool
 isCustomerAddress s = λ addr → isJust $ Map.lookup addr (addresses s)
-
-{-# COMPILE AGDA2HS AddressState #-}
-{-# COMPILE AGDA2HS getNetworkTag #-}
-{-# COMPILE AGDA2HS isCustomerAddress #-}
-
-{-----------------------------------------------------------------------------
-    Observations, basic
-------------------------------------------------------------------------------}
-
--- isCustomerAddress : AddressState → Address → Bool
 
 -- | (Internal, exported for technical reasons.)
 isChangeAddress : AddressState → Address → Bool
@@ -288,9 +300,91 @@ isChangeAddress = λ s addr → change s == addr
 isOurs : AddressState → Address → Bool
 isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
 
+{-# COMPILE AGDA2HS AddressState #-}
+{-# COMPILE AGDA2HS getNetworkTag #-}
+{-# COMPILE AGDA2HS getXPub #-}
+{-# COMPILE AGDA2HS isCustomerAddress #-}
 {-# COMPILE AGDA2HS isChangeAddress #-}
 {-# COMPILE AGDA2HS isOurs #-}
 
+{-----------------------------------------------------------------------------
+    Invariants
+------------------------------------------------------------------------------}
+-- | Lookup a derivation path from a change address and a map of addresses.
+lookupDerivationPathFun
+  : Address
+  → Map.Map Address Customer
+  → Address
+  → Maybe DerivationPath
+lookupDerivationPathFun change' addresses' addr =
+  if change' == addr
+  then Just DerivationChange
+  else DerivationCustomer <$> Map.lookup addr addresses'
+
+-- | Test whether an 'Address' is known and look up its 'DerivationPath'.
+lookupDerivationPath : AddressState → Address → Maybe DerivationPath
+lookupDerivationPath s addr =
+    lookupDerivationPathFun (change s) (addresses s) addr
+
+{-# COMPILE AGDA2HS lookupDerivationPathFun #-}
+{-# COMPILE AGDA2HS lookupDerivationPath #-}
+
+--
+@0 prop-lookup-DerivationPath-Just
+  : ∀ (s : AddressState)
+      (addr : Address)
+      (path : DerivationPath)
+  → lookupDerivationPath s addr ≡ Just path
+  → addr ≡ deriveAddress (networkTag s) (stateXPub s) path
+--
+prop-lookup-DerivationPath-Just s addr path
+  with (change s == addr) in eqChange
+  with Map.lookup addr (addresses s) in eqMap
+... | False | Just c =
+    λ { refl → invariant-customer s addr c eqMap }
+... | True  | r =
+    λ { refl → trans (sym (equality _ _ eqChange)) (invariant-change s) }
+
+--
+@0 prop-lookupDerivationPath-isOurs
+  : ∀ (s : AddressState)
+      (addr : Address)
+  → isJust (lookupDerivationPath s addr) ≡ isOurs s addr
+--
+prop-lookupDerivationPath-isOurs s addr
+  with (change s == addr)
+  with Map.lookup addr (addresses s)
+... | True | r = refl
+... | False | Nothing = refl
+... | False | Just c = refl
+
+-- | If an address is a known customer address,
+-- then it was derived from a 'Customer' ID.
+--
+@0 prop-isCustomerAddress-deriveCustomerAddress
+  : ∀ (s : AddressState)
+      (addr : Address)
+  → isCustomerAddress s addr ≡ True
+  → ∃ (λ c → addr ≡ deriveCustomerAddress (getNetworkTag s) (getXPub s) c)
+--
+prop-isCustomerAddress-deriveCustomerAddress s addr
+  with Map.lookup addr (addresses s) in eq
+... | Just c = λ refl → c `witness` invariant-customer s addr c eq
+
+-- | If known customer address belongs to the wallet.
+--
+@0 prop-isOurs-from-isCustomerAddress
+  : ∀ (s : AddressState)
+      (addr : Address)
+  → isCustomerAddress s addr ≡ True
+  → isOurs s addr ≡ True
+--
+prop-isOurs-from-isCustomerAddress s addr eq
+  rewrite eq = prop-x-||-True _
+
+{-----------------------------------------------------------------------------
+    Observations, basic
+------------------------------------------------------------------------------}
 --
 @0 lemma-change-not-known
   : ∀ (s : AddressState)
@@ -298,17 +392,20 @@ isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
 --
 lemma-change-not-known s
   with Map.lookup (change s) (addresses s) in eq
-... | Just x =
-        let (ix `witness` eq) =
-              invariant-customer s (change s) (cong isJust eq)
-            lem1
-              : deriveAddress net xpub DerivationChange
-                ≡ deriveCustomerAddress net xpub ix
-            lem1 = trans (sym (invariant-change s)) eq
-        in  case lemma-derive-notCustomer xpub ix lem1 of λ ()
+... | Just c =
+      case lemma-derive-notCustomer xpub c lem1 of λ ()
     where
       net = getNetworkTag s
       xpub = stateXPub s
+
+      lem1 =
+        begin
+          deriveAddress net xpub DerivationChange
+        ≡⟨ sym (invariant-change s) ⟩
+          change s
+        ≡⟨ invariant-customer s (change s) c eq ⟩
+          deriveCustomerAddress net xpub c
+        ∎
 ... | Nothing = refl
 
 --
@@ -351,66 +448,16 @@ lemma-isCustomer-not-isChange s addr =
 {-----------------------------------------------------------------------------
     Observations, BIP32
 ------------------------------------------------------------------------------}
-
--- | 
--- (Internal, exported for technical reasons.)
-getDerivationPath'cases
-  : AddressState → Address → Maybe Customer → Maybe DerivationPath
-getDerivationPath'cases s addr (Just c) = Just (DerivationCustomer c)
-getDerivationPath'cases s addr Nothing =
-  if isChangeAddress s addr
-  then Just DerivationChange
-  else Nothing
-
--- |
--- (Internal, exported for technical reasons.)
-getDerivationPath : AddressState → Address → Maybe DerivationPath
-getDerivationPath s addr =
-    getDerivationPath'cases s addr (Map.lookup addr (addresses s))
-
-{-# COMPILE AGDA2HS getDerivationPath'cases #-}
-{-# COMPILE AGDA2HS getDerivationPath #-}
-
 -- | Retrieve the full 'BIP32Path' of a known 'Address'.
 --
 -- Returns 'Nothing' if the address is not from a known 'Customer'
 -- or not equal to an internal change address.
 getBIP32Path : AddressState → Address → Maybe BIP32Path
-getBIP32Path s = fmap toBIP32Path ∘ getDerivationPath s
+getBIP32Path s = fmap toBIP32Path ∘ lookupDerivationPath s
 
 {-# COMPILE AGDA2HS getBIP32Path #-}
 
---
-@0 lemma-getDerivationPath-Just
-  : ∀ (s : AddressState)
-      (addr : Address)
-  → isOurs s addr ≡ True
-  → ∃ (λ path → getDerivationPath s addr ≡ Just path)
---
-lemma-getDerivationPath-Just s addr eq =
-  case Map.lookup addr (addresses s) of λ
-    { (Just c) {{eq1}} →
-      DerivationCustomer c `witness`
-        cong (getDerivationPath'cases s addr) eq1
-    ; Nothing {{eq1}} →
-      case isChangeAddress s addr of λ
-        { True {{eq2}} → DerivationChange `witness`(
-            begin
-              getDerivationPath s addr
-            ≡⟨ cong (getDerivationPath'cases s addr) eq1 ⟩
-              (if (isChangeAddress s addr) then (Just DerivationChange) else Nothing)
-            ≡⟨ cong (λ b → if b then _ else _) eq2 ⟩
-              Just DerivationChange
-            ∎
-          )
-        ; False {{eq2}} → case (prop-||-⋁ eq) of λ
-          { (inl eqChange) →
-            case trans (sym eqChange) eq2 of λ ()
-          ; (inr eqCustomer) →
-            case trans (sym eqCustomer) (cong isJust eq1) of λ () 
-          }
-        }
-    }
+-- TODO: Property that relates BIP32Path to address.
 
 {-----------------------------------------------------------------------------
     Observations, specification
@@ -428,7 +475,7 @@ listCustomers : AddressState → List (Customer × Address)
 listCustomers =
     map swap ∘ Map.toAscList ∘ addresses
 
--- | Test whether an 'Address' is a change address.
+-- | Test whether an 'Address' is a customer address.
 knownCustomerAddress : Address → AddressState → Bool
 knownCustomerAddress address =
     elem address ∘ map snd ∘ listCustomers
@@ -501,6 +548,25 @@ getMaxCustomer = maxCustomer
     Create address
 ------------------------------------------------------------------------------}
 
+-- | Looking up a key that was just inserted will return that key/element.
+--
+lemma-lookup-insert-same
+  : ∀ (k : Address)
+      (x : Customer)
+      (m : Map.Map Address Customer)
+  → Map.lookup k (Map.insert k x m) ≡ Just x
+--
+lemma-lookup-insert-same a c m =
+  begin
+    Map.lookup a (Map.insert a c m)
+  ≡⟨ Map.prop-lookup-insert a a c m ⟩
+    (if (a == a) then Just c else Map.lookup a m)
+  ≡⟨ cong (λ b → if b then Just c else Map.lookup a m) (equality' a a refl) ⟩
+    (if True then Just c else Map.lookup a m)
+  ≡⟨⟩
+    Just c
+  ∎
+
 -- Specification
 -- | Create a new associated between 'Customer' and known 'Address'.
 createAddress : Customer → AddressState → (Address × AddressState)
@@ -512,32 +578,46 @@ createAddress c s0 = ( addr , s1 )
 
     addresses1 = Map.insert addr c (addresses s0)
 
-    @0 lem2
-      : ∀ (addr2 : Address)
-      → isJust (Map.lookup addr2 addresses1) ≡ True
-      → ∃ (λ ix → addr2 ≡ deriveCustomerAddress net xpub ix)
-    lem2 addr2 isMember = case addr2 == addr of λ
-        { True {{eq}} → c `witness` equality addr2 addr eq
-        ; False {{eq}} →
-            let lem3
-                  : Map.lookup addr2 addresses1
-                  ≡ Map.lookup addr2 (addresses s0)
-                lem3 =
-                  begin
-                    Map.lookup addr2 addresses1
-                  ≡⟨ Map.prop-lookup-insert _ _ c (addresses s0) ⟩
-                    (if (addr2 == addr) then Just c else Map.lookup addr2 (addresses s0))
-                  ≡⟨ cong (λ b → if b then Just c else Map.lookup addr2 (addresses s0)) eq ⟩
-                    (if False then Just c else Map.lookup addr2 (addresses s0))
-                  ≡⟨⟩
-                    Map.lookup addr2 (addresses s0)
-                  ∎
-
-                lem4 : isCustomerAddress s0 addr2 ≡ True
-                lem4 = trans (cong (isJust) (sym lem3)) isMember
-            in
-                invariant-customer s0 addr2 lem4
-        }
+    @0 lem
+      : ∀ (addr2 : Address) (c2 : Customer)
+      → Map.lookup addr2 addresses1 ≡ Just c2
+      → addr2 ≡ deriveCustomerAddress net xpub c2
+    lem addr2 c2 eq
+      with addr2 == addr in eqAddr
+    ... | True =
+          begin
+            addr2
+          ≡⟨ equality _ _ eqAddr ⟩
+            addr
+          ≡⟨⟩
+            deriveCustomerAddress net xpub c
+          ≡⟨ cong (λ o → deriveCustomerAddress net xpub o) (prop-Just-injective _ _ (trans (sym lem31) eq)) ⟩
+            deriveCustomerAddress net xpub c2
+          ∎
+        where
+          lem31 =
+            begin
+              Map.lookup addr2 addresses1
+            ≡⟨ cong (λ o → Map.lookup o addresses1) (equality _ _ eqAddr) ⟩
+              Map.lookup addr addresses1
+            ≡⟨ lemma-lookup-insert-same addr c (addresses s0) ⟩
+              Just c
+            ∎
+    ... | False = invariant-customer s0 addr2 c2 (trans (sym lem32) eq)
+        where
+          lem32
+            : Map.lookup addr2 addresses1
+              ≡ Map.lookup addr2 (addresses s0)
+          lem32 =
+            begin
+              Map.lookup addr2 addresses1
+            ≡⟨ Map.prop-lookup-insert _ _ c (addresses s0) ⟩
+              (if (addr2 == addr) then Just c else Map.lookup addr2 (addresses s0))
+            ≡⟨ cong (λ b → if b then Just c else Map.lookup addr2 (addresses s0)) eqAddr ⟩
+              (if False then Just c else Map.lookup addr2 (addresses s0))
+            ≡⟨⟩
+              Map.lookup addr2 (addresses s0)
+            ∎
 
     s1 : AddressState
     s1 = record
@@ -547,7 +627,7 @@ createAddress c s0 = ( addr , s1 )
       ; maxCustomer = max c (maxCustomer s0)
       ; change = change s0
       ; invariant-change = invariant-change s0
-      ; invariant-customer = lem2
+      ; invariant-customer = lem
       }
 
 {-# COMPILE AGDA2HS createAddress #-}
@@ -562,28 +642,7 @@ prop-create-derive
 --
 prop-create-derive = λ c s0 → refl
 
-
--- lemma about converting == to ≡
---
-lemma-lookup-insert-same
-  : ∀ (a : Address)
-      (c : Customer)
-      (m : Map.Map Address Customer)
-  → Map.lookup a (Map.insert a c m) ≡ Just c
---
-lemma-lookup-insert-same a c m =
-  begin
-    Map.lookup a (Map.insert a c m)
-  ≡⟨ Map.prop-lookup-insert a a c m ⟩
-    (if (a == a) then Just c else Map.lookup a m)
-  ≡⟨ cong (λ b → if b then Just c else Map.lookup a m) (equality' a a refl) ⟩
-    (if True then Just c else Map.lookup a m)
-  ≡⟨⟩
-    Just c
-  ∎
-
--- |
--- Creating an address makes it known.
+-- | Creating an address makes it known.
 @0 prop-create-known
   : ∀ (c  : Customer)
       (s0 : AddressState)
@@ -606,12 +665,6 @@ prop-create-known c s0 =
     Construction
 ------------------------------------------------------------------------------}
 
--- | Public key of the wallet.
-getXPub : AddressState → XPub
-getXPub = stateXPub
-
-{-# COMPILE AGDA2HS getXPub #-}
-
 -- | Create an empty 'AddressState' for a given 'NetworkId' from a public key.
 emptyFromXPub : NetworkId → XPub → AddressState
 emptyFromXPub net xpub =
@@ -622,8 +675,8 @@ emptyFromXPub net xpub =
     ; maxCustomer = 0
     ; change = deriveAddress (fromNetworkId net) xpub DerivationChange
     ; invariant-change = refl
-    ; invariant-customer = λ addr eq →
-      case trans (sym eq) (cong isJust (Map.prop-lookup-empty addr)) of λ ()
+    ; invariant-customer = λ addr c eq →
+      case trans (sym eq) (Map.prop-lookup-empty addr) of λ ()
     }
 
 {-# COMPILE AGDA2HS emptyFromXPub #-}
@@ -686,3 +739,66 @@ prop-changeAddress-not-Customer s addr eq-known eq-change =
 
     bang : False ≡ True → ⊥
     bang ()
+
+{-----------------------------------------------------------------------------
+    Operations
+    Mock change address
+------------------------------------------------------------------------------}
+-- | Mock address of maximum length
+--
+-- This address is used by the coin selection algorithm
+-- to get the transaction fees right.
+-- Addresses created by 'newChangeAddress' are required to be no longer
+-- than this address.
+-- This address should not be used in a transaction.
+mockMaxLengthChangeAddress : AddressState → Address
+mockMaxLengthChangeAddress s =
+  compactAddrFromEnterpriseAddr
+  ∘ EnterpriseAddrC (getNetworkTag s)
+  ∘ credentialFromXPub
+  $ deriveXPubSoft2 (stateXPub s) 17 0
+
+{-# COMPILE AGDA2HS mockMaxLengthChangeAddress #-}
+
+-- | 'mockMaxLengthChangeAddress' never belongs to the 'AddressState'.
+--
+@0 prop-isOurs-mockMaxLengthChangeAddress-False
+  : ∀ (s : AddressState)
+  → isOurs s (mockMaxLengthChangeAddress s) ≡ False
+--
+prop-isOurs-mockMaxLengthChangeAddress-False s
+  with lookupDerivationPath s (mockMaxLengthChangeAddress s) in eq
+... | Nothing =
+    trans (sym (prop-lookupDerivationPath-isOurs s _)) (cong isJust eq)
+... | Just path =
+    case lem3 path (prop-lookup-DerivationPath-Just s _ path eq) of λ ()
+  where
+    addr = mockMaxLengthChangeAddress s
+
+    lem1
+      : addr ≡ deriveAddress (networkTag s) (stateXPub s) DerivationChange
+      → 17 ≡ 1
+    lem1 =
+      projl
+      ∘ prop-deriveXPubSoft2-injective
+      ∘ prop-credentialFromXPub-injective _ _
+      ∘ lemma-EnterpriseAddrC-injective _ _
+      ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
+    
+    lem2
+      : (c : Customer)
+      → addr ≡ deriveAddress (networkTag s) (stateXPub s) (DerivationCustomer c)
+      → 17 ≡ 0
+    lem2 c =
+      projl
+      ∘ prop-deriveXPubSoft2-injective
+      ∘ prop-credentialFromXPub-injective _ _
+      ∘ lemma-EnterpriseAddrC-injective _ _
+      ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
+
+    lem3
+      : (path : DerivationPath)
+      → addr ≡ deriveAddress (networkTag s) (stateXPub s) path
+      → ⊥
+    lem3 (DerivationCustomer c) eq = case lem2 c eq of λ ()
+    lem3 DerivationChange eq = case lem1 eq of λ ()

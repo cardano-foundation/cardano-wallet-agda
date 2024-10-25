@@ -74,6 +74,12 @@ prop-x-&&-False
 prop-x-&&-False True = refl
 prop-x-&&-False False = refl
 
+prop-x-||-True
+  : ∀ (x : Bool)
+  → (x || True) ≡ True
+prop-x-||-True True = refl
+prop-x-||-True False = refl
+
 {-----------------------------------------------------------------------------
     Algebraic laws for logical connectives
 ------------------------------------------------------------------------------}

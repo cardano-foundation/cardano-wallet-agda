@@ -14,7 +14,9 @@ module Cardano.Wallet.Deposit.Pure.Address
 
       -- ** Address observation
     , isCustomerAddress
+      -- $prop-isCustomerAddress-deriveCustomerAddress
     , isOurs
+      -- $prop-isOurs-from-isCustomerAddress
     , getBIP32Path
     , listCustomers
     , knownCustomerAddress
@@ -26,6 +28,8 @@ module Cardano.Wallet.Deposit.Pure.Address
       -- $prop-create-known
     , newChangeAddress
       -- $prop-changeAddress-not-Customer
+    , mockMaxLengthChangeAddress
+      -- $prop-isOurs-mockMaxLengthChangeAddress-False
     )
 where
 
@@ -88,13 +92,18 @@ toBIP32Path = addSuffix prefix
         Segment (Segment path Soft 0) Soft c
 
 -- |
---
--- (Internal, exported for technical reasons.)
+-- Perform two soft derivation steps.
+deriveXPubSoft2 :: XPub -> Word31 -> Word31 -> XPub
+deriveXPubSoft2 xpub ix iy =
+    deriveXPubSoft (deriveXPubSoft xpub ix) iy
+
+-- |
+-- Perform soft derivation from a 'DerivationPath'.
 xpubFromDerivationPath :: XPub -> DerivationPath -> XPub
 xpubFromDerivationPath xpub DerivationChange =
-    deriveXPubSoft (deriveXPubSoft xpub 1) 0
+    deriveXPubSoft2 xpub 1 0
 xpubFromDerivationPath xpub (DerivationCustomer c) =
-    deriveXPubSoft (deriveXPubSoft xpub 0) c
+    deriveXPubSoft2 xpub 0 c
 
 -- |
 -- Derive an address from the wallet public key.
@@ -133,7 +142,12 @@ getNetworkTag :: AddressState -> NetworkTag
 getNetworkTag s = fromNetworkId (networkId s)
 
 -- |
--- Test whether an 'Address' belongs to known 'Customer'.
+-- Public key of the wallet.
+getXPub :: AddressState -> XPub
+getXPub = \r -> stateXPub r
+
+-- |
+-- Efficient test whether an 'Address' belongs to a known 'Customer'.
 isCustomerAddress :: AddressState -> Address -> Bool
 isCustomerAddress s =
     \addr -> isJust $ Map.lookup addr (addresses s)
@@ -151,22 +165,23 @@ isOurs =
     \s addr -> isChangeAddress s addr || isCustomerAddress s addr
 
 -- |
---
--- (Internal, exported for technical reasons.)
-getDerivationPath'cases
-    :: AddressState -> Address -> Maybe Customer -> Maybe DerivationPath
-getDerivationPath'cases s addr (Just c) =
-    Just (DerivationCustomer c)
-getDerivationPath'cases s addr Nothing =
-    if isChangeAddress s addr then Just DerivationChange else Nothing
+-- Lookup a derivation path from a change address and a map of addresses.
+lookupDerivationPathFun
+    :: Address
+    -> Map.Map Address Customer
+    -> Address
+    -> Maybe DerivationPath
+lookupDerivationPathFun change' addresses' addr =
+    if change' == addr
+        then Just DerivationChange
+        else DerivationCustomer <$> Map.lookup addr addresses'
 
 -- |
---
--- (Internal, exported for technical reasons.)
-getDerivationPath
+-- Test whether an 'Address' is known and look up its 'DerivationPath'.
+lookupDerivationPath
     :: AddressState -> Address -> Maybe DerivationPath
-getDerivationPath s addr =
-    getDerivationPath'cases s addr (Map.lookup addr (addresses s))
+lookupDerivationPath s addr =
+    lookupDerivationPathFun (change s) (addresses s) addr
 
 -- |
 -- Retrieve the full 'BIP32Path' of a known 'Address'.
@@ -174,7 +189,7 @@ getDerivationPath s addr =
 -- Returns 'Nothing' if the address is not from a known 'Customer'
 -- or not equal to an internal change address.
 getBIP32Path :: AddressState -> Address -> Maybe BIP32Path
-getBIP32Path s = fmap toBIP32Path . getDerivationPath s
+getBIP32Path s = fmap toBIP32Path . lookupDerivationPath s
 
 -- |
 -- Helper function
@@ -189,7 +204,7 @@ listCustomers :: AddressState -> [(Customer, Address)]
 listCustomers = map swap . Map.toAscList . \r -> addresses r
 
 -- |
--- Test whether an 'Address' is a change address.
+-- Test whether an 'Address' is a customer address.
 knownCustomerAddress :: Address -> AddressState -> Bool
 knownCustomerAddress address =
     elem address . map (\r -> snd r) . listCustomers
@@ -224,11 +239,6 @@ createAddress c s0 = (addr, s1)
             (change s0)
 
 -- |
--- Public key of the wallet.
-getXPub :: AddressState -> XPub
-getXPub = \r -> stateXPub r
-
--- |
 -- Create an empty 'AddressState' for a given 'NetworkId' from a public key.
 emptyFromXPub :: NetworkId -> XPub -> AddressState
 emptyFromXPub net xpub =
@@ -255,6 +265,21 @@ fromXPubAndCount net xpub knownCustomerCount =
 -- Change address generator employed by 'AddressState'.
 newChangeAddress :: AddressState -> ChangeAddressGen ()
 newChangeAddress s = \_ -> (change s, ())
+
+-- |
+-- Mock address of maximum length
+--
+-- This address is used by the coin selection algorithm
+-- to get the transaction fees right.
+-- Addresses created by 'newChangeAddress' are required to be no longer
+-- than this address.
+-- This address should not be used in a transaction.
+mockMaxLengthChangeAddress :: AddressState -> Address
+mockMaxLengthChangeAddress s =
+    compactAddrFromEnterpriseAddr
+        . EnterpriseAddrC (getNetworkTag s)
+        . credentialFromXPub
+        $ deriveXPubSoft2 (stateXPub s) 17 0
 
 -- * Properties
 
@@ -293,7 +318,6 @@ newChangeAddress s = \_ -> (change s, ())
 -- #prop-create-known#
 --
 -- [prop-create-known]:
---
 --     Creating an address makes it known.
 --
 --     @
@@ -302,4 +326,45 @@ newChangeAddress s = \_ -> (change s, ())
 --           (s0 : AddressState)
 --       → let (address , s1) = createAddress c s0
 --         in  knownCustomerAddress address s1 ≡ True
+--     @
+
+-- $prop-isCustomerAddress-deriveCustomerAddress
+-- #prop-isCustomerAddress-deriveCustomerAddress#
+--
+-- [prop-isCustomerAddress-deriveCustomerAddress]:
+--     If an address is a known customer address,
+--     then it was derived from a 'Customer' ID.
+--
+--     @
+--     @0 prop-isCustomerAddress-deriveCustomerAddress
+--       : ∀ (s : AddressState)
+--           (addr : Address)
+--       → isCustomerAddress s addr ≡ True
+--       → ∃ (λ c → addr ≡ deriveCustomerAddress (getNetworkTag s) (getXPub s) c)
+--     @
+
+-- $prop-isOurs-from-isCustomerAddress
+-- #prop-isOurs-from-isCustomerAddress#
+--
+-- [prop-isOurs-from-isCustomerAddress]:
+--     If known customer address belongs to the wallet.
+--
+--     @
+--     @0 prop-isOurs-from-isCustomerAddress
+--       : ∀ (s : AddressState)
+--           (addr : Address)
+--       → isCustomerAddress s addr ≡ True
+--       → isOurs s addr ≡ True
+--     @
+
+-- $prop-isOurs-mockMaxLengthChangeAddress-False
+-- #prop-isOurs-mockMaxLengthChangeAddress-False#
+--
+-- [prop-isOurs-mockMaxLengthChangeAddress-False]:
+--     'mockMaxLengthChangeAddress' never belongs to the 'AddressState'.
+--
+--     @
+--     @0 prop-isOurs-mockMaxLengthChangeAddress-False
+--       : ∀ (s : AddressState)
+--       → isOurs s (mockMaxLengthChangeAddress s) ≡ False
 --     @
