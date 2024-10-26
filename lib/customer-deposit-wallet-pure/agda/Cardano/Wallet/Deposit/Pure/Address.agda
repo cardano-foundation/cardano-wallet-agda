@@ -688,7 +688,15 @@ fromXPubAndCount net xpub knownCustomerCount =
     foldl (λ s c → snd (createAddress c s)) s0 customers
   where
     s0 = emptyFromXPub net xpub
-    customers = enumFromTo 0 knownCustomerCount
+
+    customers : List Customer
+    customers =
+      if fromEnum knownCustomerCount == 0
+      then []
+      else λ {{neq}} →
+        let @0 notMin : _
+            notMin = subst IsFalse (sym neq) IsFalse.itsFalse
+        in  enumFromTo 0 (pred knownCustomerCount {{notMin}})
 
 {-# COMPILE AGDA2HS fromXPubAndCount #-}
 

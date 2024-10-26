@@ -258,8 +258,11 @@ fromXPubAndCount net xpub knownCustomerCount =
   where
     s0 :: AddressState
     s0 = emptyFromXPub net xpub
-    customers :: [Word31]
-    customers = [0 .. knownCustomerCount]
+    customers :: [Customer]
+    customers =
+        if fromEnum knownCustomerCount == 0
+            then []
+            else [0 .. pred knownCustomerCount]
 
 -- |
 -- Change address generator employed by 'AddressState'.
