@@ -8,6 +8,8 @@
 module Cardano.Read.Ledger.Block.SlotNo
     ( getEraSlotNo
     , SlotNo (..)
+    , fromLedgerSlotNo
+    , toLedgerSlotNo
     , prettySlotNo
     ) where
 
@@ -37,26 +39,33 @@ import Ouroboros.Consensus.Shelley.Protocol.Praos
 import Ouroboros.Consensus.Shelley.Protocol.TPraos
     ()
 
+import qualified Cardano.Ledger.BaseTypes as Ledger
 import qualified Data.Text as T
 import qualified Ouroboros.Network.Block as O
 
 {-# INLINABLE getEraSlotNo #-}
 getEraSlotNo :: forall era. IsEra era => BHeader era -> SlotNo
 getEraSlotNo = case theEra @era of
-    Byron -> \(BHeader h) -> k $ O.blockSlot h
-    Shelley -> \(BHeader h) -> k $ pHeaderSlot h
-    Allegra -> \(BHeader h) -> k $ pHeaderSlot h
-    Mary -> \(BHeader h) -> k $ pHeaderSlot h
-    Alonzo -> \(BHeader h) -> k $ pHeaderSlot h
-    Babbage -> \(BHeader h) -> k $ pHeaderSlot h
-    Conway -> \(BHeader h) -> k $ pHeaderSlot h
-  where
-    k = SlotNo . fromIntegral . O.unSlotNo
+    Byron -> \(BHeader h) -> fromLedgerSlotNo $ O.blockSlot h
+    Shelley -> \(BHeader h) -> fromLedgerSlotNo $ pHeaderSlot h
+    Allegra -> \(BHeader h) -> fromLedgerSlotNo $ pHeaderSlot h
+    Mary -> \(BHeader h) -> fromLedgerSlotNo $ pHeaderSlot h
+    Alonzo -> \(BHeader h) -> fromLedgerSlotNo $ pHeaderSlot h
+    Babbage -> \(BHeader h) -> fromLedgerSlotNo $ pHeaderSlot h
+    Conway -> \(BHeader h) -> fromLedgerSlotNo $ pHeaderSlot h
 
 newtype SlotNo = SlotNo {unSlotNo :: Natural}
     deriving (Eq, Ord, Show, Generic, Enum, Num)
 
 instance NoThunks SlotNo
+
+-- | Convert 'SlotNo' from @cardano-ledger-core@.
+fromLedgerSlotNo :: Ledger.SlotNo -> SlotNo
+fromLedgerSlotNo = SlotNo . fromIntegral . Ledger.unSlotNo
+
+-- | Convert 'SlotNo' to @cardano-ledger-core@.
+toLedgerSlotNo :: SlotNo -> Ledger.SlotNo
+toLedgerSlotNo = Ledger.SlotNo . fromInteger . fromIntegral . unSlotNo
 
 -- | Short printed representation of a 'ChainPoint'.
 prettySlotNo :: SlotNo -> T.Text
