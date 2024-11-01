@@ -15,6 +15,10 @@ module Cardano.Wallet.Read.Tx
     , getCollateralInputs
     , IsValid (IsValidC)
     , getScriptValidity
+    , ValidityInterval (..)
+    , invalidBefore
+    , invalidHereafter
+    , getValidityInterval
 
     -- * TxId
     , TxId
@@ -83,4 +87,10 @@ import Cardano.Wallet.Read.Tx.TxOut
     , toConwayOutput
     , upgradeTxOutToBabbageOrLater
     , utxoFromEraTx
+    )
+import Cardano.Wallet.Read.Tx.Validity
+    ( ValidityInterval (..)
+    , getValidityInterval
+    , invalidBefore
+    , invalidHereafter
     )
