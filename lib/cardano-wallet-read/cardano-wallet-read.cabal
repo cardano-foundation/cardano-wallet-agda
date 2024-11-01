@@ -114,6 +114,7 @@ library
     Cardano.Wallet.Read.Tx.TxId
     Cardano.Wallet.Read.Tx.TxIn
     Cardano.Wallet.Read.Tx.TxOut
+    Cardano.Wallet.Read.Tx.Validity
 
   build-depends:
     , base
