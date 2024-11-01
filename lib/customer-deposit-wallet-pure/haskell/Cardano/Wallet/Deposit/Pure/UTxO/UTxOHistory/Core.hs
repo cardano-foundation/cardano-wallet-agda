@@ -1,7 +1,7 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core
     ( -- * UTxOHistory
       UTxOHistory (..)
-    , empty
+    , fromOrigin
     , getUTxO
     , getRollbackWindow
     , getTip
@@ -64,9 +64,10 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     )
 
 -- |
--- An empty UTxO history
-empty :: UTxO -> UTxOHistory
-empty utxo =
+-- A 'UTxOHistory' whose tip is at 'Origin'
+-- with an initial 'UTxO'.
+fromOrigin :: UTxO -> UTxOHistory
+fromOrigin utxo =
     UTxOHistory
         utxo
         (Timeline.insertMany Origin (dom utxo) Timeline.empty)
@@ -214,7 +215,8 @@ rollBackwardCases
 rollBackwardCases
     newTip
     old
-    Cardano.Wallet.Deposit.Pure.RollbackWindow.Past = empty (boot old)
+    Cardano.Wallet.Deposit.Pure.RollbackWindow.Past =
+        fromOrigin (boot old)
 rollBackwardCases
     newTip
     old

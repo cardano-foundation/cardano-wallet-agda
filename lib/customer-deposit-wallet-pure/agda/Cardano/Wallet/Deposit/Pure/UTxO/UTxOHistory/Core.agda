@@ -6,7 +6,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Core
       -- * UTxOHistory
     ; UTxOHistory (..)
 
-    ; empty
+    ; fromOrigin
     ; getUTxO
     ; getRollbackWindow
       ; getTip
@@ -92,9 +92,10 @@ variable
     Basic functions
 ------------------------------------------------------------------------------}
 
--- | An empty UTxO history
-empty : UTxO → UTxOHistory
-empty utxo =
+-- | A 'UTxOHistory' whose tip is at 'Origin'
+-- with an initial 'UTxO'.
+fromOrigin : UTxO → UTxOHistory
+fromOrigin utxo =
     record
         { history = utxo
         ; created =
@@ -130,7 +131,7 @@ getTip = RollbackWindow.tip ∘ getRollbackWindow
 getSpent : UTxOHistory → Map TxIn SlotNo
 getSpent = Timeline.getMapTime ∘ UTxOHistory.spent
 
-{-# COMPILE AGDA2HS empty #-}
+{-# COMPILE AGDA2HS fromOrigin #-}
 {-# COMPILE AGDA2HS getUTxO #-}
 {-# COMPILE AGDA2HS getRollbackWindow #-}
 {-# COMPILE AGDA2HS getTip #-}
@@ -234,7 +235,7 @@ rollBackwardCases
   : Slot → UTxOHistory
   → RollbackWindow.MaybeRollback (RollbackWindow Slot) → UTxOHistory
 rollBackwardCases newTip old RollbackWindow.Future = old
-rollBackwardCases newTip old RollbackWindow.Past = empty (UTxOHistory.boot old)
+rollBackwardCases newTip old RollbackWindow.Past = fromOrigin (UTxOHistory.boot old)
 rollBackwardCases newTip old (RollbackWindow.Present window') =
     record new' { window = window' }
   where
