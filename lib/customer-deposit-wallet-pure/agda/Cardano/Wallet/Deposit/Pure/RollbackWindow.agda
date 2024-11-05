@@ -97,13 +97,13 @@ record RollbackWindow (time : Set) {{@0 _ : Ord time}} : Set where
 open RollbackWindow public
 
 -- |
--- Invariant required for 'RollbackWindow'.
+-- Invariant: 'finality' is always before or equal to the 'tip'.
 @0 prop-RollbackWindow-invariant
   : ∀ {time} {{_ : Ord time}}
       (w : RollbackWindow time)
   → (finality w <= tip w) ≡ True
 --
-prop-RollbackWindow-invariant w = invariant w
+prop-RollbackWindow-invariant = invariant
 
 open RollbackWindow public
 

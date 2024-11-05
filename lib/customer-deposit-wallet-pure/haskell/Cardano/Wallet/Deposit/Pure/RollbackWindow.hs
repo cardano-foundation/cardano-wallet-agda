@@ -131,7 +131,7 @@ intersection w1 w2 =
 --
 -- [prop-RollbackWindow-invariant]:
 --
---     Invariant required for 'RollbackWindow'.
+--     Invariant: 'finality' is always before or equal to the 'tip'.
 --
 --     @
 --     @0 prop-RollbackWindow-invariant
