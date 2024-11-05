@@ -3,7 +3,9 @@
 module Cardano.Wallet.Deposit.Pure.RollbackWindow
   {-|
   -- * Definition
-  ; RollbackWindow (..)
+  ; RollbackWindow
+    ; tip
+    ; finality
     ; prop-RollbackWindow-invariant
   ; member
     ; prop-member-tip
@@ -14,12 +16,17 @@ module Cardano.Wallet.Deposit.Pure.RollbackWindow
   -- * Operations
   -- ** Rolling
   ; rollForward
+    ; prop-isJust-rollForward
+    ; prop-tip-rollForward
   ; MaybeRollback (..)
   ; rollBackward
+    ; prop-rollBackward-Future→tip
+    ; prop-rollBackward-tip→Future
   ; prune
 
   -- ** Other
   ; intersection
+    ; prop-member-intersection
   -} where
 
 open import Haskell.Prelude hiding
@@ -80,9 +87,10 @@ substWithEq f refl = refl
 -- | A 'RollbackWindow' is a time interval.
 -- This time interval is used to keep track of data / transactions
 -- that are not final and may still be rolled back.
--- The 'tip' is the higher end of the interval,
+-- 
+-- * 'tip' is the higher end of the interval,
 -- representing the latest state of the data.
--- The 'finality' is the lower end of the interval,
+-- * 'finality' is the lower end of the interval,
 -- until which rollbacks are supported.
 record RollbackWindow (time : Set) {{@0 _ : Ord time}} : Set where
   constructor RollbackWindowC
@@ -94,17 +102,34 @@ record RollbackWindow (time : Set) {{@0 _ : Ord time}} : Set where
 open RollbackWindow public
 
 -- |
--- Invariant required for 'RollbackWindow'.
+-- Invariant: 'finality' is always before or equal to the 'tip'.
 @0 prop-RollbackWindow-invariant
   : ∀ {time} {{_ : Ord time}}
       (w : RollbackWindow time)
   → (finality w <= tip w) ≡ True
 --
-prop-RollbackWindow-invariant w = invariant w
+prop-RollbackWindow-invariant = invariant
 
-open RollbackWindow public
+instance
+  iEqRollbackWindow
+    : ∀ {time} {{_ : Ord time}}
+    → Eq (RollbackWindow time)
+  iEqRollbackWindow ._==_ x y =
+    finality x == finality y && tip x == tip y
+
+postulate instance
+  iShowRollbackWindow
+    : ∀ {time} {{_ : Show time}} {{@0 _ : Ord time}}
+    → Show (RollbackWindow time)
+
+{-# COMPILE AGDA2HS RollbackWindow #-}
+{-# COMPILE AGDA2HS iEqRollbackWindow derive #-}
+{-# COMPILE AGDA2HS iShowRollbackWindow derive #-}
 
 -- | Test whether a given time is within a 'RollbackWindow'.
+--
+-- > member time w = (finality w <= time) && (time <= tip w)
+--
 member
     : ∀ {time} {{_ : Ord time}}
     → time → RollbackWindow time → Bool
@@ -143,6 +168,14 @@ data MaybeRollback (a : Set) : Set where
     Past : MaybeRollback a
     Present : a → MaybeRollback a
     Future : MaybeRollback a
+
+instance
+  iEqMaybeRollback
+    : {{Eq a}} → Eq (MaybeRollback a)
+  iEqMaybeRollback ._==_ Past Past = True
+  iEqMaybeRollback ._==_ (Present x) (Present y) = x == y
+  iEqMaybeRollback ._==_ Future Future = True
+  iEqMaybeRollback ._==_ x y = False
 
 -- | Roll back the tip of the 'RollbackWindow' to a point within the window.
 -- Return different error conditions if the target is outside the window.
@@ -197,11 +230,11 @@ module _ {time : Set} {{_ : Ord time}} where
       fin3 = max (finality w1) (finality w2)
       tip3 = min (tip w1) (tip w2)
 
-{-# COMPILE AGDA2HS RollbackWindow #-}
 {-# COMPILE AGDA2HS member #-}
 {-# COMPILE AGDA2HS singleton #-}
 {-# COMPILE AGDA2HS rollForward #-}
 {-# COMPILE AGDA2HS MaybeRollback #-}
+{-# COMPILE AGDA2HS iEqMaybeRollback derive #-}
 {-# COMPILE AGDA2HS rollBackward #-}
 {-# COMPILE AGDA2HS prune #-}
 {-# COMPILE AGDA2HS intersection #-}
@@ -285,7 +318,8 @@ prop-member-singleton t1 t2 =
     Properties
     Contrapositives
 ------------------------------------------------------------------------------}
---
+-- |
+-- 'rollForward' returns 'Just' if and only if the tip is moved forward.
 @0 prop-isJust-rollForward
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (newTip : time) (w : RollbackWindow time)
@@ -311,16 +345,45 @@ prop-isJust-rollForward newTip w =
       ∎
     }
 
---
-postulate
- prop-tip-rollForward
+-- |
+-- 'rollForward' moves the tip to the new tip.
+@0 prop-tip-rollForward
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (newTip : time) (w w' : RollbackWindow time)
   → rollForward newTip w ≡ Just w'
   → tip w' ≡ newTip
 --
+prop-tip-rollForward newTip w w' cond =
+  case (tip w < newTip) of λ
+    { True {{eq}} →
+      let
+        lem1 =
+          begin
+            Just (tip w')
+          ≡⟨⟩
+            fmap tip (Just w')
+          ≡⟨ cong (fmap tip) (sym cond) ⟩
+            fmap tip (rollForward newTip w)
+          ≡⟨ cong (fmap tip) (prop-if'-True eq) ⟩
+            Just newTip
+          ∎
+      in prop-Just-injective _ _ lem1
+    ; False {{eq}} →
+      let
+        lem2 =
+          begin
+            Just w'
+          ≡⟨ sym cond ⟩
+            rollForward newTip w
+          ≡⟨ prop-if'-False eq ⟩
+            Nothing
+          ∎
+      in case lem2 of λ ()
+    }
 
---
+-- |
+-- If 'rollBackward' returns 'Future',
+-- then the new tip was more recent than the current tip.
 @0 prop-rollBackward-Future→tip
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (newTip : time) (w : RollbackWindow time)
@@ -338,14 +401,16 @@ prop-rollBackward-Future→tip newTip w eq0 =
       }
     }
 
---
-postulate
- prop-rollBackward-tip→Future
+-- |
+-- If the new tip is more recent than the current tip,
+-- 'rollBackward' returns 'Future'.
+prop-rollBackward-tip→Future
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (newTip : time) (w : RollbackWindow time)
   → (tip w <= newTip) ≡ True
   → rollBackward newTip w ≡ Future
 --
+prop-rollBackward-tip→Future newTip w cond = prop-if'-True cond
 
 {-----------------------------------------------------------------------------
     Properties
