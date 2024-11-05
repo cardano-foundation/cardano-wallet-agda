@@ -16,6 +16,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
         ; prop-excluding-dom
         ; prop-excluding-absorb
         ; prop-excluding-excluding
+        ; prop-excluding-sym
         ; prop-excluding-difference
         ; prop-excluding-intersection
         ; prop-excluding-union
@@ -94,8 +95,8 @@ _∪_ = union
 -- Infix synonym: @x ⋪ utxo  =  excluding utxo x@.
 --
 -- Notable properties:
--- [prop-excluding-intersection](#prop-excluding-intersection),
--- [prop-excluding-sym](#prop-excluding-sym)
+-- [prop-excluding-intersection](#p:prop-excluding-intersection),
+-- [prop-excluding-sym](#p:prop-excluding-sym)
 excluding : UTxO → Set.ℙ TxIn → UTxO
 excluding = Map.withoutKeys
 

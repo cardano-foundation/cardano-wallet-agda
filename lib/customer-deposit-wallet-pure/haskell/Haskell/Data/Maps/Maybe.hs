@@ -27,7 +27,7 @@ intersectionWith _ _ _ = Nothing
 -- * Properties
 
 -- $prop-filt-||
--- #prop-filt-||#
+-- #p:prop-filt-||#
 --
 -- [prop-filt-||]:
 --
@@ -44,7 +44,7 @@ intersectionWith _ _ _ = Nothing
 --     @
 
 -- $prop-filter-filt
--- #prop-filter-filt#
+-- #p:prop-filter-filt#
 --
 -- [prop-filter-filt]:
 --
@@ -58,7 +58,7 @@ intersectionWith _ _ _ = Nothing
 --     @
 
 -- $prop-filter-union
--- #prop-filter-union#
+-- #p:prop-filter-union#
 --
 -- [prop-filter-union]:
 --
@@ -76,7 +76,7 @@ intersectionWith _ _ _ = Nothing
 --     @
 
 -- $prop-unionWith-sym
--- #prop-unionWith-sym#
+-- #p:prop-unionWith-sym#
 --
 -- [prop-unionWith-sym]:
 --     'unionWith' is symmetric if we 'flip' the function.
