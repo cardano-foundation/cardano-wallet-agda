@@ -90,6 +90,8 @@ data MaybeRollback a
     | Present a
     | Future
 
+deriving instance (Eq a) => Eq (MaybeRollback a)
+
 -- |
 -- Roll back the tip of the 'RollbackWindow' to a point within the window.
 -- Return different error conditions if the target is outside the window.

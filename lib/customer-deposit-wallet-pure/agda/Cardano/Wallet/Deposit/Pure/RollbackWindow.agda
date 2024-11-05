@@ -169,6 +169,14 @@ data MaybeRollback (a : Set) : Set where
     Present : a → MaybeRollback a
     Future : MaybeRollback a
 
+instance
+  iEqMaybeRollback
+    : {{Eq a}} → Eq (MaybeRollback a)
+  iEqMaybeRollback ._==_ Past Past = True
+  iEqMaybeRollback ._==_ (Present x) (Present y) = x == y
+  iEqMaybeRollback ._==_ Future Future = True
+  iEqMaybeRollback ._==_ x y = False
+
 -- | Roll back the tip of the 'RollbackWindow' to a point within the window.
 -- Return different error conditions if the target is outside the window.
 rollBackward
@@ -226,6 +234,7 @@ module _ {time : Set} {{_ : Ord time}} where
 {-# COMPILE AGDA2HS singleton #-}
 {-# COMPILE AGDA2HS rollForward #-}
 {-# COMPILE AGDA2HS MaybeRollback #-}
+{-# COMPILE AGDA2HS iEqMaybeRollback derive #-}
 {-# COMPILE AGDA2HS rollBackward #-}
 {-# COMPILE AGDA2HS prune #-}
 {-# COMPILE AGDA2HS intersection #-}
