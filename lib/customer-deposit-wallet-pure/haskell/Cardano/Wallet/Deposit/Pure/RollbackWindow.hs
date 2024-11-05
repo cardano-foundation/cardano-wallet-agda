@@ -2,7 +2,9 @@
 
 module Cardano.Wallet.Deposit.Pure.RollbackWindow
     ( -- * Definition
-      RollbackWindow (..)
+      RollbackWindow
+    , tip
+    , finality
       -- $prop-RollbackWindow-invariant
     , member
       -- $prop-member-tip
@@ -35,9 +37,10 @@ if' False thn els = els
 -- A 'RollbackWindow' is a time interval.
 -- This time interval is used to keep track of data / transactions
 -- that are not final and may still be rolled back.
--- The 'tip' is the higher end of the interval,
+--
+-- * 'tip' is the higher end of the interval,
 -- representing the latest state of the data.
--- The 'finality' is the lower end of the interval,
+-- * 'finality' is the lower end of the interval,
 -- until which rollbacks are supported.
 data RollbackWindow time = RollbackWindowC
     { finality :: time
