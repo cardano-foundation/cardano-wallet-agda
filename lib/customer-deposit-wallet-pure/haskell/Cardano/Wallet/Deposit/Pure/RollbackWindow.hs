@@ -22,6 +22,7 @@ module Cardano.Wallet.Deposit.Pure.RollbackWindow
 
       -- ** Other
     , intersection
+      -- $prop-member-intersection
     )
 where
 
