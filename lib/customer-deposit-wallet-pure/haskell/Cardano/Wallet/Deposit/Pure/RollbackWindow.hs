@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Cardano.Wallet.Deposit.Pure.RollbackWindow
     ( -- * Definition
@@ -51,6 +52,10 @@ data RollbackWindow time = RollbackWindowC
     { finality :: time
     , tip :: time
     }
+
+deriving instance (Ord time) => Eq (RollbackWindow time)
+
+deriving instance (Show time) => Show (RollbackWindow time)
 
 -- |
 -- Test whether a given time is within a 'RollbackWindow'.

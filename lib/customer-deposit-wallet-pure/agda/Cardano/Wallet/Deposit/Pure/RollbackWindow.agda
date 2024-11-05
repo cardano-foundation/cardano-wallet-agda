@@ -110,7 +110,21 @@ open RollbackWindow public
 --
 prop-RollbackWindow-invariant = invariant
 
-open RollbackWindow public
+instance
+  iEqRollbackWindow
+    : ∀ {time} {{_ : Ord time}}
+    → Eq (RollbackWindow time)
+  iEqRollbackWindow ._==_ x y =
+    finality x == finality y && tip x == tip y
+
+postulate instance
+  iShowRollbackWindow
+    : ∀ {time} {{_ : Show time}} {{@0 _ : Ord time}}
+    → Show (RollbackWindow time)
+
+{-# COMPILE AGDA2HS RollbackWindow #-}
+{-# COMPILE AGDA2HS iEqRollbackWindow derive #-}
+{-# COMPILE AGDA2HS iShowRollbackWindow derive #-}
 
 -- | Test whether a given time is within a 'RollbackWindow'.
 --
@@ -208,7 +222,6 @@ module _ {time : Set} {{_ : Ord time}} where
       fin3 = max (finality w1) (finality w2)
       tip3 = min (tip w1) (tip w2)
 
-{-# COMPILE AGDA2HS RollbackWindow #-}
 {-# COMPILE AGDA2HS member #-}
 {-# COMPILE AGDA2HS singleton #-}
 {-# COMPILE AGDA2HS rollForward #-}
