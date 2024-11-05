@@ -16,6 +16,8 @@ module Cardano.Wallet.Deposit.Pure.RollbackWindow
   -- * Operations
   -- ** Rolling
   ; rollForward
+    ; prop-isJust-rollForward
+    ; prop-tip-rollForward
   ; MaybeRollback (..)
   ; rollBackward
   ; prune
@@ -292,7 +294,8 @@ prop-member-singleton t1 t2 =
     Properties
     Contrapositives
 ------------------------------------------------------------------------------}
---
+-- |
+-- 'rollForward' returns 'Just' if and only if the tip is moved forward.
 @0 prop-isJust-rollForward
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (newTip : time) (w : RollbackWindow time)
@@ -318,14 +321,41 @@ prop-isJust-rollForward newTip w =
       ∎
     }
 
---
-postulate
- prop-tip-rollForward
+-- |
+-- 'rollForward' moves the tip to the new tip.
+@0 prop-tip-rollForward
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (newTip : time) (w w' : RollbackWindow time)
   → rollForward newTip w ≡ Just w'
   → tip w' ≡ newTip
 --
+prop-tip-rollForward newTip w w' cond =
+  case (tip w < newTip) of λ
+    { True {{eq}} →
+      let
+        lem1 =
+          begin
+            Just (tip w')
+          ≡⟨⟩
+            fmap tip (Just w')
+          ≡⟨ cong (fmap tip) (sym cond) ⟩
+            fmap tip (rollForward newTip w)
+          ≡⟨ cong (fmap tip) (prop-if'-True eq) ⟩
+            Just newTip
+          ∎
+      in prop-Just-injective _ _ lem1
+    ; False {{eq}} →
+      let
+        lem2 =
+          begin
+            Just w'
+          ≡⟨ sym cond ⟩
+            rollForward newTip w
+          ≡⟨ prop-if'-False eq ⟩
+            Nothing
+          ∎
+      in case lem2 of λ ()
+    }
 
 --
 @0 prop-rollBackward-Future→tip

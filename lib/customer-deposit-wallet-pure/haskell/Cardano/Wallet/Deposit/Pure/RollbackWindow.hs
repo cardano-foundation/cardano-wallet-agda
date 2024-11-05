@@ -16,6 +16,8 @@ module Cardano.Wallet.Deposit.Pure.RollbackWindow
 
       -- ** Rolling
     , rollForward
+      -- $prop-isJust-rollForward
+      -- $prop-tip-rollForward
     , MaybeRollback (..)
     , rollBackward
     , prune
@@ -143,6 +145,20 @@ intersection w1 w2 =
 --       → (finality w <= tip w) ≡ True
 --     @
 
+-- $prop-isJust-rollForward
+-- #p:prop-isJust-rollForward#
+--
+-- [prop-isJust-rollForward]:
+--
+--     'rollForward' returns 'Just' if and only if the tip is moved forward.
+--
+--     @
+--     @0 prop-isJust-rollForward
+--       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--           (newTip : time) (w : RollbackWindow time)
+--       → isJust (rollForward newTip w) ≡ (tip w < newTip)
+--     @
+
 -- $prop-member-finality
 -- #p:prop-member-finality#
 --
@@ -200,4 +216,19 @@ intersection w1 w2 =
 --       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
 --           (w : RollbackWindow time)
 --       → member (tip w) w ≡ True
+--     @
+
+-- $prop-tip-rollForward
+-- #p:prop-tip-rollForward#
+--
+-- [prop-tip-rollForward]:
+--
+--     'rollForward' moves the tip to the new tip.
+--
+--     @
+--     @0 prop-tip-rollForward
+--       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--           (newTip : time) (w w' : RollbackWindow time)
+--       → rollForward newTip w ≡ Just w'
+--       → tip w' ≡ newTip
 --     @
