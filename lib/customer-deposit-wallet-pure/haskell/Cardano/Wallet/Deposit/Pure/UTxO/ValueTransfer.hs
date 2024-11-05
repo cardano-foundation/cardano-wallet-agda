@@ -38,7 +38,7 @@ instance Monoid ValueTransfer where
 -- * Properties
 
 -- $prop-ValueTansfer-<>-comm
--- #prop-ValueTansfer-<>-comm#
+-- #p:prop-ValueTansfer-<>-comm#
 --
 -- [prop-ValueTansfer-<>-comm]:
 --

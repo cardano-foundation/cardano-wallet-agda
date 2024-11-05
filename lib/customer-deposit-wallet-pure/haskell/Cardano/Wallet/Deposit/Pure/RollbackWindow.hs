@@ -124,7 +124,7 @@ intersection w1 w2 =
 -- * Properties
 
 -- $prop-RollbackWindow-invariant
--- #prop-RollbackWindow-invariant#
+-- #p:prop-RollbackWindow-invariant#
 --
 -- [prop-RollbackWindow-invariant]:
 --
@@ -138,7 +138,7 @@ intersection w1 w2 =
 --     @
 
 -- $prop-member-finality
--- #prop-member-finality#
+-- #p:prop-member-finality#
 --
 -- [prop-member-finality]:
 --
@@ -152,7 +152,7 @@ intersection w1 w2 =
 --     @
 
 -- $prop-member-intersection
--- #prop-member-intersection#
+-- #p:prop-member-intersection#
 --
 -- [prop-member-intersection]:
 --
@@ -169,7 +169,7 @@ intersection w1 w2 =
 --     @
 
 -- $prop-member-singleton
--- #prop-member-singleton#
+-- #p:prop-member-singleton#
 --
 -- [prop-member-singleton]:
 --
@@ -183,7 +183,7 @@ intersection w1 w2 =
 --     @
 
 -- $prop-member-tip
--- #prop-member-tip#
+-- #p:prop-member-tip#
 --
 -- [prop-member-tip]:
 --

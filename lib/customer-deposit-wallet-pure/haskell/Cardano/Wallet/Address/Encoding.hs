@@ -105,7 +105,7 @@ compactAddrFromEnterpriseAddr addr =
 -- * Properties
 
 -- $prop-compactAddrFromEnterpriseAddr-injective
--- #prop-compactAddrFromEnterpriseAddr-injective#
+-- #p:prop-compactAddrFromEnterpriseAddr-injective#
 --
 -- [prop-compactAddrFromEnterpriseAddr-injective]:
 --
@@ -120,7 +120,7 @@ compactAddrFromEnterpriseAddr addr =
 --     @
 
 -- $prop-credentialFromXPub-injective
--- #prop-credentialFromXPub-injective#
+-- #p:prop-credentialFromXPub-injective#
 --
 -- [prop-credentialFromXPub-injective]:
 --

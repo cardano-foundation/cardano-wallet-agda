@@ -13,6 +13,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
       -- $prop-excluding-dom
       -- $prop-excluding-absorb
       -- $prop-excluding-excluding
+      -- $prop-excluding-sym
       -- $prop-excluding-difference
       -- $prop-excluding-intersection
       -- $prop-excluding-union
@@ -81,8 +82,8 @@ union = Map.unionWith (\x y -> x)
 -- Infix synonym: @x ⋪ utxo  =  excluding utxo x@.
 --
 -- Notable properties:
--- [prop-excluding-intersection](#prop-excluding-intersection),
--- [prop-excluding-sym](#prop-excluding-sym)
+-- [prop-excluding-intersection](#p:prop-excluding-intersection),
+-- [prop-excluding-sym](#p:prop-excluding-sym)
 excluding :: UTxO -> Set TxIn -> UTxO
 excluding = Map.withoutKeys
 
@@ -105,7 +106,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 -- * Properties
 
 -- $prop-excluding-absorb
--- #prop-excluding-absorb#
+-- #p:prop-excluding-absorb#
 --
 -- [prop-excluding-absorb]:
 --
@@ -119,7 +120,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-excluding-difference
--- #prop-excluding-difference#
+-- #p:prop-excluding-difference#
 --
 -- [prop-excluding-difference]:
 --
@@ -134,7 +135,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-excluding-dom
--- #prop-excluding-dom#
+-- #p:prop-excluding-dom#
 --
 -- [prop-excluding-dom]:
 --
@@ -147,7 +148,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-excluding-empty
--- #prop-excluding-empty#
+-- #p:prop-excluding-empty#
 --
 -- [prop-excluding-empty]:
 --
@@ -160,7 +161,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-excluding-excluding
--- #prop-excluding-excluding#
+-- #p:prop-excluding-excluding#
 --
 -- [prop-excluding-excluding]:
 --
@@ -173,7 +174,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-excluding-excludingS
--- #prop-excluding-excludingS#
+-- #p:prop-excluding-excludingS#
 --
 -- [prop-excluding-excludingS]:
 --
@@ -188,7 +189,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-excluding-intersection
--- #prop-excluding-intersection#
+-- #p:prop-excluding-intersection#
 --
 -- [prop-excluding-intersection]:
 --
@@ -201,7 +202,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-excluding-sym
--- #prop-excluding-sym#
+-- #p:prop-excluding-sym#
 --
 -- [prop-excluding-sym]:
 --
@@ -214,7 +215,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-excluding-union
--- #prop-excluding-union#
+-- #p:prop-excluding-union#
 --
 -- [prop-excluding-union]:
 --
@@ -228,7 +229,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-filterByAddress-filters
--- #prop-filterByAddress-filters#
+-- #p:prop-filterByAddress-filters#
 --
 -- [prop-filterByAddress-filters]:
 --
@@ -244,7 +245,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-union-assoc
--- #prop-union-assoc#
+-- #p:prop-union-assoc#
 --
 -- [prop-union-assoc]:
 --
@@ -257,7 +258,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-union-empty-left
--- #prop-union-empty-left#
+-- #p:prop-union-empty-left#
 --
 -- [prop-union-empty-left]:
 --
@@ -270,7 +271,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     @
 
 -- $prop-union-empty-right
--- #prop-union-empty-right#
+-- #p:prop-union-empty-right#
 --
 -- [prop-union-empty-right]:
 --

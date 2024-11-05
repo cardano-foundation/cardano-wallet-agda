@@ -287,7 +287,7 @@ mockMaxLengthChangeAddress s =
 -- * Properties
 
 -- $prop-changeAddress-not-Customer
--- #prop-changeAddress-not-Customer#
+-- #p:prop-changeAddress-not-Customer#
 --
 -- [prop-changeAddress-not-Customer]:
 --     /Essential property./
@@ -303,7 +303,7 @@ mockMaxLengthChangeAddress s =
 --     @
 
 -- $prop-create-derive
--- #prop-create-derive#
+-- #p:prop-create-derive#
 --
 -- [prop-create-derive]:
 --     Creating a customer address is deterministic,
@@ -318,7 +318,7 @@ mockMaxLengthChangeAddress s =
 --     @
 
 -- $prop-create-known
--- #prop-create-known#
+-- #p:prop-create-known#
 --
 -- [prop-create-known]:
 --     Creating an address makes it known.
@@ -332,7 +332,7 @@ mockMaxLengthChangeAddress s =
 --     @
 
 -- $prop-isCustomerAddress-deriveCustomerAddress
--- #prop-isCustomerAddress-deriveCustomerAddress#
+-- #p:prop-isCustomerAddress-deriveCustomerAddress#
 --
 -- [prop-isCustomerAddress-deriveCustomerAddress]:
 --     If an address is a known customer address,
@@ -347,7 +347,7 @@ mockMaxLengthChangeAddress s =
 --     @
 
 -- $prop-isOurs-from-isCustomerAddress
--- #prop-isOurs-from-isCustomerAddress#
+-- #p:prop-isOurs-from-isCustomerAddress#
 --
 -- [prop-isOurs-from-isCustomerAddress]:
 --     If known customer address belongs to the wallet.
@@ -361,7 +361,7 @@ mockMaxLengthChangeAddress s =
 --     @
 
 -- $prop-isOurs-mockMaxLengthChangeAddress-False
--- #prop-isOurs-mockMaxLengthChangeAddress-False#
+-- #p:prop-isOurs-mockMaxLengthChangeAddress-False#
 --
 -- [prop-isOurs-mockMaxLengthChangeAddress-False]:
 --     'mockMaxLengthChangeAddress' never belongs to the 'AddressState'.

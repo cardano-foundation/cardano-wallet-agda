@@ -81,7 +81,7 @@ concat = foldr append empty
 -- * Properties
 
 -- $prop-apply-append
--- #prop-apply-append#
+-- #p:prop-apply-append#
 --
 -- [prop-apply-append]:
 --     Defining property of 'append':
@@ -97,7 +97,7 @@ concat = foldr append empty
 --     @
 
 -- $prop-apply-empty
--- #prop-apply-empty#
+-- #p:prop-apply-empty#
 --
 -- [prop-apply-empty]:
 --
@@ -110,7 +110,7 @@ concat = foldr append empty
 --     @
 
 -- $prop-apply-excludingD
--- #prop-apply-excludingD#
+-- #p:prop-apply-excludingD#
 --
 -- [prop-apply-excludingD]:
 --     Applying the 'DeltaUTxO' returned by 'excludingD'
@@ -124,7 +124,7 @@ concat = foldr append empty
 --     @
 
 -- $prop-apply-receiveD
--- #prop-apply-receiveD#
+-- #p:prop-apply-receiveD#
 --
 -- [prop-apply-receiveD]:
 --     Applying the 'DeltaUTxO' returned by 'receiveD'
@@ -138,7 +138,7 @@ concat = foldr append empty
 --     @
 
 -- $prop-excluding-excludingD
--- #prop-excluding-excludingD#
+-- #p:prop-excluding-excludingD#
 --
 -- [prop-excluding-excludingD]:
 --     The 'UTxO' returned by 'excludingD' is the same as 'excluding'.
@@ -151,7 +151,7 @@ concat = foldr append empty
 --     @
 
 -- $prop-union-receiveD
--- #prop-union-receiveD#
+-- #p:prop-union-receiveD#
 --
 -- [prop-union-receiveD]:
 --     The 'UTxO' returned by 'receiveD' is the same as 'union'.

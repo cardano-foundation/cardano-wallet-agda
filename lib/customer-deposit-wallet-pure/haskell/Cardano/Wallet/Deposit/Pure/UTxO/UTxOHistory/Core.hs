@@ -282,7 +282,7 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 -- * Properties
 
 -- $prop-rollBackward-future
--- #prop-rollBackward-future#
+-- #p:prop-rollBackward-future#
 --
 -- [prop-rollBackward-future]:
 --     Rolling backward to the future does nothing.
@@ -295,7 +295,7 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 --     @
 
 -- $prop-rollBackward-rollForward-cancel
--- #prop-rollBackward-rollForward-cancel#
+-- #p:prop-rollBackward-rollForward-cancel#
 --
 -- [prop-rollBackward-rollForward-cancel]:
 --     /Essential property:/
@@ -310,7 +310,7 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 --     @
 
 -- $prop-rollBackward-tip
--- #prop-rollBackward-tip#
+-- #p:prop-rollBackward-tip#
 --
 -- [prop-rollBackward-tip]:
 --     Rolling backward to the tip does nothing, as we are already at the tip.
@@ -323,7 +323,7 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 --     @
 
 -- $prop-rollBackward-tip-rollForward
--- #prop-rollBackward-tip-rollForward#
+-- #p:prop-rollBackward-tip-rollForward#
 --
 -- [prop-rollBackward-tip-rollForward]:
 --     Rolling backward after a 'rollForward' will restore the original state.
@@ -335,7 +335,7 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 --     @
 
 -- $prop-rollForward-present
--- #prop-rollForward-present#
+-- #p:prop-rollForward-present#
 --
 -- [prop-rollForward-present]:
 --     Rolling forward to the tip or before the tip does nothing.
