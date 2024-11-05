@@ -20,6 +20,8 @@ module Cardano.Wallet.Deposit.Pure.RollbackWindow
       -- $prop-tip-rollForward
     , MaybeRollback (..)
     , rollBackward
+      -- $prop-rollBackward-Future→tip
+      -- $prop-rollBackward-tip→Future
     , prune
 
       -- ** Other
@@ -216,6 +218,38 @@ intersection w1 w2 =
 --       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
 --           (w : RollbackWindow time)
 --       → member (tip w) w ≡ True
+--     @
+
+-- $prop-rollBackward-Future→tip
+-- #p:prop-rollBackward-Future→tip#
+--
+-- [prop-rollBackward-Future→tip]:
+--
+--     If 'rollBackward' returns 'Future',
+--     then the new tip was more recent than the current tip.
+--
+--     @
+--     @0 prop-rollBackward-Future→tip
+--       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--           (newTip : time) (w : RollbackWindow time)
+--       → rollBackward newTip w ≡ Future
+--       → (tip w <= newTip) ≡ True
+--     @
+
+-- $prop-rollBackward-tip→Future
+-- #p:prop-rollBackward-tip→Future#
+--
+-- [prop-rollBackward-tip→Future]:
+--
+--     If the new tip is more recent than the current tip,
+--     'rollBackward' returns 'Future'.
+--
+--     @
+--     prop-rollBackward-tip→Future
+--       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--           (newTip : time) (w : RollbackWindow time)
+--       → (tip w <= newTip) ≡ True
+--       → rollBackward newTip w ≡ Future
 --     @
 
 -- $prop-tip-rollForward

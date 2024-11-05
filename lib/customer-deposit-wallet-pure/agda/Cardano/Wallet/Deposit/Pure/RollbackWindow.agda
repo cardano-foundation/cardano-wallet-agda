@@ -20,6 +20,8 @@ module Cardano.Wallet.Deposit.Pure.RollbackWindow
     ; prop-tip-rollForward
   ; MaybeRollback (..)
   ; rollBackward
+    ; prop-rollBackward-Future→tip
+    ; prop-rollBackward-tip→Future
   ; prune
 
   -- ** Other
@@ -357,7 +359,9 @@ prop-tip-rollForward newTip w w' cond =
       in case lem2 of λ ()
     }
 
---
+-- |
+-- If 'rollBackward' returns 'Future',
+-- then the new tip was more recent than the current tip.
 @0 prop-rollBackward-Future→tip
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (newTip : time) (w : RollbackWindow time)
@@ -375,14 +379,16 @@ prop-rollBackward-Future→tip newTip w eq0 =
       }
     }
 
---
-postulate
- prop-rollBackward-tip→Future
+-- |
+-- If the new tip is more recent than the current tip,
+-- 'rollBackward' returns 'Future'.
+prop-rollBackward-tip→Future
   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
       (newTip : time) (w : RollbackWindow time)
   → (tip w <= newTip) ≡ True
   → rollBackward newTip w ≡ Future
 --
+prop-rollBackward-tip→Future newTip w cond = prop-if'-True cond
 
 {-----------------------------------------------------------------------------
     Properties
