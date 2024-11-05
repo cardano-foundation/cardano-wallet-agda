@@ -104,7 +104,7 @@ renderAgdaProperty doc =
     [prettyAnchor, newline, "[" <> identifier doc <> "]:"]
     <> indent 4 (dropNewLinesAtEnd prettyDoc <> [newline] <> prettyType)
   where
-    prettyAnchor = "#" <> identifier doc <> "#"
+    prettyAnchor = "#p:" <> identifier doc <> "#"
     prettyDoc = lines (docString doc)
     prettyType = ["@"] <> lines (typeSignature doc) <> ["@"]
  
