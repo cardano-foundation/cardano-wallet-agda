@@ -49,6 +49,8 @@ data RollbackWindow time = RollbackWindowC
 
 -- |
 -- Test whether a given time is within a 'RollbackWindow'.
+--
+-- > member time w = (finality w <= time) && (time <= tip w)
 member :: Ord time => time -> RollbackWindow time -> Bool
 member time w = finality w <= time && time <= tip w
 

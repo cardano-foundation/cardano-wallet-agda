@@ -108,6 +108,9 @@ prop-RollbackWindow-invariant = invariant
 open RollbackWindow public
 
 -- | Test whether a given time is within a 'RollbackWindow'.
+--
+-- > member time w = (finality w <= time) && (time <= tip w)
+--
 member
     : ∀ {time} {{_ : Ord time}}
     → time → RollbackWindow time → Bool
