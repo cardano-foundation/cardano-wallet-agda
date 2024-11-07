@@ -16,7 +16,6 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
 open import Haskell.Reasoning
 open import Haskell.Prelude hiding
     ( null
-    ; concat
     )
 
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
@@ -106,8 +105,8 @@ append x y = record
     received'y = UTxO.excluding (received y) (excluded x)
 
 -- | Combine a sequence of 'DeltaUTxO' using `append`
-concat : List DeltaUTxO → DeltaUTxO
-concat = foldr append empty
+appends : List DeltaUTxO → DeltaUTxO
+appends = foldr append empty
 
 {-# COMPILE AGDA2HS DeltaUTxO #-}
 {-# COMPILE AGDA2HS null #-}
@@ -116,7 +115,7 @@ concat = foldr append empty
 {-# COMPILE AGDA2HS excludingD #-}
 {-# COMPILE AGDA2HS receiveD #-}
 {-# COMPILE AGDA2HS append #-}
-{-# COMPILE AGDA2HS concat #-}
+{-# COMPILE AGDA2HS appends #-}
 
 {-----------------------------------------------------------------------------
     Properties
@@ -291,9 +290,9 @@ prop-apply-append x y utxo cond =
       ∎
 
 --
--- Unit test for 'concat'.
-prop-concat-two
+-- Unit test for 'appends'.
+prop-appends-two
   : ∀ (x y : DeltaUTxO)
-  → concat (x ∷ y ∷ []) ≡ append x (append y empty)
+  → appends (x ∷ y ∷ []) ≡ append x (append y empty)
 --
-prop-concat-two x y = refl
+prop-appends-two x y = refl

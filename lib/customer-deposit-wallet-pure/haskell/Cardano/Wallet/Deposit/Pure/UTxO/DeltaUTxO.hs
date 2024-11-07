@@ -75,8 +75,8 @@ append x y =
 
 -- |
 -- Combine a sequence of 'DeltaUTxO' using `append`
-concat :: [DeltaUTxO] -> DeltaUTxO
-concat = foldr append empty
+appends :: [DeltaUTxO] -> DeltaUTxO
+appends = foldr append empty
 
 -- * Properties
 
