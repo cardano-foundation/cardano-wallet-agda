@@ -77,6 +77,12 @@ getMapTime
     → Timeline time a → Map a time
 getMapTime = events
 
+-- | Set of items currently contained in the 'Timeline'.
+items
+  : ∀ {{_ : Ord time}} {{_ : Ord a}}
+  → Timeline time a → ℙ a
+items = Map.keysSet ∘ getMapTime
+
 -- | Convert to a list of items, ascending by timestamp.
 toAscList
     : ∀ {{_ : Ord time}} {{_ : Ord a}}
@@ -185,6 +191,7 @@ restrictRange (from , to) =
 {-# COMPILE AGDA2HS lookupByTime #-}
 {-# COMPILE AGDA2HS lookupByItem #-}
 {-# COMPILE AGDA2HS getMapTime #-}
+{-# COMPILE AGDA2HS items #-}
 {-# COMPILE AGDA2HS toAscList #-}
 {-# COMPILE AGDA2HS insert #-}
 {-# COMPILE AGDA2HS insertMany #-}
@@ -199,6 +206,13 @@ restrictRange (from , to) =
     Properties
 ------------------------------------------------------------------------------}
 postulate
+ -- | 'insertMany' adds all items to the total set of items.
+ prop-items-insertMany
+  : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
+      (t : time) (ys : ℙ a) (xs : Timeline time a)
+  → items (insertMany t ys xs)
+    ≡ Set.union ys (items xs)
+
  -- | 'dropAfter' cancels 'insertMany' from the future.
  prop-dropAfter-insertMany
   : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}

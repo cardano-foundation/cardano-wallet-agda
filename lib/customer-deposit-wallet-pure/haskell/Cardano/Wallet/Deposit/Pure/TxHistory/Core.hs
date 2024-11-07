@@ -26,7 +26,6 @@ import Haskell.Data.Map.Def (Map)
 import qualified Haskell.Data.Map.Def as Map
     ( empty
     , fromListWith
-    , keysSet
     , lookup
     , mapMaybeWithKey
     , toAscList
@@ -45,9 +44,9 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     ( Timeline
     , deleteAfter
     , empty
-    , getMapTime
     , insertMany
     , insertManyKeys
+    , items
     , restrictRange
     , toAscList
     )
@@ -116,10 +115,7 @@ getValueTransferInRange range history =
   where
     txs1 :: Set TxId
     txs1 =
-        Map.keysSet
-            ( Timeline.getMapTime
-                (Timeline.restrictRange range (txIds history))
-            )
+        Timeline.items (Timeline.restrictRange range (txIds history))
     txs2 :: [Map Address ValueTransfer]
     txs2 =
         map
