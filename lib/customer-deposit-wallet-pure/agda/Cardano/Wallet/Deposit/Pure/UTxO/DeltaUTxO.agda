@@ -8,6 +8,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
       ; empty
         ; prop-apply-empty
       ; apply
+      ; fits
       ; excludingD
         ; prop-excluding-excludingD
         ; prop-apply-excludingD
@@ -76,6 +77,18 @@ empty = record
 apply : DeltaUTxO → UTxO → UTxO
 apply du utxo =
    UTxO.union (received du) (UTxO.excluding utxo (excluded du))
+
+-- | Test whether a 'DeltaUTxO' fits onto a 'UTxO',
+-- that is whether it removes only existing 'TxIn',
+-- and adds only new 'TxOut'.
+--
+-- > du `fits` u =
+-- >  (excluding du `Set.isSubsetOf` dom u)
+-- >  && (received du `UTxO.disjoint` u)
+fits : DeltaUTxO → UTxO → Bool
+fits du u =
+  Set.isSubsetOf (excluded du) (dom u)
+  && UTxO.disjoint (received du) u
 
 -- | Variant of 'excluding' that also returns a delta.
 excludingD : UTxO → Set.ℙ TxIn → (DeltaUTxO × UTxO)
