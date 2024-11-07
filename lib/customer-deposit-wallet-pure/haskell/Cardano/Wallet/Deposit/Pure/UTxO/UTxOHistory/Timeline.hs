@@ -7,6 +7,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Timeline
       -- * Operations
     , insertDeltaUTxO
     , dropAfter
+      -- $prop-insertDeltaUTxO-dropAfter-cancel
     , pruneBefore
 
       -- * Internal
@@ -157,3 +158,20 @@ pruneBefore newFinality old =
     prunedTxIns = fst pruned
     spent1 :: Timeline SlotNo TxIn
     spent1 = snd pruned
+
+-- * Properties
+
+-- $prop-insertDeltaUTxO-dropAfter-cancel
+-- #p:prop-insertDeltaUTxO-dropAfter-cancel#
+--
+-- [prop-insertDeltaUTxO-dropAfter-cancel]:
+--     Rolling backward will cancel rolling forward.
+--     Bare version.
+--
+--     @
+--     @0 prop-insertDeltaUTxO-dropAfter-cancel
+--       : ∀ (u : TimelineUTxO) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
+--       → (slot1 < WithOrigin.At slot2) ≡ True
+--       → dropAfter slot1 (insertDeltaUTxO slot2 du u)
+--         ≡ dropAfter slot1 u
+--     @

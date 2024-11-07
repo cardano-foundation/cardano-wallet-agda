@@ -10,6 +10,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Timeline
       -- * Operations
     ; insertDeltaUTxO
     ; dropAfter
+      ; prop-insertDeltaUTxO-dropAfter-cancel
     ; pruneBefore
 
       -- * Internal
@@ -18,6 +19,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Timeline
     where
 
 open import Haskell.Prelude
+open import Haskell.Reasoning
 
 open import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO using
     ( DeltaUTxO
@@ -176,3 +178,149 @@ pruneBefore newFinality old = record
     spent1 = snd pruned
 
 {-# COMPILE AGDA2HS pruneBefore #-}
+
+{-----------------------------------------------------------------------------
+    Properties
+    Helpers
+------------------------------------------------------------------------------}
+--
+lemma-equality-TimelineUTxO
+  : ∀ (u1 u2 : TimelineUTxO)
+  → TimelineUTxO.history u1 ≡ TimelineUTxO.history u2
+  → TimelineUTxO.created u1 ≡ TimelineUTxO.created u2
+  → TimelineUTxO.spent u1 ≡ TimelineUTxO.spent u2
+  → TimelineUTxO.boot u1 ≡ TimelineUTxO.boot u2
+  → u1 ≡ u2
+--
+lemma-equality-TimelineUTxO u1 u2 refl refl refl refl = refl
+
+--
+lemma-WithOrigin-At-monotonic
+  : ∀ (x y : SlotNo)
+  → (WithOrigin.At x < WithOrigin.At y) ≡ (x < y)
+--
+lemma-WithOrigin-At-monotonic x y = refl
+
+--
+@0 lemma-UTxO-difference
+  : ∀ (x y : UTxO)
+  → ((Set.difference (dom x) (dom y)) ⋪ (y ∪ x))
+    ≡ y
+--
+lemma-UTxO-difference x y =
+  begin
+    ((Set.difference (dom x) (dom y)) ⋪ (y ∪ x))
+  ≡⟨ UTxO.prop-excluding-difference ⟩
+    (dom x ⋪ (y ∪ x)) ∪ (dom y ⊲ (y ∪ x))
+  ≡⟨ cong (λ o → o ∪ expr1) UTxO.prop-excluding-union ⟩
+    ((dom x ⋪ y) ∪ (dom x ⋪ x)) ∪ expr1
+  ≡⟨ cong (λ o → ((dom x ⋪ y) ∪ o) ∪ expr1) (UTxO.prop-excluding-dom {x}) ⟩
+    ((dom x ⋪ y) ∪ UTxO.empty) ∪ expr1
+  ≡⟨ cong (λ o → o ∪ expr1) (UTxO.prop-union-empty-right {dom x ⋪ y}) ⟩
+    (dom x ⋪ y) ∪ (dom y ⊲ (y ∪ x))
+  ≡⟨ cong (λ o → expr2 ∪ o) (UTxO.prop-restrictedBy-union {dom y} {y} {x}) ⟩
+    expr2 ∪ ((dom y ⊲ y) ∪ (dom y ⊲ x))
+  ≡⟨ cong (λ o → expr2 ∪ (o ∪ (dom y ⊲ x))) UTxO.prop-restrictedBy-dom ⟩
+    (dom x ⋪ y) ∪ (y ∪ (dom y ⊲ x)) 
+  ≡⟨ sym UTxO.prop-union-assoc ⟩
+    ((dom x ⋪ y) ∪ y) ∪ (dom y ⊲ x)
+  ≡⟨ cong (λ o → o ∪ (dom y ⊲ x)) UTxO.prop-excluding-absorb ⟩
+    y ∪ (dom y ⊲ x)
+  ≡⟨ UTxO.prop-union-restrictedBy-absorbs ⟩
+    y
+  ∎
+ where
+  expr1 = dom y ⊲ (y ∪ x)
+  expr2 = dom x ⋪ y
+
+{-----------------------------------------------------------------------------
+    Properties
+    getUTxO
+------------------------------------------------------------------------------}
+postulate
+ -- | Rolling forward updates the 'UTxO'.
+ prop-getUTxO-insertDeltaUTxO
+  : ∀ (u : TimelineUTxO) (du : DeltaUTxO) (slot : SlotNo)
+  → getUTxO (insertDeltaUTxO slot du u)
+    ≡ DeltaUTxO.apply du (getUTxO u)
+
+{-----------------------------------------------------------------------------
+    Properties
+    Cancellation
+------------------------------------------------------------------------------}
+
+-- | Rolling backward will cancel rolling forward.
+-- Bare version.
+@0 prop-insertDeltaUTxO-dropAfter-cancel
+  : ∀ (u : TimelineUTxO) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
+  → (slot1 < WithOrigin.At slot2) ≡ True
+  → dropAfter slot1 (insertDeltaUTxO slot2 du u)
+    ≡ dropAfter slot1 u
+--
+prop-insertDeltaUTxO-dropAfter-cancel u du slot1 slot2 cond =
+    lemma-equality-TimelineUTxO u1 u2
+      lemHistory
+      (Timeline.prop-dropAfter-insertMany slot1 (WithOrigin.At slot2) _ (created u) cond)
+      lemSpent
+      refl
+  where
+    u1 = dropAfter slot1 (insertDeltaUTxO slot2 du u)
+    u2 = dropAfter slot1 u
+
+    txs1 = fst (Timeline.deleteAfter slot1 (created (insertDeltaUTxO slot2 du u)))
+    txs2 = fst (Timeline.deleteAfter slot1 (created u))
+    receivedTxIns =
+        Set.difference
+            (dom (DeltaUTxO.received du))
+            (dom (history u))
+
+    lemTxs : txs1 ≡ Set.union txs2 receivedTxIns
+    lemTxs = Timeline.prop-deleteAfter-insertMany slot1 (WithOrigin.At slot2) receivedTxIns (created u) cond
+
+    lemReceivedTxIns
+      : (receivedTxIns ⋪ (history u ∪ DeltaUTxO.received du))
+        ≡ history u
+    lemReceivedTxIns =
+      lemma-UTxO-difference (DeltaUTxO.received du) (history u)
+
+    lemHistory : history u1 ≡ history u2
+    lemHistory =
+      begin
+        history u1
+      ≡⟨⟩
+        txs1 ⋪ (history u ∪ DeltaUTxO.received du)
+      ≡⟨ cong (λ o → o ⋪ _) lemTxs ⟩
+        (Set.union txs2 receivedTxIns) ⋪ (history u ∪ DeltaUTxO.received du)
+      ≡⟨ sym (UTxO.prop-excluding-excluding {txs2} {receivedTxIns} {history u ∪ DeltaUTxO.received du}) ⟩
+        (txs2 ⋪ (receivedTxIns ⋪ (history u ∪ DeltaUTxO.received du)))
+      ≡⟨ cong (λ o → txs2 ⋪ o) lemReceivedTxIns ⟩
+        (txs2 ⋪ history u)
+      ≡⟨⟩
+        history u2
+      ∎
+
+    lemSpent : TimelineUTxO.spent u1 ≡ TimelineUTxO.spent u2
+    lemSpent = case slot1 of λ
+      { WithOrigin.Origin {{eq}} →
+        begin
+          TimelineUTxO.spent u1
+        ≡⟨⟩
+          dropAfterSpent slot1 (TimelineUTxO.spent (insertDeltaUTxO slot2 du u))
+        ≡⟨ cong (λ o → dropAfterSpent o _) eq ⟩
+          Timeline.empty
+        ≡⟨ sym (cong (λ o → dropAfterSpent o _) eq) ⟩
+          TimelineUTxO.spent u2
+        ∎
+      ; (WithOrigin.At slot) {{eq}} →
+        begin
+          TimelineUTxO.spent u1
+        ≡⟨⟩
+          dropAfterSpent slot1 (TimelineUTxO.spent (insertDeltaUTxO slot2 du u))
+        ≡⟨ cong (λ o → dropAfterSpent o _) eq ⟩
+          Timeline.dropAfter slot (TimelineUTxO.spent (insertDeltaUTxO slot2 du u))
+        ≡⟨ Timeline.prop-dropAfter-insertMany slot slot2 _ (TimelineUTxO.spent u) (trans (sym (lemma-WithOrigin-At-monotonic slot slot2)) (subst (λ o → (o < WithOrigin.At slot2) ≡ True) eq cond)) ⟩
+          Timeline.dropAfter slot (TimelineUTxO.spent u)
+        ≡⟨ sym (cong (λ o → dropAfterSpent o _) eq) ⟩
+          TimelineUTxO.spent u2
+        ∎
+      }
