@@ -8,6 +8,7 @@ import Haskell.Data.Map.Def (Map)
 import qualified Haskell.Data.Map.Def as Map
     ( empty
     , insert
+    , keysSet
     , lookup
     , restrictKeys
     , spanAntitone
@@ -64,6 +65,11 @@ lookupByItem x = Map.lookup x . \r -> events r
 -- Convert to a map (cheap).
 getMapTime :: (Ord time, Ord a) => Timeline time a -> Map a time
 getMapTime = \r -> events r
+
+-- |
+-- Set of items currently contained in the 'Timeline'.
+items :: (Ord time, Ord a) => Timeline time a -> Set a
+items = Map.keysSet . getMapTime
 
 -- |
 -- Convert to a list of items, ascending by timestamp.
