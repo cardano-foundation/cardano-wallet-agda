@@ -6,11 +6,14 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
       ; null
       ; empty
       ; dom
+      ; disjoint
+        ; prop-disjoint-dom
       ; balance
       ; union
         ; prop-union-empty-left
         ; prop-union-empty-right
         ; prop-union-assoc
+        ; prop-union-sym
       ; excluding
         ; prop-excluding-empty
         ; prop-excluding-dom
@@ -77,6 +80,10 @@ empty = Map.empty
 dom : UTxO → Set.ℙ TxIn
 dom = Map.keysSet
 
+-- | Test whether the domains of the 'UTxO' are disjoint.
+disjoint : UTxO → UTxO → Bool
+disjoint = Map.disjoint
+
 -- | The total value contained in the outputs.
 balance : UTxO → Value
 balance = foldMap getValue
@@ -126,6 +133,7 @@ filterByAddress p = Map.filter (p ∘ getCompactAddr)
 {-# COMPILE AGDA2HS null #-}
 {-# COMPILE AGDA2HS empty #-}
 {-# COMPILE AGDA2HS dom #-}
+{-# COMPILE AGDA2HS disjoint #-}
 {-# COMPILE AGDA2HS balance #-}
 {-# COMPILE AGDA2HS union #-}
 {-# COMPILE AGDA2HS excluding #-}
@@ -137,11 +145,20 @@ filterByAddress p = Map.filter (p ∘ getCompactAddr)
     Properties
 ------------------------------------------------------------------------------}
 -- |
+-- Two 'UTxO' are 'disjoint' if their 'dom'ains are disjoint.
+--
+prop-disjoint-dom
+  : ∀ {ua ub : UTxO}
+  → disjoint ua ub ≡ Set.disjoint (dom ua) (dom ub)
+--
+prop-disjoint-dom = Map.prop-disjoint-keysSet
+
+-- |
 -- 'empty' is a left identity of 'union'.
 --
 prop-union-empty-left
   : ∀ {utxo : UTxO}
-  → union empty utxo ≡ utxo
+  → empty ∪ utxo ≡ utxo
 --
 prop-union-empty-left = Map.prop-union-empty-left
 
@@ -150,9 +167,28 @@ prop-union-empty-left = Map.prop-union-empty-left
 --
 prop-union-empty-right
   : ∀ {utxo : UTxO}
-  → union utxo empty ≡ utxo
+  → utxo ∪ empty ≡ utxo
 --
 prop-union-empty-right = Map.prop-union-empty-right
+
+-- |
+-- 'union' is associative.
+--
+prop-union-assoc
+  : ∀ {ua ub uc : UTxO}
+  → (ua ∪ ub) ∪ uc ≡ ua ∪ (ub ∪ uc)
+--
+prop-union-assoc = Map.prop-union-assoc
+
+-- |
+-- 'union' is symmetric /if/ the 'UTxO' are disjoint.
+--
+prop-union-sym
+  : ∀ {ua ub : UTxO}
+  → disjoint ua ub ≡ True
+  → ua ∪ ub ≡ ub ∪ ua
+--
+prop-union-sym = Map.prop-union-sym
 
 -- |
 -- Excluding the empty set does nothing.
@@ -173,15 +209,6 @@ prop-excluding-dom
 --
 prop-excluding-dom {utxo} =
   Map.prop-withoutKeys-keysSet utxo
-
--- |
--- 'union' is associative.
---
-prop-union-assoc
-  : ∀ {ua ub uc : UTxO}
-  → (ua ∪ ub) ∪ uc ≡ ua ∪ (ub ∪ uc)
---
-prop-union-assoc = Map.prop-union-assoc
 
 -- |
 -- Excluding from a union is the same as excluding
