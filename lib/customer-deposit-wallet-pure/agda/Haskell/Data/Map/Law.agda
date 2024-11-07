@@ -26,19 +26,16 @@ type DummyDataMapLaw = ()
 module _ {k a : Set} {{_ : Ord k}} where
 
   --
-  prop-member-keysSet
-    : ∀ (key : k) (m : Map k a)
-    → Set.member key (keysSet m)
-      ≡ member key m
+  prop-member-null
+    : ∀ (m : Map k a)
+        (_ : ∀ (key : k) → member key m ≡ False)
+    → null m ≡ True
   --
-  prop-member-keysSet key m =
-    begin
-      Set.member key (keysSet m)
-    ≡⟨ Set.prop-member-fromList key (keys m) ⟩
-      elem key (keys m)
-    ≡⟨ prop-elem-keys key m ⟩
-      member key m
-    ∎
+  prop-member-null m f = prop-lookup-null m (λ key → lem-isJust (f key))
+    where
+      lem-isJust
+        : ∀ {x : Maybe a} → isJust x ≡ False → x ≡ Nothing
+      lem-isJust {Nothing} refl = refl
 
   --
   prop-lookup-singleton
@@ -170,6 +167,110 @@ module _ {k a : Set} {{_ : Ord k}} where
 
 {-----------------------------------------------------------------------------
     Proofs
+    involving keysSet
+------------------------------------------------------------------------------}
+module _ {k a : Set} {{_ : Ord k}} where
+
+  --
+  prop-member-keysSet
+    : ∀ {key : k} {m : Map k a}
+    → Set.member key (keysSet m)
+      ≡ member key m
+  --
+  prop-member-keysSet {key} {m} =
+    begin
+      Set.member key (keysSet m)
+    ≡⟨ Set.prop-member-fromList key (keys m) ⟩
+      elem key (keys m)
+    ≡⟨ prop-elem-keys key m ⟩
+      member key m
+    ∎
+
+  --
+  prop-null-keysSet
+    : ∀ {m : Map k a}
+    → Set.null (keysSet m) ≡ null m
+  --
+  prop-null-keysSet {m}
+    with null m in eql
+    with Set.null (keysSet m) in eqr
+  ... | True | True = refl
+  ... | True | False = trans (sym eqr) lem2 -- contradiction
+    where
+      lem1 = λ key → 
+        begin
+          Set.member key (keysSet m)
+        ≡⟨ prop-member-keysSet ⟩
+          member key m
+        ≡⟨ cong (member key) (prop-null-empty m eql) ⟩
+          member key empty
+        ≡⟨ cong isJust (prop-lookup-empty key) ⟩
+          False
+        ∎
+      lem2 = Set.prop-member-null (keysSet m) lem1
+  ... | False | False = refl
+  ... | False | True = sym (trans (sym eql) lem2) -- contradiction
+    where
+      lem1 = λ key → 
+        begin
+          member key m
+        ≡⟨ sym prop-member-keysSet ⟩
+          Set.member key (keysSet m)
+        ≡⟨ cong (Set.member key) (Set.prop-null-empty (keysSet m) eqr) ⟩
+          Set.member key Set.empty
+        ≡⟨ Set.prop-member-empty key ⟩
+          False
+        ∎
+      lem2 = prop-member-null m lem1
+
+  --
+  prop-keysSet-intersection
+      : ∀ {ma mb : Map k a}
+      → keysSet (intersection ma mb)
+        ≡ Set.intersection (keysSet ma) (keysSet mb)
+  -- 
+  prop-keysSet-intersection {ma} {mb} = Set.prop-equality lem1
+    where
+      lem1
+        : ∀ (key : k)
+        → Set.member key (keysSet (intersection ma mb))
+          ≡ Set.member key (Set.intersection (keysSet ma) (keysSet mb))
+      lem1 key =
+        begin
+          Set.member key (keysSet (intersection ma mb))
+        ≡⟨ prop-member-keysSet ⟩
+          member key (intersection ma mb)
+        ≡⟨ cong isJust (prop-lookup-intersection _ _ _) ⟩
+          isJust (Maybe.intersectionWith const (lookup key ma) (lookup key mb))
+        ≡⟨ Maybe.prop-isJust-intersectionWith ⟩
+          isJust (lookup key ma) && isJust (lookup key mb)
+        ≡⟨⟩
+          member key ma && member key mb
+        ≡⟨ cong (λ o → o && _) (sym prop-member-keysSet) ⟩
+          Set.member key (keysSet ma) && member key mb
+        ≡⟨ cong (λ o → _ && o) (sym prop-member-keysSet) ⟩
+          Set.member key (keysSet ma) && Set.member key (keysSet mb)
+        ≡⟨ sym (Set.prop-member-intersection key (keysSet ma) (keysSet mb)) ⟩
+          Set.member key (Set.intersection (keysSet ma) (keysSet mb))
+        ∎
+
+  --
+  prop-disjoint-keysSet
+    : ∀ {ma mb : Map k a}
+    → disjoint ma mb
+      ≡ Set.disjoint (keysSet ma) (keysSet mb)
+  --
+  prop-disjoint-keysSet {ma} {mb} =
+    begin
+      null (intersection ma mb)
+    ≡⟨ sym prop-null-keysSet ⟩
+      Set.null (keysSet (intersection ma mb))
+    ≡⟨ cong Set.null prop-keysSet-intersection ⟩
+      Set.null (Set.intersection (keysSet ma) (keysSet mb))
+    ∎
+
+{-----------------------------------------------------------------------------
+    Proofs
     involving withoutKeys and restrictKeys
 ------------------------------------------------------------------------------}
 module _ {k a : Set} {{_ : Ord k}} where
@@ -248,7 +349,7 @@ module _ {k a : Set} {{_ : Ord k}} where
           lookup key (withoutKeys m ks)
         ≡⟨ prop-lookup-withoutKeys key m ks ⟩
           Maybe.filt (not (Set.member key ks)) (lookup key m)
-        ≡⟨ cong (λ o → Maybe.filt (not o) (lookup key m)) (prop-member-keysSet key m) ⟩
+        ≡⟨ cong (λ o → Maybe.filt (not o) (lookup key m)) prop-member-keysSet ⟩
           Maybe.filt (not (isJust (lookup key m))) (lookup key m)
         ≡⟨ lem1 (lookup key m) ⟩
           Nothing
