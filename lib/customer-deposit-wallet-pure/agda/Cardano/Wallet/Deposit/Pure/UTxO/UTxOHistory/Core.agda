@@ -299,7 +299,27 @@ applyDeltaUTxOHistory (Prune newFinality) =
 
 {-----------------------------------------------------------------------------
     Properties
+    Helpers
 ------------------------------------------------------------------------------}
+--
+lemma-equality-UTxOHistory
+  : ∀ (u1 u2 : UTxOHistory)
+  → UTxOHistory.history u1 ≡ UTxOHistory.history u2
+  → UTxOHistory.created u1 ≡ UTxOHistory.created u2
+  → UTxOHistory.spent u1 ≡ UTxOHistory.spent u2
+  → UTxOHistory.window u1 ≡ UTxOHistory.window u2
+  → UTxOHistory.boot u1 ≡ UTxOHistory.boot u2
+  → u1 ≡ u2
+--
+lemma-equality-UTxOHistory u1 u2 refl refl refl refl refl = refl
+
+--
+lemma-WithOrigin-At-monotonic
+  : ∀ (x y : SlotNo)
+  → (WithOrigin.At x < WithOrigin.At y) ≡ (x < y)
+--
+lemma-WithOrigin-At-monotonic x y = refl
+
 --
 lemma-<-<=
   : ⦃ iOrdA : Ord a ⦄ → ⦃ IsLawfulOrd a ⦄
@@ -315,6 +335,42 @@ lemma-<-<= x y
 ... | LT = refl
 ... | EQ = refl
 ... | GT = refl
+
+@0 lemma-UTxO-difference
+  : ∀ (x y : UTxO)
+  → (Set.difference (dom x) (dom y)) ⋪ (y ∪ x)
+    ≡ y
+--
+lemma-UTxO-difference x y =
+  begin
+    ((Set.difference (dom x) (dom y)) ⋪ (y ∪ x))
+  ≡⟨ UTxO.prop-excluding-difference ⟩
+    (dom x ⋪ (y ∪ x)) ∪ (dom y ⊲ (y ∪ x))
+  ≡⟨ cong (λ o → o ∪ expr1) UTxO.prop-excluding-union ⟩
+    ((dom x ⋪ y) ∪ (dom x ⋪ x)) ∪ expr1
+  ≡⟨ cong (λ o → ((dom x ⋪ y) ∪ o) ∪ expr1) (UTxO.prop-excluding-dom {x}) ⟩
+    ((dom x ⋪ y) ∪ UTxO.empty) ∪ expr1
+  ≡⟨ cong (λ o → o ∪ expr1) (UTxO.prop-union-empty-right {dom x ⋪ y}) ⟩
+    (dom x ⋪ y) ∪ (dom y ⊲ (y ∪ x))
+  ≡⟨ cong (λ o → expr2 ∪ o) (UTxO.prop-restrictedBy-union {dom y} {y} {x}) ⟩
+    expr2 ∪ ((dom y ⊲ y) ∪ (dom y ⊲ x))
+  ≡⟨ cong (λ o → expr2 ∪ (o ∪ (dom y ⊲ x))) UTxO.prop-restrictedBy-dom ⟩
+    (dom x ⋪ y) ∪ (y ∪ (dom y ⊲ x)) 
+  ≡⟨ sym UTxO.prop-union-assoc ⟩
+    ((dom x ⋪ y) ∪ y) ∪ (dom y ⊲ x)
+  ≡⟨ cong (λ o → o ∪ (dom y ⊲ x)) UTxO.prop-excluding-absorb ⟩
+    y ∪ (dom y ⊲ x)
+  ≡⟨ UTxO.prop-union-restrictedBy-absorbs ⟩
+    y
+  ∎
+ where
+  expr1 = dom y ⊲ (y ∪ x)
+  expr2 = dom x ⋪ y
+
+{-----------------------------------------------------------------------------
+    Properties
+    Basics
+------------------------------------------------------------------------------}
 
 -- | Rolling forward to the tip or before the tip does nothing.
 @0 prop-rollForward-present
@@ -364,6 +420,11 @@ prop-rollBackward-tip
 prop-rollBackward-tip u =
   prop-rollBackward-future u (getTip u) (reflexivity (getTip u))
 
+{-----------------------------------------------------------------------------
+    Properties
+    getUTxO
+------------------------------------------------------------------------------}
+
 postulate
  -- | Rolling forward updates the 'UTxO'.
  prop-rollForward-getUTxO
@@ -374,57 +435,8 @@ postulate
 
 {-----------------------------------------------------------------------------
     Properties
-    Essentials
+    rollForward and rollBackward
 ------------------------------------------------------------------------------}
---
-lemma-equality-UTxOHistory
-  : ∀ (u1 u2 : UTxOHistory)
-  → UTxOHistory.history u1 ≡ UTxOHistory.history u2
-  → UTxOHistory.created u1 ≡ UTxOHistory.created u2
-  → UTxOHistory.spent u1 ≡ UTxOHistory.spent u2
-  → UTxOHistory.window u1 ≡ UTxOHistory.window u2
-  → UTxOHistory.boot u1 ≡ UTxOHistory.boot u2
-  → u1 ≡ u2
---
-lemma-equality-UTxOHistory u1 u2 refl refl refl refl refl = refl
-
---
-lemma-WithOrigin-At-monotonic
-  : ∀ (x y : SlotNo)
-  → (WithOrigin.At x < WithOrigin.At y) ≡ (x < y)
---
-lemma-WithOrigin-At-monotonic x y = refl
-
-@0 lemma-UTxO-difference
-  : ∀ (x y : UTxO)
-  → (Set.difference (dom x) (dom y)) ⋪ (y ∪ x)
-    ≡ y
---
-lemma-UTxO-difference x y =
-  begin
-    ((Set.difference (dom x) (dom y)) ⋪ (y ∪ x))
-  ≡⟨ UTxO.prop-excluding-difference ⟩
-    (dom x ⋪ (y ∪ x)) ∪ (dom y ⊲ (y ∪ x))
-  ≡⟨ cong (λ o → o ∪ expr1) UTxO.prop-excluding-union ⟩
-    ((dom x ⋪ y) ∪ (dom x ⋪ x)) ∪ expr1
-  ≡⟨ cong (λ o → ((dom x ⋪ y) ∪ o) ∪ expr1) (UTxO.prop-excluding-dom {x}) ⟩
-    ((dom x ⋪ y) ∪ UTxO.empty) ∪ expr1
-  ≡⟨ cong (λ o → o ∪ expr1) (UTxO.prop-union-empty-right {dom x ⋪ y}) ⟩
-    (dom x ⋪ y) ∪ (dom y ⊲ (y ∪ x))
-  ≡⟨ cong (λ o → expr2 ∪ o) (UTxO.prop-restrictedBy-union {dom y} {y} {x}) ⟩
-    expr2 ∪ ((dom y ⊲ y) ∪ (dom y ⊲ x))
-  ≡⟨ cong (λ o → expr2 ∪ (o ∪ (dom y ⊲ x))) UTxO.prop-restrictedBy-dom ⟩
-    (dom x ⋪ y) ∪ (y ∪ (dom y ⊲ x)) 
-  ≡⟨ sym UTxO.prop-union-assoc ⟩
-    ((dom x ⋪ y) ∪ y) ∪ (dom y ⊲ x)
-  ≡⟨ cong (λ o → o ∪ (dom y ⊲ x)) UTxO.prop-excluding-absorb ⟩
-    y ∪ (dom y ⊲ x)
-  ≡⟨ UTxO.prop-union-restrictedBy-absorbs ⟩
-    y
-  ∎
- where
-  expr1 = dom y ⊲ (y ∪ x)
-  expr2 = dom x ⋪ y
 
 -- | Rolling backward will cancel rolling forward.
 -- Bare version.
@@ -511,6 +523,8 @@ lemma-rollBackwardBare-ignores-window
 --
 lemma-rollBackwardBare-ignores-window slot u w = refl
 
+-- :O The following postulate is actually false!
+-- The case  getTip u < slot1  yields a different tip.
 --
 postulate
  lemma-rollback-window
