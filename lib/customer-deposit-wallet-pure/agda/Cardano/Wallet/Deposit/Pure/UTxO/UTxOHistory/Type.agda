@@ -25,14 +25,11 @@ open import Haskell.Data.Set using
     )
 
 {-----------------------------------------------------------------------------
-    UTxOHistory
+    Types
 ------------------------------------------------------------------------------}
 
--- | UTxO history.
--- Abstract history of the UTxO. We keep track of the creation
--- and spending of slot of each TxIn.
--- This allows us to rollback to a given slot
--- and prune the history to a given slot.
+-- | 'UTxOHistory' represents a history of a UTxO set that can be
+-- rolled back (up to the 'finality' point).
 --
 -- NOTE: This is an abstract data type,
 -- its internals are only exported for technical reasons.
