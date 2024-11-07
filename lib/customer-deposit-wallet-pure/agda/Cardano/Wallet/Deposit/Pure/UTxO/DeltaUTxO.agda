@@ -8,6 +8,8 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
       ; empty
         ; prop-apply-empty
       ; apply
+      ; fits
+        ; prop-fits
       ; excludingD
         ; prop-excluding-excludingD
         ; prop-apply-excludingD
@@ -77,6 +79,14 @@ apply : DeltaUTxO → UTxO → UTxO
 apply du utxo =
    UTxO.union (received du) (UTxO.excluding utxo (excluded du))
 
+-- | Test whether a 'DeltaUTxO' fits onto a 'UTxO',
+-- that is whether it removes only existing 'TxIn',
+-- and adds only new 'Cardano.Wallet.Read.Tx.TxOut'.
+fits : DeltaUTxO → UTxO → Bool
+fits du u =
+  Set.isSubsetOf (excluded du) (dom u)
+  && UTxO.disjoint (received du) u
+
 -- | Variant of 'excluding' that also returns a delta.
 excludingD : UTxO → Set.ℙ TxIn → (DeltaUTxO × UTxO)
 excludingD utxo txins =
@@ -119,6 +129,7 @@ appends = foldr append empty
 {-# COMPILE AGDA2HS null #-}
 {-# COMPILE AGDA2HS empty #-}
 {-# COMPILE AGDA2HS apply #-}
+{-# COMPILE AGDA2HS fits #-}
 {-# COMPILE AGDA2HS excludingD #-}
 {-# COMPILE AGDA2HS receiveD #-}
 {-# COMPILE AGDA2HS append #-}
@@ -167,6 +178,17 @@ prop-apply-empty utxo =
   ≡⟨ UTxO.prop-excluding-empty utxo ⟩
     utxo
   ∎
+
+-- |
+-- Definition of 'fits'.
+prop-fits
+  : ∀ (du : DeltaUTxO) (u : UTxO)
+  → fits du u
+    ≡ ( Set.isSubsetOf (excluded du) (dom u)
+        && UTxO.disjoint (received du) u
+      )
+--
+prop-fits du u = refl
 
 --
 @0 lemma-excluding-intersection-dom
