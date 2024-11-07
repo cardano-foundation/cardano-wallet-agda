@@ -11,6 +11,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.Tx
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Timeline
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
 
 import Cardano.Wallet.Deposit.Pure.Experimental
