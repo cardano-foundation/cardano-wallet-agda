@@ -44,7 +44,6 @@ import Cardano.Wallet.Read.Chain (Slot, WithOrigin (At, Origin))
 import Cardano.Wallet.Read.Tx (TxIn)
 import Data.Set (Set)
 import Haskell.Data.Map.Def (Map)
-import qualified Haskell.Data.Map.Def as Map (keysSet)
 import qualified Haskell.Data.Maps.Timeline as Timeline
     ( Timeline
     , deleteAfter
@@ -54,6 +53,7 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , empty
     , getMapTime
     , insertMany
+    , items
     )
 import qualified Haskell.Data.Set as Set (difference, intersection)
 import Prelude hiding (null, subtract)
@@ -78,10 +78,7 @@ fromOrigin utxo =
 -- |
 -- UTxO at the tip of history.
 getUTxO :: UTxOHistory -> UTxO
-getUTxO us =
-    excluding
-        (history us)
-        (Map.keysSet (Timeline.getMapTime (spent us)))
+getUTxO us = excluding (history us) (Timeline.items (spent us))
 
 -- |
 -- 'RollbackWindow' within which we can roll back.
@@ -132,7 +129,7 @@ rollForwardBare newTip delta old =
     excludedTxIns =
         Set.difference
             (Set.intersection (excluded delta) (dom (history old)))
-            (Map.keysSet (Timeline.getMapTime (spent old)))
+            (Timeline.items (spent old))
 
 -- |
 -- (Internal, exported for technical reasons.)

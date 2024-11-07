@@ -109,7 +109,7 @@ fromOrigin utxo =
 -- | UTxO at the tip of history.
 getUTxO : UTxOHistory → UTxO
 getUTxO us =
-    excluding history (Map.keysSet (Timeline.getMapTime spent))
+    excluding history (Timeline.items spent)
   where
     open UTxOHistory us
 
@@ -178,7 +178,7 @@ rollForwardBare newTip delta old = record
     excludedTxIns =
         Set.difference
             (Set.intersection (DeltaUTxO.excluded delta) (dom history))
-            (Map.keysSet (Timeline.getMapTime spent))
+            (Timeline.items spent)
 
 -- | (Internal, exported for technical reasons.)
 rollForwardCases
