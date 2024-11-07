@@ -137,8 +137,7 @@ getValueTransferInRange range history =
 
     txs1 : ℙ TxId
     txs1 =
-        Map.keysSet
-            (Timeline.getMapTime (Timeline.restrictRange range txIds))
+        Timeline.items (Timeline.restrictRange range txIds)
 
     txs2 : List (Map Address ValueTransfer)
     txs2 = map (λ tx → PairMap.lookupA tx txTransfers) (toList txs1)
