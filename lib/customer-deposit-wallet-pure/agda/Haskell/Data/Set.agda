@@ -109,6 +109,9 @@ module _ {a : Set} {{_ : Ord a}} where
   singleton : a → ℙ a
   singleton = λ x → insert x empty
 
+  disjoint : ℙ a → ℙ a → Bool
+  disjoint m = null ∘ intersection m
+
 foldMap' : ∀ {{_ : Monoid b}} → (a → b) → ℙ a → b
 foldMap' f = foldMap f ∘ toAscList
 
