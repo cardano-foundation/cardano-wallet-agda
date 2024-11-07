@@ -48,6 +48,8 @@ module _ {a : Set} {{_ : Ord a}} where
     difference   : ℙ a → ℙ a → ℙ a
     filter       : (a → Bool) → ℙ a → ℙ a
 
+    isSubsetOf   : ℙ a → ℙ a → Bool
+
     prop-member-null
       : ∀ (s : ℙ a)
           (_ : ∀ (x : a) → member x s ≡ False)
@@ -105,6 +107,16 @@ module _ {a : Set} {{_ : Ord a}} where
       : ∀ (x : a) (p : a → Bool) (s : ℙ a)
       → member x (filter p s)
         ≡ (p x && member x s)
+
+    prop-isSubsetOf→intersection
+      : ∀ (s1 s2 : ℙ a)
+      → isSubsetOf s1 s2 ≡ True
+      → intersection s1 s2 ≡ s1
+
+    prop-intersection→isSubsetOf
+      : ∀ (s1 s2 : ℙ a)
+      → intersection s1 s2 ≡ s1
+      → isSubsetOf s1 s2 ≡ True
 
   singleton : a → ℙ a
   singleton = λ x → insert x empty
