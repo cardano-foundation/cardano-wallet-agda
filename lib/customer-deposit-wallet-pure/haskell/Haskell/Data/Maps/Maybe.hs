@@ -75,6 +75,19 @@ intersectionWith _ _ _ = Nothing
 --         ≡ union (filter p m1) (filter p m2)
 --     @
 
+-- $prop-union-sym
+-- #p:prop-union-sym#
+--
+-- [prop-union-sym]:
+--     'union' is symmetric if at most one argument is 'Just'.
+--
+--     @
+--     prop-union-sym
+--       : ∀ {ma mb : Maybe a}
+--       → disjoint ma mb ≡ True
+--       → union ma mb ≡ union mb ma
+--     @
+
 -- $prop-unionWith-sym
 -- #p:prop-unionWith-sym#
 --

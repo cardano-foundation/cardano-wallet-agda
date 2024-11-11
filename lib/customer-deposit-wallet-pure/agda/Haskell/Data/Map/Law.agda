@@ -117,6 +117,41 @@ module _ {k a : Set} {{_ : Ord k}} where
         ∎
 
   --
+  prop-union-sym
+    : ∀ {ma mb : Map k a}
+    → disjoint ma mb ≡ True
+    → union ma mb ≡ union mb ma
+  --
+  prop-union-sym {ma} {mb} cond = prop-equality eq-key
+    where
+      lem1 : intersection ma mb ≡ empty
+      lem1 = prop-null-empty (intersection ma mb) cond
+
+      lem-disjoint = λ key →
+        begin
+          Maybe.disjoint (lookup key ma) (lookup key mb)
+        ≡⟨⟩
+          Maybe.null (Maybe.intersectionWith const (lookup key ma) (lookup key mb))
+        ≡⟨ cong Maybe.null (sym (prop-lookup-intersection key ma mb)) ⟩
+          Maybe.null (lookup key (intersection ma mb))
+        ≡⟨ cong (λ o → Maybe.null (lookup key o)) lem1 ⟩
+          Maybe.null (lookup key empty)
+        ≡⟨ cong Maybe.null (prop-lookup-empty key) ⟩
+          True
+        ∎
+
+      eq-key = λ key →
+        begin
+          lookup key (union ma mb)
+        ≡⟨ prop-lookup-unionWith key const _ _ ⟩
+          Maybe.union (lookup key ma) (lookup key mb)
+        ≡⟨ Maybe.prop-union-sym {_} {lookup key ma} {lookup key mb} (lem-disjoint key) ⟩
+          Maybe.union (lookup key mb) (lookup key ma)
+        ≡⟨ sym (prop-lookup-unionWith key const _ _) ⟩
+          lookup key (unionWith const mb ma)
+        ∎
+
+  --
   prop-union-assoc
     : ∀ {ma mb mc : Map k a}
     → union (union ma mb) mc ≡ union ma (union mb mc)
