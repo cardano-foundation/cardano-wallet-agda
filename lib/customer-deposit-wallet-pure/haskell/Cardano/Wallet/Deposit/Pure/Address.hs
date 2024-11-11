@@ -15,7 +15,9 @@ module Cardano.Wallet.Deposit.Pure.Address
       -- ** Address observation
     , isCustomerAddress
       -- $prop-isCustomerAddress-deriveCustomerAddress
+    , isChangeAddress
     , isOurs
+      -- $prop-isOurs
       -- $prop-isOurs-from-isCustomerAddress
     , getBIP32Path
     , listCustomers
@@ -153,7 +155,7 @@ isCustomerAddress s =
     \addr -> isJust $ Map.lookup addr (addresses s)
 
 -- |
--- (Internal, exported for technical reasons.)
+-- Efficient test whether an 'Address' is an internal change address.
 isChangeAddress :: AddressState -> Address -> Bool
 isChangeAddress = \s -> (change s ==)
 
@@ -344,6 +346,21 @@ mockMaxLengthChangeAddress s =
 --           (addr : Address)
 --       → isCustomerAddress s addr ≡ True
 --       → ∃ (λ c → addr ≡ deriveCustomerAddress (getNetworkTag s) (getXPub s) c)
+--     @
+
+-- $prop-isOurs
+-- #p:prop-isOurs#
+--
+-- [prop-isOurs]:
+--     It's ours if it's an internal change address or a known
+--     customer address.
+--
+--     @
+--     @0 prop-isOurs
+--       : ∀ (s : AddressState)
+--           (addr : Address)
+--       → isOurs s addr
+--         ≡ (isChangeAddress s addr || isCustomerAddress s addr)
 --     @
 
 -- $prop-isOurs-from-isCustomerAddress
