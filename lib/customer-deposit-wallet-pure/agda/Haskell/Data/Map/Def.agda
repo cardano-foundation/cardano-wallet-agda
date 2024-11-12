@@ -185,8 +185,13 @@ module _ {k a b : Set} {{_ : Ord k}} where
     mapWithKey : (k → a → b) → Map k a → Map k b
     mapMaybeWithKey : (k → a → Maybe b) → Map k a → Map k b
 
+    intersection : Map k a → Map k b → Map k a
+
   map : (a → b) → Map k a → Map k b
   map = fmap
+
+  disjoint : Map k a → Map k b → Bool
+  disjoint m1 m2 = null (intersection m1 m2)
 
   postulate
     prop-lookup-fmap
@@ -203,6 +208,11 @@ module _ {k a b : Set} {{_ : Ord k}} where
       : ∀ (key : k) (m : Map k a) (f : k → a → Maybe b)
       → lookup key (mapMaybeWithKey f m)
         ≡ Maybe.mapMaybe (f key) (lookup key m)
+
+    prop-lookup-intersection
+      : ∀ (key : k) (m1 : Map k a) (m2 : Map k b)
+      → lookup key (intersection m1 m2)
+        ≡ Maybe.intersectionWith const (lookup key m1) (lookup key m2)
 
 {-----------------------------------------------------------------------------
     Operations

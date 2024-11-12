@@ -19,6 +19,10 @@ open import Haskell.Data.Maybe using
     Functions
 ------------------------------------------------------------------------------}
 
+null : Maybe a → Bool
+null Nothing = True
+null (Just x) = False
+
 update : (a → Maybe a) → Maybe a → Maybe a
 update f Nothing = Nothing
 update f (Just x) = f x
@@ -50,6 +54,9 @@ intersectionWith : (a → b → c) → Maybe a → Maybe b → Maybe c
 intersectionWith f (Just x) (Just y) = Just (f x y)
 intersectionWith _ _ _ = Nothing
 
+disjoint : Maybe a → Maybe b → Bool
+disjoint m = null ∘ intersectionWith const m
+
 {-# COMPILE AGDA2HS update #-}
 {-# COMPILE AGDA2HS filter #-}
 {-# COMPILE AGDA2HS unionWith #-}
@@ -57,8 +64,8 @@ intersectionWith _ _ _ = Nothing
 {-# COMPILE AGDA2HS intersectionWith #-}
 
 {-----------------------------------------------------------------------------
-    Data.Maybe
     Properties
+    union
 ------------------------------------------------------------------------------}
 
 --
@@ -91,6 +98,17 @@ prop-union-assoc {_} {Just x} {Nothing} {mc} = refl
 prop-union-assoc {_} {Just x} {Just y} {Nothing} = refl
 prop-union-assoc {_} {Just x} {Just y} {Just z} = refl
 
+-- | 'union' is symmetric if at most one argument is 'Just'.
+--
+prop-union-sym
+  : ∀ {ma mb : Maybe a}
+  → disjoint ma mb ≡ True
+  → union ma mb ≡ union mb ma
+--
+prop-union-sym {_} {Nothing} {Nothing} eq = refl
+prop-union-sym {_} {Nothing} {Just x} eq = refl
+prop-union-sym {_} {Just x} {Nothing} eq = refl
+
 --
 prop-union-left
   : ∀ (x : a) (mb : Maybe a)
@@ -98,6 +116,20 @@ prop-union-left
 --
 prop-union-left x Nothing = refl
 prop-union-left x (Just y) = refl
+
+{-----------------------------------------------------------------------------
+    Properties
+    intersection
+------------------------------------------------------------------------------}
+--
+prop-isJust-intersectionWith
+  : ∀ {ma : Maybe a} {mb : Maybe b} {f : a → b → c}
+  → isJust (intersectionWith f ma mb)
+    ≡ (isJust ma && isJust mb)
+--
+prop-isJust-intersectionWith {_} {_} {_} {Nothing} = refl
+prop-isJust-intersectionWith {_} {_} {_} {Just x} {Nothing} = refl
+prop-isJust-intersectionWith {_} {_} {_} {Just x} {Just y} = refl
 
 {-----------------------------------------------------------------------------
     Properties
