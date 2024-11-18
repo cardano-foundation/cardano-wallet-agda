@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type where
 
 import Cardano.Wallet.Deposit.Pure.RollbackWindow (RollbackWindow)
@@ -21,3 +23,5 @@ data UTxOHistory = UTxOHistory
     , window :: RollbackWindow Slot
     , boot :: UTxO
     }
+
+deriving instance Show UTxOHistory

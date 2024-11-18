@@ -281,6 +281,9 @@ record AddressState : Set where
 
 open AddressState public
 
+postulate instance
+  iShowAddressState : Show AddressState
+
 -- | Network for which this 'AddressState' tracks addresses.
 getNetworkTag : AddressState → NetworkTag
 getNetworkTag s = fromNetworkId (networkId s)
@@ -303,6 +306,7 @@ isOurs : AddressState → Address → Bool
 isOurs = λ s addr → isChangeAddress s addr || isCustomerAddress s addr
 
 {-# COMPILE AGDA2HS AddressState #-}
+{-# COMPILE AGDA2HS iShowAddressState derive #-}
 {-# COMPILE AGDA2HS getNetworkTag #-}
 {-# COMPILE AGDA2HS getXPub #-}
 {-# COMPILE AGDA2HS isCustomerAddress #-}

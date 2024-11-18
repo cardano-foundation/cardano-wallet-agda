@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Haskell.Data.Maps.Timeline where
 
@@ -42,6 +43,8 @@ data Timeline time a = Timeline
     { events :: Map a time
     , eventsByTime :: InverseMap.InverseMap a time
     }
+
+deriving instance (Show a, Show time) => Show (Timeline time a)
 
 -- |
 -- The empty set of items.

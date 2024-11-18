@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Cardano.Wallet.Deposit.Pure.Address
     ( -- * Deriving addresses
       Customer
@@ -137,6 +139,8 @@ data AddressState = AddressStateC
     , maxCustomer :: Customer
     , change :: Address
     }
+
+deriving instance Show AddressState
 
 -- |
 -- Network for which this 'AddressState' tracks addresses.

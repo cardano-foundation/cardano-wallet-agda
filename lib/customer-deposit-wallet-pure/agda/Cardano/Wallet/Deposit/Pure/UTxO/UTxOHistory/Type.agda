@@ -48,4 +48,8 @@ record UTxOHistory : Set where
 
 open UTxOHistory public
 
+postulate instance
+  iShowUTxOHistory : Show UTxOHistory
+
 {-# COMPILE AGDA2HS UTxOHistory #-}
+{-# COMPILE AGDA2HS iShowUTxOHistory derive #-}

@@ -53,6 +53,12 @@ record Timeline (time a : Set) {{@0 _ : Ord time}} {{@0 _ : Ord a}} : Set where
 
 open Timeline public
 
+postulate instance
+  iShowTimeline
+    : ∀ {{@0 _ : Ord time}} {{@0 _ : Ord a}}
+        {{_ : Show a}} {{_ : Show time}}
+    → Show (Timeline time a)
+
 -- | The empty set of items.
 empty 
     : ∀ {{_ : Ord time}} {{_ : Ord a}}
@@ -187,6 +193,7 @@ restrictRange (from , to) =
     ∘ takeWhileAntitone (_<= to)
 
 {-# COMPILE AGDA2HS Timeline #-}
+{-# COMPILE AGDA2HS iShowTimeline derive #-}
 {-# COMPILE AGDA2HS empty #-}
 {-# COMPILE AGDA2HS lookupByTime #-}
 {-# COMPILE AGDA2HS lookupByItem #-}
