@@ -2,6 +2,7 @@ module Everything where
 
 import Cardano.Wallet.Address.BIP32
 import Cardano.Wallet.Address.BIP32_Ed25519
+import Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
 import Cardano.Wallet.Address.Hash
 
 import Cardano.Wallet.Deposit.Pure.TxHistory

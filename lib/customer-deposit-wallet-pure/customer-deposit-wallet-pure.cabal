@@ -64,6 +64,7 @@ library
   exposed-modules:
     Cardano.Wallet.Address.BIP32
     Cardano.Wallet.Address.BIP32_Ed25519
+    Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
     Cardano.Wallet.Address.Encoding
     Cardano.Wallet.Address.Hash
     Cardano.Wallet.Deposit.Pure.Experimental
