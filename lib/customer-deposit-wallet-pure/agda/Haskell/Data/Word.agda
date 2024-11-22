@@ -4,6 +4,7 @@ module Haskell.Data.Word
     {-
     ; Word8
     ; Word16
+    ; Word32
     -}
     where
 
@@ -85,12 +86,11 @@ instance
     if a < a₁ then fromThenTo integerFromWord8 word8FromInteger a a₁ maxBound
               else fromThenTo integerFromWord8 word8FromInteger a a₁ minBound
 
-
 {-----------------------------------------------------------------------------
     Word16
 ------------------------------------------------------------------------------}
 2¹⁶ : Nat
-2¹⁶ = 256 * 256
+2¹⁶ = 2⁸ * 2⁸
 
 data Word16 : Set where
     Word16C : Word64 → Word16
@@ -123,7 +123,7 @@ instance
   iBoundedBelowWord16 .minBound = 0
 
   iBoundedAboveWord16 : BoundedAbove Word16
-  iBoundedAboveWord16 .maxBound = Word16C (primWord64FromNat (2⁸ - 1))
+  iBoundedAboveWord16 .maxBound = Word16C (primWord64FromNat (2¹⁶ - 1))
 
   iEnumWord16 : Enum Word16
   iEnumWord16 .BoundedBelowEnum      = Just it
@@ -138,3 +138,56 @@ instance
   iEnumWord16 .enumFromThen   a a₁   =
     if a < a₁ then fromThenTo integerFromWord16 word16FromInteger a a₁ maxBound
               else fromThenTo integerFromWord16 word16FromInteger a a₁ minBound
+
+{-----------------------------------------------------------------------------
+    Word32
+------------------------------------------------------------------------------}
+2³² : Nat
+2³² = 2¹⁶ * 2¹⁶
+
+data Word32 : Set where
+    Word32C : Word64 → Word32
+
+instance
+  iNumberWord32 : Number Word32
+  iNumberWord32 .Number.Constraint n = IsTrue (ltNat n 2³²)
+  iNumberWord32 .fromNat n = Word32C (n2w n)
+
+word32FromNat : Nat → Word32
+word32FromNat n = Word32C (primWord64FromNat n)
+
+word32FromInteger : Integer → Word32
+word32FromInteger n = Word32C (integerToWord n)
+
+integerFromWord32 : Word32 → Integer
+integerFromWord32 (Word32C n) = wordToInteger n
+
+instance
+  iEqWord32 : Eq Word32
+  iEqWord32 ._==_ (Word32C x) (Word32C y) = eqWord x y
+
+  iOrdFromLessThanWord32 : OrdFromLessThan Word32
+  iOrdFromLessThanWord32 .OrdFromLessThan._<_ (Word32C x) (Word32C y) = ltWord x y
+
+  iOrdWord32 : Ord Word32
+  iOrdWord32 = record {OrdFromLessThan iOrdFromLessThanWord32}
+
+  iBoundedBelowWord32 : BoundedBelow Word32
+  iBoundedBelowWord32 .minBound = 0
+
+  iBoundedAboveWord32 : BoundedAbove Word32
+  iBoundedAboveWord32 .maxBound = Word32C (primWord64FromNat (2³² - 1))
+
+  iEnumWord32 : Enum Word32
+  iEnumWord32 .BoundedBelowEnum      = Just it
+  iEnumWord32 .BoundedAboveEnum      = Just it
+  iEnumWord32 .fromEnum              = integerToInt ∘ integerFromWord32
+  iEnumWord32 .toEnum         n      = word32FromInteger (intToInteger n)
+  iEnumWord32 .succ           x      = word32FromInteger (integerFromWord32 x + 1)
+  iEnumWord32 .pred           x      = word32FromInteger (integerFromWord32 x - 1)
+  iEnumWord32 .enumFromTo     a b    = fromTo integerFromWord32 word32FromInteger a b
+  iEnumWord32 .enumFromThenTo a a₁ b = fromThenTo integerFromWord32 word32FromInteger a a₁ b
+  iEnumWord32 .enumFrom       a      = fromTo integerFromWord32 word32FromInteger a maxBound
+  iEnumWord32 .enumFromThen   a a₁   =
+    if a < a₁ then fromThenTo integerFromWord32 word32FromInteger a a₁ maxBound
+              else fromThenTo integerFromWord32 word32FromInteger a a₁ minBound
