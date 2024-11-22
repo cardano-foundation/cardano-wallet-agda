@@ -88,6 +88,7 @@ library
     Data.Maps.Timeline
     Data.Map.Law
   other-modules:
+    Haskell.Cardano.Crypto.Wallet
     Haskell.Data.ByteString
     Haskell.Data.ByteString.Short
     Haskell.Data.List
