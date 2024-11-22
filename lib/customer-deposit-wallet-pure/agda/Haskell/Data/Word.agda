@@ -123,7 +123,7 @@ instance
   iBoundedBelowWord16 .minBound = 0
 
   iBoundedAboveWord16 : BoundedAbove Word16
-  iBoundedAboveWord16 .maxBound = Word16C (primWord64FromNat (2⁸ - 1))
+  iBoundedAboveWord16 .maxBound = Word16C (primWord64FromNat (2¹⁶ - 1))
 
   iEnumWord16 : Enum Word16
   iEnumWord16 .BoundedBelowEnum      = Just it
