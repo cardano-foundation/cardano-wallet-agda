@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Cardano.Wallet.Address.Encoding
     ( -- * Credentials
       KeyHash
@@ -67,6 +69,12 @@ data EnterpriseAddr = EnterpriseAddrC
     { net :: NetworkTag
     , pay :: Credential
     }
+
+deriving instance Show Credential
+
+deriving instance Show NetworkTag
+
+deriving instance Show EnterpriseAddr
 
 -- |
 -- Hash a public key.

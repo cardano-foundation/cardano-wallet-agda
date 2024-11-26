@@ -30,6 +30,10 @@ postulate instance
   iOrdDerivationType : Ord DerivationType
 {-# COMPILE AGDA2HS iOrdDerivationType #-}
 
+postulate instance
+  iShowDerivationType : Show DerivationType
+{-# COMPILE AGDA2HS iShowDerivationType derive #-}
+
 {-| An absolute path according to the
 [BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) standard.
 
@@ -59,4 +63,8 @@ instance
 
 postulate instance
   iOrdBIP32Path : Ord BIP32Path
-{-# COMPILE AGDA2HS iOrdBIP32Path #-}
+{-# COMPILE AGDA2HS iOrdBIP32Path derive #-}
+
+postulate instance
+  iShowBIP32Path : Show BIP32Path
+{-# COMPILE AGDA2HS iShowBIP32Path derive #-}
