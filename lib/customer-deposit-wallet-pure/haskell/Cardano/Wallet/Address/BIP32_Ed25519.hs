@@ -16,9 +16,14 @@ module Cardano.Wallet.Address.BIP32_Ed25519
     , deriveXPubSoft
     , deriveXPrvSoft
     , deriveXPrvHard
+    , deriveXPrvBIP32Path
     )
 where
 
+import Cardano.Wallet.Address.BIP32
+    ( BIP32Path (Root, Segment)
+    , DerivationType (Hardened, Soft)
+    )
 import Data.Word.Odd (Word31)
 import qualified Haskell.Cardano.Crypto.Wallet as CC
     ( DerivationScheme (DerivationScheme2)
@@ -128,3 +133,14 @@ deriveXPrvHard xprv ix =
         BS.empty
         xprv
         (CC.word32fromWord31High ix)
+
+-- |
+-- Derive an extended private key from a root private key
+-- along a path as described in the
+-- [BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#user-content-The_key_tree) standard.
+deriveXPrvBIP32Path :: XPrv -> BIP32Path -> XPrv
+deriveXPrvBIP32Path xprv Root = xprv
+deriveXPrvBIP32Path xprv (Segment path Hardened ix) =
+    deriveXPrvHard (deriveXPrvBIP32Path xprv path) ix
+deriveXPrvBIP32Path xprv (Segment path Soft ix) =
+    deriveXPrvSoft (deriveXPrvBIP32Path xprv path) ix

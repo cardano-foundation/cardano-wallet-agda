@@ -19,11 +19,17 @@ module Cardano.Wallet.Address.BIP32_Ed25519
   ; deriveXPubSoft
   ; deriveXPrvSoft
   ; deriveXPrvHard
+  ; deriveXPrvBIP32Path
   -} where
 
 open import Haskell.Prelude hiding (fromJust)
 open import Haskell.Reasoning
 
+open import Cardano.Wallet.Address.BIP32 using
+  ( BIP32Path
+  ; DerivationType
+  )
+open DerivationType
 open import Haskell.Data.ByteString using
   ( ByteString
   )
@@ -199,3 +205,17 @@ postulate
         (ix1 ix2 : Word31)
     → deriveXPrvHard xprv ix1 ≡ deriveXPrvHard xprv ix2
     → ix1 ≡ ix2
+
+
+-- | Derive an extended private key from a root private key
+-- along a path as described in the
+-- [BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#user-content-The_key_tree) standard.
+--
+deriveXPrvBIP32Path : XPrv → BIP32Path → XPrv
+deriveXPrvBIP32Path xprv BIP32Path.Root = xprv
+deriveXPrvBIP32Path xprv (BIP32Path.Segment path Hardened ix) =
+    deriveXPrvHard (deriveXPrvBIP32Path xprv path) ix
+deriveXPrvBIP32Path xprv (BIP32Path.Segment path Soft ix) =
+    deriveXPrvSoft (deriveXPrvBIP32Path xprv path) ix
+
+{-# COMPILE AGDA2HS deriveXPrvBIP32Path #-}
