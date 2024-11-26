@@ -107,6 +107,15 @@ open EnterpriseAddr public
 {-# COMPILE AGDA2HS fromNetworkId #-}
 {-# COMPILE AGDA2HS EnterpriseAddr #-}
 
+postulate instance
+  iShowCredential : Show Credential
+  iShowNetworkTag : Show NetworkTag
+  iShowEnterpriseAddr : Show EnterpriseAddr
+
+{-# COMPILE AGDA2HS iShowCredential derive #-}
+{-# COMPILE AGDA2HS iShowNetworkTag derive #-}
+{-# COMPILE AGDA2HS iShowEnterpriseAddr derive #-}
+
 --
 prop-KeyHashObj-injective
   : ∀ (x y : KeyHash)
