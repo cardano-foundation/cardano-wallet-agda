@@ -16,9 +16,14 @@ module Cardano.Wallet.Address.BIP32_Ed25519
     , deriveXPubSoft
     , deriveXPrvSoft
     , deriveXPrvHard
+    , deriveXPrvBIP32Path
     )
 where
 
+import Cardano.Wallet.Address.BIP32
+    ( BIP32Path (Root, Segment)
+    , DerivationType (Hardened, Soft)
+    )
 import Data.Word.Odd (Word31)
 import qualified Haskell.Cardano.Crypto.Wallet as CC
     ( DerivationScheme (DerivationScheme2)
@@ -52,17 +57,17 @@ import Prelude hiding (null, subtract)
 type XPub = CC.XPub
 
 -- |
--- Private key, plaintext.
-type XPrv = CC.XPrv
-
--- |
--- Extended private key.
+-- Extended private key,
 -- based on the elliptic curve cryptography Ed25519.
 -- [Ed25519](https://en.wikipedia.org/wiki/EdDSA#Ed25519).
 --
 -- Extended keys can be used to create child keys in line
 -- with the [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf)
 -- standard.
+type XPrv = CC.XPrv
+
+-- |
+-- Obtain the extended public key corresponding to an extended private key.
 toXPub :: XPrv -> XPub
 toXPub = CC.toXPub
 
@@ -128,3 +133,14 @@ deriveXPrvHard xprv ix =
         BS.empty
         xprv
         (CC.word32fromWord31High ix)
+
+-- |
+-- Derive an extended private key from a root private key
+-- along a path as described in the
+-- [BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#user-content-The_key_tree) standard.
+deriveXPrvBIP32Path :: XPrv -> BIP32Path -> XPrv
+deriveXPrvBIP32Path xprv Root = xprv
+deriveXPrvBIP32Path xprv (Segment path Hardened ix) =
+    deriveXPrvHard (deriveXPrvBIP32Path xprv path) ix
+deriveXPrvBIP32Path xprv (Segment path Soft ix) =
+    deriveXPrvSoft (deriveXPrvBIP32Path xprv path) ix
