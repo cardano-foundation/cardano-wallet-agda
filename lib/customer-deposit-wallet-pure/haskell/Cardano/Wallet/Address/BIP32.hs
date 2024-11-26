@@ -15,6 +15,8 @@ deriving instance Eq DerivationType
 
 deriving instance Ord DerivationType
 
+deriving instance Show DerivationType
+
 -- |
 -- An absolute path according to the
 -- [BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) standard.
@@ -34,3 +36,5 @@ data BIP32Path
 deriving instance Eq BIP32Path
 
 deriving instance Ord BIP32Path
+
+deriving instance Show BIP32Path
