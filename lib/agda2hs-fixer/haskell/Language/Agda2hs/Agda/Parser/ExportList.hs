@@ -116,7 +116,7 @@ moduleName =
     L.lexeme space
         $ (:)
             <$> C.upperChar
-            <*> many (C.alphaNumChar <|> satisfy (`elem` ['.']))
+            <*> many (C.alphaNumChar <|> satisfy (`elem` ['_','.']))
 
 agdaNamePart :: Parser AgdaIdentifier
 agdaNamePart =

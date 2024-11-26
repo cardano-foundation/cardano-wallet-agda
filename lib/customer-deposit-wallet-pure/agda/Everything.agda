@@ -18,6 +18,8 @@ import Cardano.Wallet.Deposit.Pure.Experimental
 import Cardano.Wallet.Deposit.Implementation
 import Specification
 
+import Haskell.Cardano.Crypto.Wallet
+
 import Cardano.Wallet.Read.Block
 import Cardano.Wallet.Read.Chain
 import Cardano.Wallet.Read.Eras

@@ -27,130 +27,148 @@ open import Haskell.Reasoning
 open import Haskell.Data.ByteString using
   ( ByteString
   )
+open import Haskell.Data.Maybe using
+  ( fromJust
+  ; isJust
+  )
+open import Haskell.Data.Word using
+  ( Word32
+  )
 open import Haskell.Data.Word.Odd using
   ( Word31
   )
 
-{-# FOREIGN AGDA2HS
-{-# LANGUAGE UnicodeSyntax #-}
-import Data.ByteString
-  ( ByteString
-  )
-import Data.Maybe
-  ( fromJust
-  )
-import Data.Word
-  ( Word32
-  )
-import Data.Word.Odd
-  ( Word31
-  )
-import qualified Cardano.Crypto.Wallet as CC
-import qualified Data.ByteString as BS
-#-}
-
-dummy : Int
-dummy = 12 -- needed for Agda2hs to add sufficient imports
+import Haskell.Cardano.Crypto.Wallet as CC
+import Haskell.Data.ByteString as BS
 
 {-----------------------------------------------------------------------------
     Extended private and public keys
 ------------------------------------------------------------------------------}
 
--- TODO: Extend to encrypted keys
+-- | Extended public key,
+-- based on the elliptic curve cryptography
+-- [Ed25519](https://en.wikipedia.org/wiki/EdDSA#Ed25519).
+--
+-- Extended keys can be used to create child keys in line
+-- with the [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf)
+-- standard.
+XPub : Set
+XPub = CC.XPub
+
+-- | Private key, plaintext.
+XPrv : Set
+XPrv = CC.XPrv
+
+-- | Extended private key.
+-- based on the elliptic curve cryptography Ed25519.
+-- [Ed25519](https://en.wikipedia.org/wiki/EdDSA#Ed25519).
+--
+-- Extended keys can be used to create child keys in line
+-- with the [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf)
+-- standard.
+toXPub : XPrv → XPub
+toXPub = CC.toXPub
+
+-- | Signature created with an 'XPrv', and verifiable with 'XPub'.
+XSignature : Set
+XSignature = CC.XSignature
+
+-- | Sign a sequence of bytes with a private key.
+sign : XPrv → ByteString → XSignature
+sign = CC.sign BS.empty
+
+-- | Verify the signature for a sequence of bytes using the public key.
+verify : XPub → ByteString → XSignature → Bool
+verify = CC.verify
+
 postulate
-  XPub : Set  -- plaintext public key
-  XPrv : Set  -- plaintext private key
-
-  toXPub : XPrv → XPub
-
-  XSignature : Set
-  sign   : XPrv → ByteString → XSignature
-  verify : XPub → ByteString → XSignature → Bool
-
   prop-verify-sign
     : ∀ (xprv : XPrv)
         (msg  : ByteString)
     → let xpub = toXPub xprv
       in  verify xpub msg (sign xprv msg) ≡ True
 
-{-# FOREIGN AGDA2HS
-  -- * Types
+{-# COMPILE AGDA2HS XPub #-}
+{-# COMPILE AGDA2HS XPrv #-}
+{-# COMPILE AGDA2HS toXPub #-}
+{-# COMPILE AGDA2HS XSignature #-}
+{-# COMPILE AGDA2HS sign #-}
+{-# COMPILE AGDA2HS verify #-}
 
-  -- FIXME: We define type synonyms here so that
-  -- they can be exported. Ideally, we would re-export from
-  -- the Cardano.Wallet.Crypto module.
+{-----------------------------------------------------------------------------
+    Serialization
+------------------------------------------------------------------------------}
 
-  -- | Extended public key,
-  -- based on the elliptic curve cryptography
-  -- [Ed25519](https://en.wikipedia.org/wiki/EdDSA#Ed25519).
-  --
-  -- Extended keys can be used to create child keys in line
-  -- with the [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf)
-  -- standard.
-  type XPub = CC.XPub
+-- | Serialize an 'XPub' to a sequence of bytes.
+rawSerialiseXPub : XPub → ByteString
+rawSerialiseXPub = CC.unXPub
 
-  -- | Extended private key.
-  -- based on the elliptic curve cryptography Ed25519.
-  -- [Ed25519](https://en.wikipedia.org/wiki/EdDSA#Ed25519).
-  --
-  -- Extended keys can be used to create child keys in line
-  -- with the [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf)
-  -- standard.
-  type XPrv = CC.XPrv
+-- | Serialize an 'XPrv' to a sequence of bytes.
+rawSerialiseXPrv : XPrv → ByteString
+rawSerialiseXPrv = CC.unXPrv
 
-  -- | Signature created with an 'XPrv', and verifiable with 'XPub'.
-  type XSignature = CC.XSignature
-
-  -- | Obtain the public key correspond to a private key.
-  toXPub :: XPrv → XPub
-  toXPub = CC.toXPub
-
-  -- | Sign a sequence of bytes with a private key.
-  sign :: XPrv → ByteString → XSignature
-  sign = CC.sign BS.empty
-
-  -- | Verify the signature for a sequence of bytes using the public key.
-  verify :: XPub → ByteString → XSignature → Bool
-  verify = CC.verify
-#-}
+-- | Serialize an 'XSignature' to a sequence of bytes.
+rawSerialiseXSignature : XSignature → ByteString
+rawSerialiseXSignature = CC.unXSignature
 
 postulate
-  rawSerialiseXPub : XPub → ByteString
-  rawSerialiseXPrv : XPrv → ByteString
-  rawSerialiseXSignature : XSignature → ByteString
-
   prop-rawSerialiseXPub-injective
     : ∀ (x y : XPub)
     → rawSerialiseXPub x ≡ rawSerialiseXPub y
     → x ≡ y
 
-{-# FOREIGN AGDA2HS
-  -- * Serialization
-
-  -- | Serialize an 'XPub' to a sequence of bytes.
-  rawSerialiseXPub :: XPub → ByteString
-  rawSerialiseXPub = CC.unXPub
-
-  -- | Serialize an 'XPrv' to a sequence of bytes.
-  rawSerialiseXPrv :: XPrv → ByteString
-  rawSerialiseXPrv = CC.unXPrv
-
-  -- | Serialize an 'XSignature' to a sequence of bytes.
-  rawSerialiseXSignature :: XSignature → ByteString
-  rawSerialiseXSignature = CC.unXSignature
-#-}
+{-# COMPILE AGDA2HS rawSerialiseXPub #-}
+{-# COMPILE AGDA2HS rawSerialiseXPrv #-}
+{-# COMPILE AGDA2HS rawSerialiseXSignature #-}
 
 {-----------------------------------------------------------------------------
     Key derivation
 ------------------------------------------------------------------------------}
+postulate
+  -- 'deriveXPub' always returns 'Just' on 'Word31'
+  @0 prop-isJust-deriveXPub
+    : ∀ (xpub : XPub) (ix : Word31)
+    → isJust
+      (CC.deriveXPub CC.DerivationScheme2 xpub (CC.word32fromWord31Low ix))
+      ≡ True
+
+-- | Derive a child extended public key according to the
+-- [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf) standard.
+deriveXPubSoft : XPub → Word31 → XPub
+deriveXPubSoft xpub ix =
+  fromJust 
+    (CC.deriveXPub
+      CC.DerivationScheme2
+      xpub
+      (CC.word32fromWord31Low ix)
+    )
+    {prop-isJust-deriveXPub xpub ix}
+
+-- | Derive a child extended private key according to the
+-- [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf) standard.
+deriveXPrvSoft : XPrv → Word31 → XPrv
+deriveXPrvSoft xprv ix = 
+  CC.deriveXPrv
+    CC.DerivationScheme2
+    BS.empty
+    xprv
+    (CC.word32fromWord31Low ix)
+
+-- | Derive a hardened child extended private key according to the
+-- [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf) standard.
+deriveXPrvHard : XPrv → Word31 → XPrv
+deriveXPrvHard xprv ix =
+  CC.deriveXPrv
+    CC.DerivationScheme2
+    BS.empty
+    xprv
+    (CC.word32fromWord31High ix)
+
+{-# COMPILE AGDA2HS deriveXPubSoft #-}
+{-# COMPILE AGDA2HS deriveXPrvSoft #-}
+{-# COMPILE AGDA2HS deriveXPrvHard #-}
 
 postulate
-  deriveXPubSoft : XPub → Word31 → XPub
-  deriveXPrvSoft : XPrv → Word31 → XPrv
-  deriveXPrvHard : XPrv → Word31 → XPrv
-
-postulate
-
   prop-derive-soft
     : ∀ (xprv : XPrv)
         (ix   : Word31)
@@ -181,43 +199,3 @@ postulate
         (ix1 ix2 : Word31)
     → deriveXPrvHard xprv ix1 ≡ deriveXPrvHard xprv ix2
     → ix1 ≡ ix2
-
-{-# FOREIGN AGDA2HS
-  -- * Key derivation
-
-  -- | Embed a smaller Word into a larger Word.
-  word32fromWord31 :: Word31 → Word32
-  word32fromWord31 = fromInteger . toInteger
-
-  -- | Derive a child extended public key according to the
-  -- [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf) standard.
-  deriveXPubSoft :: XPub → Word31 → XPub
-  deriveXPubSoft xpub ix =
-    fromJust 
-      (CC.deriveXPub
-        CC.DerivationScheme2
-        xpub
-        (word32fromWord31 ix)
-      )
-    -- deriveXPub always returns Just on Word31
-
-  -- | Derive a child extended private key according to the
-  -- [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf) standard.
-  deriveXPrvSoft :: XPrv → Word31 → XPrv
-  deriveXPrvSoft xprv ix = 
-    CC.deriveXPrv
-      CC.DerivationScheme2
-      BS.empty
-      xprv
-      (word32fromWord31 ix)
-
-  -- | Derive a hardened child extended private key according to the
-  -- [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf) standard.
-  deriveXPrvHard :: XPrv → Word31 → XPrv
-  deriveXPrvHard xprv ix =
-    CC.deriveXPrv
-      CC.DerivationScheme2
-      BS.empty
-      xprv
-      (0x80000000 + word32fromWord31 ix)
-#-}
