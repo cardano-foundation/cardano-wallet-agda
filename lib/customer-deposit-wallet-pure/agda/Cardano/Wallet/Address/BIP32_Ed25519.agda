@@ -61,17 +61,17 @@ import Haskell.Data.ByteString as BS
 XPub : Set
 XPub = CC.XPub
 
--- | Private key, plaintext.
-XPrv : Set
-XPrv = CC.XPrv
-
--- | Extended private key.
+-- | Extended private key,
 -- based on the elliptic curve cryptography Ed25519.
 -- [Ed25519](https://en.wikipedia.org/wiki/EdDSA#Ed25519).
 --
 -- Extended keys can be used to create child keys in line
 -- with the [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf)
 -- standard.
+XPrv : Set
+XPrv = CC.XPrv
+
+-- | Obtain the extended public key corresponding to an extended private key.
 toXPub : XPrv → XPub
 toXPub = CC.toXPub
 
