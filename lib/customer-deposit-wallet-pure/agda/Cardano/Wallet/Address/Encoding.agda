@@ -26,8 +26,8 @@ open import Haskell.Prelude hiding (fromJust)
 
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
   ( XPub
-  ; rawSerialiseXPub
-  ; prop-rawSerialiseXPub-injective
+  ; rawPublicKeyFromXPub
+  ; prop-rawPublicKeyFromXPub-injective
   )
 open import Cardano.Wallet.Address.Hash using
   ( blake2b'224
@@ -129,12 +129,12 @@ prop-KeyHashObj-injective x y refl = refl
 ------------------------------------------------------------------------------}
 -- | Hash a public key.
 keyHashFromXPub : XPub → KeyHash
-keyHashFromXPub xpub = toShort (blake2b'224 (rawSerialiseXPub xpub))
+keyHashFromXPub xpub = toShort (blake2b'224 (rawPublicKeyFromXPub xpub))
 
 -- | Hash a public key to obtain a 'Credential'.
 credentialFromXPub : XPub → Credential
 credentialFromXPub xpub =
-  KeyHashObj (toShort (blake2b'224 (rawSerialiseXPub xpub)))
+  KeyHashObj (keyHashFromXPub xpub)
 
 {-# COMPILE AGDA2HS keyHashFromXPub #-}
 {-# COMPILE AGDA2HS credentialFromXPub #-}
@@ -198,7 +198,7 @@ prop-credentialFromXPub-injective
   → x ≡ y
 --
 prop-credentialFromXPub-injective x y =
-  prop-rawSerialiseXPub-injective _ _
+  prop-rawPublicKeyFromXPub-injective _ _
   ∘ prop-blake2b'224-injective _ _
   ∘ prop-toShort-injective _ _
   ∘ prop-KeyHashObj-injective _ _

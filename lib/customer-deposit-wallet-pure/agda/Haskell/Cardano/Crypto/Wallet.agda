@@ -36,6 +36,7 @@ postulate
   unXPub : XPub → ByteString
   unXSignature : XSignature → ByteString
 
+  xpubPublicKey : XPub → ByteString
   toXPub : XPrv → XPub
   xPrvChangePass : ByteString → ByteString → XPrv → XPrv
 
