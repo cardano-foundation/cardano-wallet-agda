@@ -9,6 +9,7 @@ module Cardano.Wallet.Address.BIP32_Ed25519
 
       -- * Serialization
     , rawSerialiseXPub
+    , rawPublicKeyFromXPub
     , rawSerialiseXPrv
     , rawSerialiseXSignature
 
@@ -40,6 +41,7 @@ import qualified Haskell.Cardano.Crypto.Wallet as CC
     , verify
     , word32fromWord31High
     , word32fromWord31Low
+    , xpubPublicKey
     )
 import Haskell.Data.ByteString (ByteString)
 import qualified Haskell.Data.ByteString as BS (empty)
@@ -99,6 +101,11 @@ rawSerialiseXPrv = CC.unXPrv
 -- Serialize an 'XSignature' to a sequence of bytes.
 rawSerialiseXSignature :: XSignature -> ByteString
 rawSerialiseXSignature = CC.unXSignature
+
+-- |
+-- Extract and serialize the public key of an extended public key.
+rawPublicKeyFromXPub :: XPub -> ByteString
+rawPublicKeyFromXPub = CC.xpubPublicKey
 
 -- |
 -- Derive a child extended public key according to the

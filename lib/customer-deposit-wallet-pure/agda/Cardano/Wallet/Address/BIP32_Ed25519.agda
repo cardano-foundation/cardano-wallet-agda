@@ -12,6 +12,7 @@ module Cardano.Wallet.Address.BIP32_Ed25519
 
   -- * Serialization
   ; rawSerialiseXPub
+  ; rawPublicKeyFromXPub
   ; rawSerialiseXPrv
   ; rawSerialiseXSignature
 
@@ -126,6 +127,23 @@ postulate
 {-# COMPILE AGDA2HS rawSerialiseXPub #-}
 {-# COMPILE AGDA2HS rawSerialiseXPrv #-}
 {-# COMPILE AGDA2HS rawSerialiseXSignature #-}
+
+-- | Extract and serialize the public key of an extended public key.
+rawPublicKeyFromXPub : XPub → ByteString
+rawPublicKeyFromXPub = CC.xpubPublicKey
+
+-- TODO: The following property is not actually true,
+-- as the same public key may be extended in different ways.
+-- However, this situation is unheard of, and for the purpose
+-- of arguing that the mapping from derived keys to
+-- addresses is injective, we can postulate this.
+postulate
+  prop-rawPublicKeyFromXPub-injective
+    : ∀ (x y : XPub)
+    → rawPublicKeyFromXPub x ≡ rawPublicKeyFromXPub y
+    → x ≡ y
+
+{-# COMPILE AGDA2HS rawPublicKeyFromXPub #-}
 
 {-----------------------------------------------------------------------------
     Key derivation

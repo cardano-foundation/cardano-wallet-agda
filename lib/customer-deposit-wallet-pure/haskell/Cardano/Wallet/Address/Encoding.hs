@@ -21,7 +21,7 @@ module Cardano.Wallet.Address.Encoding
     )
 where
 
-import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, rawSerialiseXPub)
+import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, rawPublicKeyFromXPub)
 import Cardano.Wallet.Address.Hash (blake2b'224)
 import Cardano.Wallet.Read.Address (CompactAddr, fromShortByteString)
 import Cardano.Wallet.Read.Chain (NetworkId (Mainnet, Testnet))
@@ -80,13 +80,12 @@ deriving instance Show EnterpriseAddr
 -- Hash a public key.
 keyHashFromXPub :: XPub -> KeyHash
 keyHashFromXPub xpub =
-    toShort (blake2b'224 (rawSerialiseXPub xpub))
+    toShort (blake2b'224 (rawPublicKeyFromXPub xpub))
 
 -- |
 -- Hash a public key to obtain a 'Credential'.
 credentialFromXPub :: XPub -> Credential
-credentialFromXPub xpub =
-    KeyHashObj (toShort (blake2b'224 (rawSerialiseXPub xpub)))
+credentialFromXPub xpub = KeyHashObj (keyHashFromXPub xpub)
 
 -- |
 -- Magic tag for enterprise addresses on testnet and mainnet.
