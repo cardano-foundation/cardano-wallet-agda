@@ -80,6 +80,9 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     ( UTxOHistory (..)
     )
 #-}
+{-# FOREIGN AGDA2HS
+{-# LANGUAGE StrictData #-}
+#-}
 
 {-----------------------------------------------------------------------------
     Helper stuff

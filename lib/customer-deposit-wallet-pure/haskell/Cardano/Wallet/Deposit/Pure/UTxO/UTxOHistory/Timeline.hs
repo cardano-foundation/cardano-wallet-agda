@@ -1,3 +1,5 @@
+{-# LANGUAGE StrictData #-}
+
 module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Timeline
     ( -- * TimelineUTxO
       TimelineUTxO (..)

@@ -45,6 +45,10 @@ open import Haskell.Data.Set using
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
+{-# FOREIGN AGDA2HS
+{-# LANGUAGE StrictData #-}
+#-}
+
 {-----------------------------------------------------------------------------
     Helpers
 ------------------------------------------------------------------------------}
