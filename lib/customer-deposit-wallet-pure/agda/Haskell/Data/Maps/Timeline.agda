@@ -22,6 +22,10 @@ import Haskell.Data.Maps.InverseMap as InverseMap
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
+{-# FOREIGN AGDA2HS
+{-# LANGUAGE StrictData #-}
+#-}
+
 variable
   time : Set
 

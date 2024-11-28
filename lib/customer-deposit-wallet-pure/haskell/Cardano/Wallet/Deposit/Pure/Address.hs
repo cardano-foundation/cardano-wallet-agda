@@ -1,4 +1,5 @@
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE StrictData #-}
 
 module Cardano.Wallet.Deposit.Pure.Address
     ( -- * Deriving addresses
