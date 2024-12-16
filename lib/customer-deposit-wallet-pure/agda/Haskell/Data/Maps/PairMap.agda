@@ -20,6 +20,10 @@ open import Haskell.Data.Set using
 
 import Haskell.Data.Map as Map
 
+{-# FOREIGN AGDA2HS
+{-# LANGUAGE StrictData #-}
+#-}
+
 variable
   v : Set
 
@@ -114,23 +118,23 @@ prop-implicitEmpty-bind x (Just m1) = refl
 ------------------------------------------------------------------------------}
 
 lookup2
-  : {{_ : Ord a}} → {{_ : Ord b}} 
+  : {{_ : Ord a}} → {{_ : Ord b}}
   → a → b → Map a (Map b v) → Maybe v
 lookup2 a b m = Map.lookup a m >>= Map.lookup b
 
 insert2
-  : {{_ : Ord a}} → {{_ : Ord b}} 
+  : {{_ : Ord a}} → {{_ : Ord b}}
   → a → b → v → Map a (Map b v) → Map a (Map b v)
 insert2 ai bi v m =
   Map.insert ai (Map.insert bi v (implicitEmpty (Map.lookup ai m))) m
 
 delete2
-  : {{_ : Ord a}} → {{_ : Ord b}} 
+  : {{_ : Ord a}} → {{_ : Ord b}}
   → a → b → Map a (Map b v) → Map a (Map b v)
 delete2 a b = Map.update (explicitEmpty ∘ Map.delete b) a
 
 delete2s
-  : {{_ : Ord a}} → {{_ : Ord b}} 
+  : {{_ : Ord a}} → {{_ : Ord b}}
   → List a → b → Map a (Map b v) → Map a (Map b v)
 delete2s xs b m0 = foldr (λ a m → delete2 a b m) m0 xs
 -- fixme: use foldl'
@@ -158,7 +162,7 @@ prop-lookup2-eqB a b1 b2 m eq =
 
 --
 @0 prop-lookup2-insert2
-  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}}
   → ∀ (a ai : A) (b bi : B) (v : V) (m : Map A (Map B V))
   → lookup2 a b (insert2 ai bi v m)
     ≡ (if a == ai && b == bi then Just v else lookup2 a b m)
@@ -220,7 +224,7 @@ prop-lookup2-insert2 a ai b bi v m = lem2
 
 --
 @0 prop-lookup2-delete2
-  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}}
   → ∀ (a : A) (b : B) (ai : A) (bi : B) (m : Map A (Map B V))
   → lookup2 a b (delete2 ai bi m)
     ≡ (if a == ai && b == bi then Nothing else lookup2 a b m)
@@ -291,7 +295,7 @@ prop-lookup2-delete2 {A} {B} {V} a b ai bi m = lem2
 
 --
 @0 prop-lookup2-delete2s
-  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}}
   → ∀ (a : A) (b : B) (as : List A) (bi : B) (m : Map A (Map B V))
   → lookup2 a b (delete2s as bi m)
     ≡ (if elem a as && b == bi then Nothing else lookup2 a b m)
@@ -312,7 +316,7 @@ prop-lookup2-delete2s a b (x ∷ xs) bi m =
     ≡⟨ lem-if-shuffle (a == x) (elem a xs) (b == bi) (lookup2 a b m) ⟩
       (if (a == x || elem a xs) && b == bi then Nothing else lookup2 a b m)
     ≡⟨⟩
-      (if elem a (x ∷ xs) && b == bi then Nothing else lookup2 a b m)      
+      (if elem a (x ∷ xs) && b == bi then Nothing else lookup2 a b m)
     ∎
   where
     lem-if-shuffle
@@ -330,7 +334,7 @@ prop-lookup2-delete2s a b (x ∷ xs) bi m =
 
 --
 @0 prop-lookup2-delete2all
-  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}}
   → ∀ (a : A) (b : B) (as : List A) (bi : B) (m : Map A (Map B V))
   → (elem a as ≡ False → lookup2 a bi m ≡ Nothing)
   → lookup2 a b (delete2s as bi m)
@@ -338,7 +342,7 @@ prop-lookup2-delete2s a b (x ∷ xs) bi m =
 --
 prop-lookup2-delete2all a b as bi m conseq =
   case elem a as of λ
-    { True {{eq}} → 
+    { True {{eq}} →
       begin
         lookup2 a b (delete2s as bi m)
       ≡⟨ prop-lookup2-delete2s a b as bi m ⟩
@@ -364,7 +368,7 @@ prop-lookup2-delete2all a b as bi m conseq =
 
 --
 prop-lookup2-delete1all
-  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}} 
+  : {A B V : Set} {{_ : Ord A}} → {{_ : Ord B}}
   → ∀ (a : A) (b : B) (ai : A) (m : Map A (Map B V))
   → lookup2 a b (Map.delete ai m)
     ≡ (if a == ai then Nothing else lookup2 a b m)
@@ -417,7 +421,7 @@ module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
   empty = record
     { mab = Map.empty
     ; mba = Map.empty
-    ; invariant-equal = λ x y → 
+    ; invariant-equal = λ x y →
       begin
         Map.lookup x Map.empty >>= Map.lookup y
       ≡⟨ cong (λ m → m >>= _) (Map.prop-lookup-empty x) ⟩
@@ -489,7 +493,7 @@ module _ {a b v : Set} {{_ : Ord a}} {{_ : Ord b}} where
           Map.lookup ai (mab m) >>= Map.lookup y
         ≡⟨ prop-implicitEmpty-bind y (Map.lookup ai (mab m)) ⟩
           Map.lookup y (implicitEmpty (Map.lookup ai (mab m)))
-        ≡⟨ prop-elem-keys y (implicitEmpty (Map.lookup ai (mab m))) eq-elem ⟩ 
+        ≡⟨ prop-elem-keys y (implicitEmpty (Map.lookup ai (mab m))) eq-elem ⟩
           Nothing
         ∎
 
