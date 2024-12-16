@@ -1,3 +1,5 @@
+{-# LANGUAGE StrictData #-}
+
 module Cardano.Wallet.Deposit.Pure.UTxO.Tx
     ( -- * Applying Transactions to UTxO
       IsOurs
@@ -127,8 +129,8 @@ applyTx isOurs tx u0 =
 -- |
 -- A transaction whose inputs have been partially resolved.
 data ResolvedTx era = ResolvedTx
-    { resolvedTx :: !(Tx era)
-    , resolvedInputs :: !UTxO
+    { resolvedTx :: Tx era
+    , resolvedInputs :: UTxO
     }
 
 -- |
