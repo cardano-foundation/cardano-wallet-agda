@@ -12,6 +12,10 @@ open import Cardano.Wallet.Read using
 
 import Cardano.Wallet.Read as Read
 
+{-# FOREIGN AGDA2HS
+{-# LANGUAGE StrictData #-}
+#-}
+
 {-----------------------------------------------------------------------------
     ValueTransfer
 ------------------------------------------------------------------------------}
@@ -64,7 +68,7 @@ instance
     Properties
 ------------------------------------------------------------------------------}
 instance
-  
+
   iIsLawfulSemigroupValueTransfer : IsLawfulSemigroup ValueTransfer
   iIsLawfulSemigroupValueTransfer .associativity x y z
     rewrite associativity iIsLawfulSemigroupValue (spent x) (spent y) (spent z)
@@ -75,7 +79,7 @@ instance
   iIsLawfulMonoidValueTransfer .rightIdentity x
     rewrite rightIdentity iIsLawfulMonoidValue (spent x)
     rewrite rightIdentity iIsLawfulMonoidValue (received x)
-    = refl 
+    = refl
 
   iIsLawfulMonoidValueTransfer .leftIdentity x
     rewrite leftIdentity iIsLawfulMonoidValue (spent x)
@@ -90,7 +94,7 @@ instance
 
 -- |
 -- 'ValueTransfer' is a commutative semigroup.
--- 
+--
 prop-ValueTansfer-<>-comm
   : ∀ (x y : ValueTransfer)
   → x <> y ≡ y <> x
