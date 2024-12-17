@@ -1,3 +1,5 @@
+{-# LANGUAGE StrictData #-}
+
 module Cardano.Wallet.Deposit.Pure.TxHistory.Type where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)

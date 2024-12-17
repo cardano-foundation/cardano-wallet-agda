@@ -25,6 +25,10 @@ open import Haskell.Data.Maps.Timeline using
     ( Timeline
     )
 
+{-# FOREIGN AGDA2HS
+{-# LANGUAGE StrictData #-}
+#-}
+
 {-----------------------------------------------------------------------------
     Data type
 ------------------------------------------------------------------------------}
