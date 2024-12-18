@@ -1,6 +1,8 @@
 
 🚧 WORK IN PROGRESS 🚧
 
+[![Build status](https://badge.buildkite.com/307068367b3a4746737164e239dca22dd6b5288eb54c71ee0c.svg?branch=main)](https://buildkite.com/cardano-foundation/cardano-wallet-agda)
+
 ## Overview
 
 This repository contains wallet implementations for the Cardano blockchain that are formally verified to some degree. The implementations are [Haskell][] packages, but generated using [agda2hs][], with proofs in [Agda][].
@@ -29,7 +31,8 @@ Each of the packages in the `lib/` directory may contain the following subdirect
 
 Prerequisites:
 
-* [Nix package manager][nix].
+* [Nix package manager][nix].  
+  As some dependencies, such as [agda2hs][], are still under development, we use [nix][] to ensure a working build environment.
 
 How to build:
 
