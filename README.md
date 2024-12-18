@@ -29,7 +29,8 @@ Each of the packages in the `lib/` directory may contain the following subdirect
 
 Prerequisites:
 
-* [Nix package manager][nix].
+* [Nix package manager][nix].  
+  As some dependencies, such as [agda2hs][], are still under development, we use [nix][] to ensure a working build environment.
 
 How to build:
 
