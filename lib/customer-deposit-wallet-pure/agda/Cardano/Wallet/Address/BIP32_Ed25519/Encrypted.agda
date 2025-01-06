@@ -20,7 +20,9 @@ module Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
 
   -- * Key derivation
   ; deriveEncryptedXPrvSoft
+    ; prop-deriveEncryptedXPrvSoft-decrypt
   ; deriveEncryptedXPrvHard
+    ; prop-deriveEncryptedXPrvHard-decrypt
   ; deriveEncryptedXPrvBIP32Path
   -} where
 
@@ -292,3 +294,69 @@ deriveEncryptedXPrvBIP32Path pass key (BIP32Path.Segment path Soft ix) =
 {-# COMPILE AGDA2HS deriveEncryptedXPrvSoft #-}
 {-# COMPILE AGDA2HS deriveEncryptedXPrvHard #-}
 {-# COMPILE AGDA2HS deriveEncryptedXPrvBIP32Path #-}
+
+{-----------------------------------------------------------------------------
+    Properties
+    Key derivation
+------------------------------------------------------------------------------}
+-- | Key derivation of an encrypted private key
+-- yields the same result as the plain variant.
+prop-deriveEncryptedXPrvSoft-decrypt
+  : ∀ (pass : Passphrase)
+      (key : EncryptedXPrv)
+      (ix : Word31)
+  → (decrypt pass =<< deriveEncryptedXPrvSoft pass key ix)
+    ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvSoft xprv ix) <$> decrypt pass key)
+--
+prop-deriveEncryptedXPrvSoft-decrypt pass key ix31 = lem
+  where
+    ix = CC.word32fromWord31Low ix31
+    parentXPrv = encryptedXPrv key
+    childXPrv =
+      CC.deriveXPrv
+        CC.DerivationScheme2
+        pass
+        (encryptedXPrv key)
+        ix
+
+    lem
+      : (decrypt pass =<< deriveEncryptedXPrvSoft pass key ix31)
+      ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvSoft xprv ix31) <$> decrypt pass key)
+    lem
+      with check pass key
+    ... | False = refl
+    ... | True
+        rewrite prop-decrypt-mkEncryptedXPrv pass (salt key) childXPrv
+        rewrite sym (CC.prop-deriveXPrv-xPrvChangePass pass BS.empty parentXPrv ix)
+        = refl
+
+-- | Key derivation of an encrypted private key
+-- yields the same result as the plain variant.
+prop-deriveEncryptedXPrvHard-decrypt
+  : ∀ (pass : Passphrase)
+      (key : EncryptedXPrv)
+      (ix : Word31)
+  → (decrypt pass =<< deriveEncryptedXPrvHard pass key ix)
+    ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvHard xprv ix) <$> decrypt pass key)
+--
+prop-deriveEncryptedXPrvHard-decrypt pass key ix31 = lem
+  where
+    ix = CC.word32fromWord31High ix31
+    parentXPrv = encryptedXPrv key
+    childXPrv =
+      CC.deriveXPrv
+        CC.DerivationScheme2
+        pass
+        (encryptedXPrv key)
+        ix
+
+    lem
+      : (decrypt pass =<< deriveEncryptedXPrvHard pass key ix31)
+      ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvHard xprv ix31) <$> decrypt pass key)
+    lem
+      with check pass key
+    ... | False = refl
+    ... | True
+        rewrite prop-decrypt-mkEncryptedXPrv pass (salt key) childXPrv
+        rewrite sym (CC.prop-deriveXPrv-xPrvChangePass pass BS.empty parentXPrv ix)
+        = refl

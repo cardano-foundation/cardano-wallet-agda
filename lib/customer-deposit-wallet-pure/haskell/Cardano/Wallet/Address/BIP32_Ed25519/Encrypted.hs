@@ -17,7 +17,9 @@ module Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
 
       -- * Key derivation
     , deriveEncryptedXPrvSoft
+      -- $prop-deriveEncryptedXPrvSoft-decrypt
     , deriveEncryptedXPrvHard
+      -- $prop-deriveEncryptedXPrvHard-decrypt
     , deriveEncryptedXPrvBIP32Path
     )
 where
@@ -241,6 +243,38 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 --       : ∀ (pass : Passphrase) (salt : ByteString) (xprv : XPrv)
 --       → decrypt pass (mkEncryptedXPrv pass salt xprv)
 --         ≡ Just (decryptXPrv pass xprv)
+--     @
+
+-- $prop-deriveEncryptedXPrvHard-decrypt
+-- #p:prop-deriveEncryptedXPrvHard-decrypt#
+--
+-- [prop-deriveEncryptedXPrvHard-decrypt]:
+--     Key derivation of an encrypted private key
+--     yields the same result as the plain variant.
+--
+--     @
+--     prop-deriveEncryptedXPrvHard-decrypt
+--       : ∀ (pass : Passphrase)
+--           (key : EncryptedXPrv)
+--           (ix : Word31)
+--       → (decrypt pass =<< deriveEncryptedXPrvHard pass key ix)
+--         ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvHard xprv ix) <$> decrypt pass key)
+--     @
+
+-- $prop-deriveEncryptedXPrvSoft-decrypt
+-- #p:prop-deriveEncryptedXPrvSoft-decrypt#
+--
+-- [prop-deriveEncryptedXPrvSoft-decrypt]:
+--     Key derivation of an encrypted private key
+--     yields the same result as the plain variant.
+--
+--     @
+--     prop-deriveEncryptedXPrvSoft-decrypt
+--       : ∀ (pass : Passphrase)
+--           (key : EncryptedXPrv)
+--           (ix : Word31)
+--       → (decrypt pass =<< deriveEncryptedXPrvSoft pass key ix)
+--         ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvSoft xprv ix) <$> decrypt pass key)
 --     @
 
 -- $prop-sign-decrypt
