@@ -3,11 +3,14 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     , null
     , empty
     , dom
+    , disjoint
+      -- $prop-disjoint-dom
     , balance
     , union
       -- $prop-union-empty-left
       -- $prop-union-empty-right
       -- $prop-union-assoc
+      -- $prop-union-sym
     , excluding
       -- $prop-excluding-empty
       -- $prop-excluding-dom
@@ -31,6 +34,7 @@ import Cardano.Wallet.Read.Value (Value)
 import Data.Set (Set)
 import qualified Haskell.Data.Map.Def as Map
     ( Map
+    , disjoint
     , empty
     , filter
     , keysSet
@@ -65,6 +69,11 @@ empty = Map.empty
 -- The domain of a 'UTxO' is the set of /inputs/.
 dom :: UTxO -> Set TxIn
 dom = Map.keysSet
+
+-- |
+-- Test whether the domains of the 'UTxO' are disjoint.
+disjoint :: UTxO -> UTxO -> Bool
+disjoint = Map.disjoint
 
 -- |
 -- The total value contained in the outputs.
@@ -104,6 +113,17 @@ filterByAddress :: (Address -> Bool) -> UTxO -> UTxO
 filterByAddress p = Map.filter (p . getCompactAddr)
 
 -- * Properties
+
+-- $prop-disjoint-dom
+-- #p:prop-disjoint-dom#
+--
+-- [prop-disjoint-dom]:
+--
+--     Two 'UTxO' are 'disjoint' if their 'dom'ains are disjoint.
+--
+--     > prop-disjoint-dom
+--     >   : ∀ {ua ub : UTxO}
+--     >   → disjoint ua ub ≡ Set.disjoint (dom ua) (dom ub)
 
 -- $prop-excluding-absorb
 -- #p:prop-excluding-absorb#
@@ -244,7 +264,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     > prop-union-empty-left
 --     >   : ∀ {utxo : UTxO}
---     >   → union empty utxo ≡ utxo
+--     >   → empty ∪ utxo ≡ utxo
 
 -- $prop-union-empty-right
 -- #p:prop-union-empty-right#
@@ -255,4 +275,16 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     > prop-union-empty-right
 --     >   : ∀ {utxo : UTxO}
---     >   → union utxo empty ≡ utxo
+--     >   → utxo ∪ empty ≡ utxo
+
+-- $prop-union-sym
+-- #p:prop-union-sym#
+--
+-- [prop-union-sym]:
+--
+--     'union' is symmetric /if/ the 'UTxO' are disjoint.
+--
+--     > prop-union-sym
+--     >   : ∀ {ua ub : UTxO}
+--     >   → disjoint ua ub ≡ True
+--     >   → ua ∪ ub ≡ ub ∪ ua
