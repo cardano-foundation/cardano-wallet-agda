@@ -1,6 +1,23 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
-module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO where
+module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
+    ( DeltaUTxO (..)
+    , null
+      -- $prop-null-empty
+    , empty
+      -- $prop-apply-empty
+    , apply
+    , excludingD
+      -- $prop-excluding-excludingD
+      -- $prop-apply-excludingD
+    , receiveD
+      -- $prop-union-receiveD
+      -- $prop-apply-receiveD
+    , append
+      -- $prop-apply-append
+    , appends
+    )
+where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO, dom)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
@@ -75,8 +92,8 @@ append x y =
 
 -- |
 -- Combine a sequence of 'DeltaUTxO' using `append`
-concat :: [DeltaUTxO] -> DeltaUTxO
-concat = foldr append empty
+appends :: [DeltaUTxO] -> DeltaUTxO
+appends = foldr append empty
 
 -- * Properties
 
@@ -91,7 +108,7 @@ concat = foldr append empty
 --
 --     > @0 prop-apply-append
 --     >   : ∀ (x y : DeltaUTxO) (utxo : UTxO)
---     >   → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
+--     >   → UTxO.disjoint (received y) utxo ≡ True
 --     >   → apply (append x y) utxo ≡ apply x (apply y utxo)
 
 -- $prop-apply-empty
@@ -99,7 +116,7 @@ concat = foldr append empty
 --
 -- [prop-apply-empty]:
 --
---     Applying the empty delta does nothing.
+--     Applying the 'empty' delta does nothing.
 --
 --     > @0 prop-apply-empty
 --     >   : ∀ (utxo : UTxO)
@@ -139,6 +156,18 @@ concat = foldr append empty
 --     >   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
 --     >   → let (du , u1) = excludingD u0 txins
 --     >     in  u1 ≡ UTxO.excluding u0 txins
+
+-- $prop-null-empty
+-- #p:prop-null-empty#
+--
+-- [prop-null-empty]:
+--
+--     'null' tests whether the delta is 'empty'.
+--
+--     > prop-null-empty
+--     >   : ∀ (du : DeltaUTxO)
+--     >   → null du ≡ True
+--     >   → du ≡ empty
 
 -- $prop-union-receiveD
 -- #p:prop-union-receiveD#

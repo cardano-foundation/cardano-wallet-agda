@@ -296,7 +296,7 @@ postulate
 postulate
  prop-restrictedBy-disjoint
   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO} 
-  → Set.intersection x (dom utxo) ≡ Set.empty
+  → Set.disjoint x (dom utxo) ≡ True
   → restrictedBy utxo x ≡ empty
 --
 
@@ -354,7 +354,7 @@ postulate
 --
 prop-excluding-excludingS
   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
-  → Set.intersection (dom ua) (dom ub) ≡ Set.empty
+  → disjoint ua ub ≡ True
   → (excludingS x ua) ⋪ ub ≡ x ⋪ ub
 --
 prop-excluding-excludingS {x} {ua} {ub} cond =
@@ -364,11 +364,20 @@ prop-excluding-excludingS {x} {ua} {ub} cond =
     ((Set.difference x (dom ua)) ⋪ ub)
   ≡⟨ prop-excluding-difference ⟩
     ((x ⋪ ub) ∪ restrictedBy ub (dom ua))
-  ≡⟨ cong (λ o → (x ⋪ ub) ∪ o) (prop-restrictedBy-disjoint {dom ua} {ub} cond) ⟩
+  ≡⟨ cong (λ o → (x ⋪ ub) ∪ o) (prop-restrictedBy-disjoint {dom ua} {ub} lem1) ⟩
     (x ⋪ ub) ∪ empty
   ≡⟨ prop-union-empty-right {x ⋪ ub} ⟩
     (x ⋪ ub)
   ∎
+ where
+  lem1 =
+    begin
+      Set.disjoint (dom ua) (dom ub)
+    ≡⟨ sym prop-disjoint-dom ⟩
+      disjoint ua ub
+    ≡⟨ cond ⟩
+      True
+    ∎
 
 -- |
 -- Those outputs whose address satisfies the predicate are kept.

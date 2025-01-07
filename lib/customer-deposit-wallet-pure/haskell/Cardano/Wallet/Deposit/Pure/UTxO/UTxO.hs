@@ -193,7 +193,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     > prop-excluding-excludingS
 --     >   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
---     >   → Set.intersection (dom ua) (dom ub) ≡ Set.empty
+--     >   → disjoint ua ub ≡ True
 --     >   → (excludingS x ua) ⋪ ub ≡ x ⋪ ub
 
 -- $prop-excluding-intersection

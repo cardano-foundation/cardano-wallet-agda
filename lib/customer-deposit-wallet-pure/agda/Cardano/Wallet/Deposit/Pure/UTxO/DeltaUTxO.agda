@@ -1,22 +1,28 @@
 {-# OPTIONS --erasure #-}
 
 module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
-    {-
-    ; DeltaUTxO
+    {-|
+    ; DeltaUTxO (..)
       ; null
+        ; prop-null-empty
       ; empty
+        ; prop-apply-empty
       ; apply
       ; excludingD
+        ; prop-excluding-excludingD
+        ; prop-apply-excludingD
       ; receiveD
-      ; instance Semigroup DeltaUTxO
-      ; instance Monoid DeltaUTxO
+        ; prop-union-receiveD
+        ; prop-apply-receiveD
+      ; append
+        ; prop-apply-append
+      ; appends
     -}
     where
 
 open import Haskell.Reasoning
 open import Haskell.Prelude hiding
     ( null
-    ; concat
     )
 
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
@@ -37,7 +43,7 @@ import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
-    DeltaUTxO
+    Type and Functions
 ------------------------------------------------------------------------------}
 -- | Representation of a change (delta) to a 'UTxO'.
 --
@@ -106,8 +112,8 @@ append x y = record
     received'y = UTxO.excluding (received y) (excluded x)
 
 -- | Combine a sequence of 'DeltaUTxO' using `append`
-concat : List DeltaUTxO → DeltaUTxO
-concat = foldr append empty
+appends : List DeltaUTxO → DeltaUTxO
+appends = foldr append empty
 
 {-# COMPILE AGDA2HS DeltaUTxO #-}
 {-# COMPILE AGDA2HS null #-}
@@ -116,7 +122,7 @@ concat = foldr append empty
 {-# COMPILE AGDA2HS excludingD #-}
 {-# COMPILE AGDA2HS receiveD #-}
 {-# COMPILE AGDA2HS append #-}
-{-# COMPILE AGDA2HS concat #-}
+{-# COMPILE AGDA2HS appends #-}
 
 {-----------------------------------------------------------------------------
     Properties
@@ -128,7 +134,8 @@ lemma-intro-DeltaUTxO-≡
   → dd ≡ record { excluded = a; received = b }
 lemma-intro-DeltaUTxO-≡ dd refl refl = refl
 
---
+-- |
+-- 'null' tests whether the delta is 'empty'.
 prop-null-empty
   : ∀ (du : DeltaUTxO)
   → null du ≡ True
@@ -147,7 +154,7 @@ prop-null-empty du eq =
     lem2 = projr (prop-&&-⋀ eq)
 
 -- |
--- Applying the empty delta does nothing.
+-- Applying the 'empty' delta does nothing.
 @0 prop-apply-empty
   : ∀ (utxo : UTxO)
   → apply empty utxo ≡ utxo
@@ -250,7 +257,7 @@ prop-apply-receiveD {ua} {u0} =
 --
 @0 prop-apply-append
   : ∀ (x y : DeltaUTxO) (utxo : UTxO)
-  → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
+  → UTxO.disjoint (received y) utxo ≡ True
   → apply (append x y) utxo ≡ apply x (apply y utxo)
 --
 prop-apply-append x y utxo cond =
@@ -291,9 +298,9 @@ prop-apply-append x y utxo cond =
       ∎
 
 --
--- Unit test for 'concat'.
-prop-concat-two
+-- Unit test for 'appends'.
+prop-appends-two
   : ∀ (x y : DeltaUTxO)
-  → concat (x ∷ y ∷ []) ≡ append x (append y empty)
+  → appends (x ∷ y ∷ []) ≡ append x (append y empty)
 --
-prop-concat-two x y = refl
+prop-appends-two x y = refl
