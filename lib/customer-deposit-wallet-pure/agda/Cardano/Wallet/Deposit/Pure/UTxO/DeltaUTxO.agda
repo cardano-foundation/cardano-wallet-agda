@@ -257,7 +257,7 @@ prop-apply-receiveD {ua} {u0} =
 --
 @0 prop-apply-append
   : ∀ (x y : DeltaUTxO) (utxo : UTxO)
-  → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
+  → UTxO.disjoint (received y) utxo ≡ True
   → apply (append x y) utxo ≡ apply x (apply y utxo)
 --
 prop-apply-append x y utxo cond =
