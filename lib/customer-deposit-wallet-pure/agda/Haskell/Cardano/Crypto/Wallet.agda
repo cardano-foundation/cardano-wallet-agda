@@ -13,6 +13,7 @@ open import Haskell.Data.Word.Odd using
   )
 open import Haskell.Data.ByteString using
   ( ByteString
+  ; empty
   )
 
 postulate
@@ -36,6 +37,10 @@ postulate
   unXPub : XPub → ByteString
   unXSignature : XSignature → ByteString
 
+  xpub : ByteString → Either String XPub
+  xprv : ByteString → Either String XPrv
+  xsignature : ByteString → Either String XSignature
+
   xpubPublicKey : XPub → ByteString
   toXPub : XPrv → XPub
   xPrvChangePass : ByteString → ByteString → XPrv → XPrv
@@ -55,3 +60,68 @@ postulate
 postulate
   sign   : ByteString → XPrv → ByteString → XSignature
   verify : XPub → ByteString → XSignature → Bool
+
+{-----------------------------------------------------------------------------
+    Properties
+    xPrvChangePass
+------------------------------------------------------------------------------}
+-- | Password changes with 'xPrvChangePass' are reflexive.
+postulate
+ prop-xPrvChangePass-refl
+  : ∀ (pa : ByteString) (xprv : XPrv)
+  → xPrvChangePass pa pa xprv
+    ≡ xprv
+
+-- | Password changes with 'xPrvChangePass' are transitive.
+postulate
+ prop-xPrvChangePass-trans
+  : ∀ (pa pb pc : ByteString) (xprv : XPrv)
+  → xPrvChangePass pa pb (xPrvChangePass pb pc xprv)
+    ≡ xPrvChangePass pa pc xprv
+
+-- | Password changes with 'xPrvChangePass'
+-- commute with 'sign'.
+postulate
+ prop-sign-xPrvChangePass
+  : ∀ (pa pb : ByteString) (xprv : XPrv) (msg : ByteString)
+  → sign pb (xPrvChangePass pa pb xprv) msg
+    ≡ sign pa xprv msg
+
+-- | Password needs to be changed to the empty 'ByteString'
+-- to get the correct 'XPub'.
+postulate
+ prop-verify-xPrvChangePass
+  : ∀ (xprv : XPrv) (pass : ByteString) (msg : ByteString)
+  → let xpub = toXPub (xPrvChangePass pass empty xprv)
+    in  verify xpub msg (sign pass xprv msg)
+          ≡ True
+
+-- | Password changes with 'xPrvChangePass'
+-- commute with 'deriveXPrv'.
+postulate
+  prop-deriveXPrv-xPrvChangePass
+   : ∀ (pa pb : ByteString) (xprv : XPrv) (ix : Word32)
+   → deriveXPrv DerivationScheme2 pb (xPrvChangePass pa pb xprv) ix
+     ≡ xPrvChangePass pa pb (deriveXPrv DerivationScheme2 pa xprv ix)
+
+{-----------------------------------------------------------------------------
+    Properties
+    Serialization
+------------------------------------------------------------------------------}
+-- | 'xpub' always deserializes 'unXPub'.
+postulate
+  prop-xpub-unXPub
+    : ∀ (x : XPub)
+    → xpub (unXPub x) ≡ Right x
+
+-- | 'xprv' always deserializes 'unXPrv'.
+postulate
+  prop-xprv-unXPrv
+    : ∀ (x : XPrv)
+    → xprv (unXPrv x) ≡ Right x
+
+-- | 'xsignature' always deserializes 'unXSignature'.
+postulate
+  prop-xsignature-unXSignature
+    : ∀ (x : XSignature)
+    → xsignature (unXSignature x) ≡ Right x
