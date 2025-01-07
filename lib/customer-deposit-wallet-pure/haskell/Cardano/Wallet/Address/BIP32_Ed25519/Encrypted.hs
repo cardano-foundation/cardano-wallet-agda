@@ -13,7 +13,10 @@ module Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
       -- $prop-sign-decrypt
 
       -- * Serialization
-    , rawSerialiseEncryptedXPrv
+    , EncryptedXPrvBytes (..)
+    , serializeEncryptedXPrv
+    , deserializeEncryptedXPrv
+      -- $prop-deserialize-serializeEncryptedXPrv
 
       -- * Key derivation
     , deriveEncryptedXPrvSoft
@@ -41,6 +44,8 @@ import qualified Haskell.Cardano.Crypto.Wallet as CC
     , word32fromWord31High
     , word32fromWord31Low
     , xPrvChangePass
+    , xprv
+    , xsignature
     )
 import Haskell.Data.ByteString (ByteString)
 import qualified Haskell.Data.ByteString as BS (empty)
@@ -129,15 +134,30 @@ sign pass key msg =
         else Nothing
 
 -- |
--- Serialize an 'EncryptedXPrv'.
+-- Semi-serialized form of 'EncryptedXPrv'.
 --
--- TODO: Choose a different serialization format so that we can deserialize
--- again.
-rawSerialiseEncryptedXPrv :: EncryptedXPrv -> ByteString
-rawSerialiseEncryptedXPrv key =
-    CC.unXPrv (encryptedXPrv key)
-        <> salt key
-        <> CC.unXSignature (saltSigned key)
+-- This format can be stored externally.
+data EncryptedXPrvBytes = EncryptedXPrvBytes
+    { encryptedXPrvBytes
+        :: ByteString
+    , saltBytes :: ByteString
+    , saltSignedBytes :: ByteString
+    }
+
+serializeEncryptedXPrv :: EncryptedXPrv -> EncryptedXPrvBytes
+serializeEncryptedXPrv e =
+    EncryptedXPrvBytes
+        (CC.unXPrv (encryptedXPrv e))
+        (salt e)
+        (CC.unXSignature (saltSigned e))
+
+deserializeEncryptedXPrv
+    :: EncryptedXPrvBytes -> Either String EncryptedXPrv
+deserializeEncryptedXPrv e =
+    do
+        f1 <- CC.xprv (encryptedXPrvBytes e)
+        f3 <- CC.xsignature (saltSignedBytes e)
+        pure (EncryptedXPrv f1 (saltBytes e) f3)
 
 -- |
 -- Derive a child extended private key according to the
@@ -275,6 +295,19 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 --           (ix : Word31)
 --       → (decrypt pass =<< deriveEncryptedXPrvSoft pass key ix)
 --         ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvSoft xprv ix) <$> decrypt pass key)
+--     @
+
+-- $prop-deserialize-serializeEncryptedXPrv
+-- #p:prop-deserialize-serializeEncryptedXPrv#
+--
+-- [prop-deserialize-serializeEncryptedXPrv]:
+--     'deserializeEncryptedXPrv' always deserializes 'serializeEncryptedXPrv'.
+--
+--     @
+--     prop-deserialize-serializeEncryptedXPrv
+--       : ∀ (x : EncryptedXPrv)
+--       → deserializeEncryptedXPrv (serializeEncryptedXPrv x)
+--         ≡ Right x
 --     @
 
 -- $prop-sign-decrypt

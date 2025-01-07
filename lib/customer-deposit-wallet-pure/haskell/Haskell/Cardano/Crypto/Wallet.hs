@@ -2,6 +2,7 @@
 
 module Haskell.Cardano.Crypto.Wallet
     ( module Cardano.Crypto.Wallet
+    , xpub
     , xPrvChangePass
     , deriveXPrv
     , deriveXPub
@@ -17,6 +18,7 @@ import Cardano.Crypto.Wallet hiding
     , sign
     , verify
     , xPrvChangePass
+    , xpub
     )
 import Data.ByteString
     ( ByteString
@@ -37,6 +39,9 @@ word32fromWord31Low = fromInteger . toInteger
 -- | Convert 'Word31' into 'Word32' with highest bit @1@.
 word32fromWord31High :: Word31 -> Word32
 word32fromWord31High w = 0x80000000 + word32fromWord31Low w
+
+xpub :: ByteString -> Either String XPub
+xpub = CC.xpub
 
 xPrvChangePass :: ByteString -> ByteString -> XPrv -> XPrv
 xPrvChangePass = CC.xPrvChangePass

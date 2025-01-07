@@ -37,6 +37,10 @@ postulate
   unXPub : XPub → ByteString
   unXSignature : XSignature → ByteString
 
+  xpub : ByteString → Either String XPub
+  xprv : ByteString → Either String XPrv
+  xsignature : ByteString → Either String XSignature
+
   xpubPublicKey : XPub → ByteString
   toXPub : XPrv → XPub
   xPrvChangePass : ByteString → ByteString → XPrv → XPrv
@@ -59,6 +63,7 @@ postulate
 
 {-----------------------------------------------------------------------------
     Properties
+    xPrvChangePass
 ------------------------------------------------------------------------------}
 -- | Password changes with 'xPrvChangePass' are reflexive.
 postulate
@@ -98,3 +103,25 @@ postulate
    : ∀ (pa pb : ByteString) (xprv : XPrv) (ix : Word32)
    → deriveXPrv DerivationScheme2 pb (xPrvChangePass pa pb xprv) ix
      ≡ xPrvChangePass pa pb (deriveXPrv DerivationScheme2 pa xprv ix)
+
+{-----------------------------------------------------------------------------
+    Properties
+    Serialization
+------------------------------------------------------------------------------}
+-- | 'xpub' always deserializes 'unXPub'.
+postulate
+  prop-xpub-unXPub
+    : ∀ (x : XPub)
+    → xpub (unXPub x) ≡ Right x
+
+-- | 'xprv' always deserializes 'unXPrv'.
+postulate
+  prop-xprv-unXPrv
+    : ∀ (x : XPrv)
+    → xprv (unXPrv x) ≡ Right x
+
+-- | 'xsignature' always deserializes 'unXSignature'.
+postulate
+  prop-xsignature-unXSignature
+    : ∀ (x : XSignature)
+    → xsignature (unXSignature x) ≡ Right x

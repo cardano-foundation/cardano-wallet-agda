@@ -16,7 +16,10 @@ module Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
       ; prop-sign-decrypt
 
   -- * Serialization
-  ; rawSerialiseEncryptedXPrv
+  ; EncryptedXPrvBytes (..)
+    ; serializeEncryptedXPrv
+    ; deserializeEncryptedXPrv
+      ; prop-deserialize-serializeEncryptedXPrv
 
   -- * Key derivation
   ; deriveEncryptedXPrvSoft
@@ -232,17 +235,52 @@ prop-sign-decrypt key pass msg
 {-----------------------------------------------------------------------------
     Serialization
 ------------------------------------------------------------------------------}
--- | Serialize an 'EncryptedXPrv'.
+-- | Semi-serialized form of 'EncryptedXPrv'.
 --
--- TODO: Choose a different serialization format so that we can deserialize
--- again.
-rawSerialiseEncryptedXPrv : EncryptedXPrv → ByteString
-rawSerialiseEncryptedXPrv key =
-  CC.unXPrv (encryptedXPrv key)
-  <> salt key
-  <> CC.unXSignature (saltSigned key)
+-- This format can be stored externally.
+record EncryptedXPrvBytes : Set where
+  field
+    encryptedXPrvBytes : ByteString
+    saltBytes : ByteString
+    saltSignedBytes : ByteString
 
-{-# COMPILE AGDA2HS rawSerialiseEncryptedXPrv #-}
+open EncryptedXPrvBytes public
+{-# COMPILE AGDA2HS EncryptedXPrvBytes #-}
+
+serializeEncryptedXPrv : EncryptedXPrv → EncryptedXPrvBytes
+serializeEncryptedXPrv e = record
+  { encryptedXPrvBytes = CC.unXPrv (encryptedXPrv e)
+  ; saltBytes = salt e
+  ; saltSignedBytes = CC.unXSignature (saltSigned e)
+  }
+
+deserializeEncryptedXPrv : EncryptedXPrvBytes → Either String EncryptedXPrv
+deserializeEncryptedXPrv e = do
+  f1 ← CC.xprv (encryptedXPrvBytes e)
+  f3 ← CC.xsignature (saltSignedBytes e)
+  pure record
+    { encryptedXPrv = f1
+    ; salt = saltBytes e
+    ; saltSigned = f3
+    }
+
+{-# COMPILE AGDA2HS serializeEncryptedXPrv #-}
+{-# COMPILE AGDA2HS deserializeEncryptedXPrv #-}
+
+{-----------------------------------------------------------------------------
+    Properties
+    Serialization
+------------------------------------------------------------------------------}
+-- | 'deserializeEncryptedXPrv' always deserializes 'serializeEncryptedXPrv'.
+prop-deserialize-serializeEncryptedXPrv
+  : ∀ (x : EncryptedXPrv)
+  → deserializeEncryptedXPrv (serializeEncryptedXPrv x)
+    ≡ Right x
+--
+prop-deserialize-serializeEncryptedXPrv x
+  rewrite CC.prop-xprv-unXPrv (encryptedXPrv x)
+  rewrite CC.prop-xsignature-unXSignature (saltSigned x)
+  = refl
 
 {-----------------------------------------------------------------------------
     Key derivation
