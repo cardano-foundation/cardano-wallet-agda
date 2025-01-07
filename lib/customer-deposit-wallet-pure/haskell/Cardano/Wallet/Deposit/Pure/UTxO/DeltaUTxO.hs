@@ -1,6 +1,23 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
-module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO where
+module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
+    ( DeltaUTxO (..)
+    , null
+      -- $prop-null-empty
+    , empty
+      -- $prop-apply-empty
+    , apply
+    , excludingD
+      -- $prop-excluding-excludingD
+      -- $prop-apply-excludingD
+    , receiveD
+      -- $prop-union-receiveD
+      -- $prop-apply-receiveD
+    , append
+      -- $prop-apply-append
+    , appends
+    )
+where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO, dom)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
@@ -99,7 +116,7 @@ appends = foldr append empty
 --
 -- [prop-apply-empty]:
 --
---     Applying the empty delta does nothing.
+--     Applying the 'empty' delta does nothing.
 --
 --     > @0 prop-apply-empty
 --     >   : ∀ (utxo : UTxO)
@@ -139,6 +156,18 @@ appends = foldr append empty
 --     >   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
 --     >   → let (du , u1) = excludingD u0 txins
 --     >     in  u1 ≡ UTxO.excluding u0 txins
+
+-- $prop-null-empty
+-- #p:prop-null-empty#
+--
+-- [prop-null-empty]:
+--
+--     'null' tests whether the delta is 'empty'.
+--
+--     > prop-null-empty
+--     >   : ∀ (du : DeltaUTxO)
+--     >   → null du ≡ True
+--     >   → du ≡ empty
 
 -- $prop-union-receiveD
 -- #p:prop-union-receiveD#

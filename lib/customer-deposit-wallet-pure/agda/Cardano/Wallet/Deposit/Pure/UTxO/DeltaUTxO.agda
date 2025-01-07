@@ -1,15 +1,22 @@
 {-# OPTIONS --erasure #-}
 
 module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
-    {-
-    ; DeltaUTxO
+    {-|
+    ; DeltaUTxO (..)
       ; null
+        ; prop-null-empty
       ; empty
+        ; prop-apply-empty
       ; apply
       ; excludingD
+        ; prop-excluding-excludingD
+        ; prop-apply-excludingD
       ; receiveD
-      ; instance Semigroup DeltaUTxO
-      ; instance Monoid DeltaUTxO
+        ; prop-union-receiveD
+        ; prop-apply-receiveD
+      ; append
+        ; prop-apply-append
+      ; appends
     -}
     where
 
@@ -36,7 +43,7 @@ import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-----------------------------------------------------------------------------
-    DeltaUTxO
+    Type and Functions
 ------------------------------------------------------------------------------}
 -- | Representation of a change (delta) to a 'UTxO'.
 --
@@ -127,7 +134,8 @@ lemma-intro-DeltaUTxO-≡
   → dd ≡ record { excluded = a; received = b }
 lemma-intro-DeltaUTxO-≡ dd refl refl = refl
 
---
+-- |
+-- 'null' tests whether the delta is 'empty'.
 prop-null-empty
   : ∀ (du : DeltaUTxO)
   → null du ≡ True
@@ -146,7 +154,7 @@ prop-null-empty du eq =
     lem2 = projr (prop-&&-⋀ eq)
 
 -- |
--- Applying the empty delta does nothing.
+-- Applying the 'empty' delta does nothing.
 @0 prop-apply-empty
   : ∀ (utxo : UTxO)
   → apply empty utxo ≡ utxo
