@@ -286,12 +286,10 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 -- [prop-rollBackward-future]:
 --     Rolling backward to the future does nothing.
 --
---     @
---     prop-rollBackward-future
---       : ∀ (u : UTxOHistory) (slot : Slot)
---       → (getTip u <= slot) ≡ True
---       → rollBackward slot u ≡ u
---     @
+--     > prop-rollBackward-future
+--     >   : ∀ (u : UTxOHistory) (slot : Slot)
+--     >   → (getTip u <= slot) ≡ True
+--     >   → rollBackward slot u ≡ u
 
 -- $prop-rollBackward-rollForward-cancel
 -- #p:prop-rollBackward-rollForward-cancel#
@@ -300,13 +298,11 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 --     /Essential property:/
 --     Rolling backward will cancel rolling forward.
 --
---     @
---     @0 prop-rollBackward-rollForward-cancel
---       : ∀ (u : UTxOHistory) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
---       → (slot1 < WithOrigin.At slot2) ≡ True
---       → rollBackward slot1 (rollForward slot2 du u)
---         ≡ rollBackward slot1 u
---     @
+--     > @0 prop-rollBackward-rollForward-cancel
+--     >   : ∀ (u : UTxOHistory) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
+--     >   → (slot1 < WithOrigin.At slot2) ≡ True
+--     >   → rollBackward slot1 (rollForward slot2 du u)
+--     >     ≡ rollBackward slot1 u
 
 -- $prop-rollBackward-tip
 -- #p:prop-rollBackward-tip#
@@ -315,11 +311,9 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 --     Rolling backward to the tip does nothing, as we are already at the tip.
 --     Special case of __prop-rollBackward-future__.
 --
---     @
---     prop-rollBackward-tip
---       : ∀ (u : UTxOHistory)
---       → rollBackward (getTip u) u ≡ u
---     @
+--     > prop-rollBackward-tip
+--     >   : ∀ (u : UTxOHistory)
+--     >   → rollBackward (getTip u) u ≡ u
 
 -- $prop-rollBackward-tip-rollForward
 -- #p:prop-rollBackward-tip-rollForward#
@@ -327,11 +321,9 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 -- [prop-rollBackward-tip-rollForward]:
 --     Rolling backward after a 'rollForward' will restore the original state.
 --
---     @
---     @0 prop-rollBackward-tip-rollForward
---       : ∀ (u : UTxOHistory) (du : DeltaUTxO) (slot : SlotNo)
---       → rollBackward (getTip u) (rollForward slot du u) ≡ u
---     @
+--     > @0 prop-rollBackward-tip-rollForward
+--     >   : ∀ (u : UTxOHistory) (du : DeltaUTxO) (slot : SlotNo)
+--     >   → rollBackward (getTip u) (rollForward slot du u) ≡ u
 
 -- $prop-rollForward-present
 -- #p:prop-rollForward-present#
@@ -339,9 +331,7 @@ applyDeltaUTxOHistory (Prune newFinality) = prune newFinality
 -- [prop-rollForward-present]:
 --     Rolling forward to the tip or before the tip does nothing.
 --
---     @
---     @0 prop-rollForward-present
---       : ∀ (u : UTxOHistory) (du : DeltaUTxO) (slot : SlotNo)
---       → (WithOrigin.At slot <= getTip u) ≡ True
---       → rollForward slot du u ≡ u
---     @
+--     > @0 prop-rollForward-present
+--     >   : ∀ (u : UTxOHistory) (du : DeltaUTxO) (slot : SlotNo)
+--     >   → (WithOrigin.At slot <= getTip u) ≡ True
+--     >   → rollForward slot du u ≡ u

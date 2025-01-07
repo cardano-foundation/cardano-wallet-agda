@@ -119,12 +119,10 @@ compactAddrFromEnterpriseAddr addr =
 --     Two 'EnterpriseAddr' with the same serialized 'CompactAddr' are equal
 --     — assuming that inverting a cryptographic hash is difficult.
 --
---     @
---     @0 prop-compactAddrFromEnterpriseAddr-injective
---       : ∀ (x y : EnterpriseAddr)
---       → compactAddrFromEnterpriseAddr x ≡ compactAddrFromEnterpriseAddr y
---       → x ≡ y
---     @
+--     > @0 prop-compactAddrFromEnterpriseAddr-injective
+--     >   : ∀ (x y : EnterpriseAddr)
+--     >   → compactAddrFromEnterpriseAddr x ≡ compactAddrFromEnterpriseAddr y
+--     >   → x ≡ y
 
 -- $prop-credentialFromXPub-injective
 -- #p:prop-credentialFromXPub-injective#
@@ -134,9 +132,7 @@ compactAddrFromEnterpriseAddr addr =
 --     Two 'XPub' that yield the same credential are equal
 --     — assuming that inverting a cryptographic hash is difficult.
 --
---     @
---     prop-credentialFromXPub-injective
---       : ∀ (x y : XPub)
---       → credentialFromXPub x ≡ credentialFromXPub y
---       → x ≡ y
---     @
+--     > prop-credentialFromXPub-injective
+--     >   : ∀ (x y : XPub)
+--     >   → credentialFromXPub x ≡ credentialFromXPub y
+--     >   → x ≡ y

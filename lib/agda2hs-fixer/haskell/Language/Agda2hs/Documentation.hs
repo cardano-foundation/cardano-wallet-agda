@@ -106,8 +106,8 @@ renderAgdaProperty doc =
   where
     prettyAnchor = "#p:" <> identifier doc <> "#"
     prettyDoc = lines (docString doc)
-    prettyType = ["@"] <> lines (typeSignature doc) <> ["@"]
- 
+    prettyType = map ("> " <>) . lines $ typeSignature doc
+
 dropNewLinesAtEnd :: [Line] -> [Line]
 dropNewLinesAtEnd = reverse . dropWhile (== newline) . reverse
 

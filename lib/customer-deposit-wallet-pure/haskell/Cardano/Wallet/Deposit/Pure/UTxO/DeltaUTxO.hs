@@ -89,12 +89,10 @@ concat = foldr append empty
 --     applying each delta in turn (right-to-left),
 --     assuming that the delta and the utxo have disjoint 'TxIn's.
 --
---     @
---     @0 prop-apply-append
---       : ∀ (x y : DeltaUTxO) (utxo : UTxO)
---       → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
---       → apply (append x y) utxo ≡ apply x (apply y utxo)
---     @
+--     > @0 prop-apply-append
+--     >   : ∀ (x y : DeltaUTxO) (utxo : UTxO)
+--     >   → Set.intersection (dom (received y)) (dom utxo) ≡ Set.empty
+--     >   → apply (append x y) utxo ≡ apply x (apply y utxo)
 
 -- $prop-apply-empty
 -- #p:prop-apply-empty#
@@ -103,11 +101,9 @@ concat = foldr append empty
 --
 --     Applying the empty delta does nothing.
 --
---     @
---     @0 prop-apply-empty
---       : ∀ (utxo : UTxO)
---       → apply empty utxo ≡ utxo
---     @
+--     > @0 prop-apply-empty
+--     >   : ∀ (utxo : UTxO)
+--     >   → apply empty utxo ≡ utxo
 
 -- $prop-apply-excludingD
 -- #p:prop-apply-excludingD#
@@ -116,12 +112,10 @@ concat = foldr append empty
 --     Applying the 'DeltaUTxO' returned by 'excludingD'
 --     to the argument 'UTxO' yields the result 'UTxO'.
 --
---     @
---     @0 prop-apply-excludingD
---       : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
---       → let (du , u1) = excludingD u0 txins
---         in  apply du u0 ≡ u1
---     @
+--     > @0 prop-apply-excludingD
+--     >   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+--     >   → let (du , u1) = excludingD u0 txins
+--     >     in  apply du u0 ≡ u1
 
 -- $prop-apply-receiveD
 -- #p:prop-apply-receiveD#
@@ -130,12 +124,10 @@ concat = foldr append empty
 --     Applying the 'DeltaUTxO' returned by 'receiveD'
 --     to the argument 'UTxO' yields the result 'UTxO'.
 --
---     @
---     @0 prop-apply-receiveD
---       : ∀ {ua : UTxO} {u0 : UTxO}
---       → let (du , u1) = receiveD u0 ua
---         in  apply du u0 ≡ u1
---     @
+--     > @0 prop-apply-receiveD
+--     >   : ∀ {ua : UTxO} {u0 : UTxO}
+--     >   → let (du , u1) = receiveD u0 ua
+--     >     in  apply du u0 ≡ u1
 
 -- $prop-excluding-excludingD
 -- #p:prop-excluding-excludingD#
@@ -143,12 +135,10 @@ concat = foldr append empty
 -- [prop-excluding-excludingD]:
 --     The 'UTxO' returned by 'excludingD' is the same as 'excluding'.
 --
---     @
---     prop-excluding-excludingD
---       : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
---       → let (du , u1) = excludingD u0 txins
---         in  u1 ≡ UTxO.excluding u0 txins
---     @
+--     > prop-excluding-excludingD
+--     >   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+--     >   → let (du , u1) = excludingD u0 txins
+--     >     in  u1 ≡ UTxO.excluding u0 txins
 
 -- $prop-union-receiveD
 -- #p:prop-union-receiveD#
@@ -156,9 +146,7 @@ concat = foldr append empty
 -- [prop-union-receiveD]:
 --     The 'UTxO' returned by 'receiveD' is the same as 'union'.
 --
---     @
---     prop-union-receiveD
---       : ∀ {ua : UTxO} {u0 : UTxO}
---       → let (du , u1) = receiveD u0 ua
---         in  u1 ≡ UTxO.union ua u0
---     @
+--     > prop-union-receiveD
+--     >   : ∀ {ua : UTxO} {u0 : UTxO}
+--     >   → let (du , u1) = receiveD u0 ua
+--     >     in  u1 ≡ UTxO.union ua u0

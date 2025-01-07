@@ -170,10 +170,8 @@ pruneBefore newFinality old =
 --     Rolling backward will cancel rolling forward.
 --     Bare version.
 --
---     @
---     @0 prop-insertDeltaUTxO-dropAfter-cancel
---       : ∀ (u : TimelineUTxO) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
---       → (slot1 < WithOrigin.At slot2) ≡ True
---       → dropAfter slot1 (insertDeltaUTxO slot2 du u)
---         ≡ dropAfter slot1 u
---     @
+--     > @0 prop-insertDeltaUTxO-dropAfter-cancel
+--     >   : ∀ (u : TimelineUTxO) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
+--     >   → (slot1 < WithOrigin.At slot2) ≡ True
+--     >   → dropAfter slot1 (insertDeltaUTxO slot2 du u)
+--     >     ≡ dropAfter slot1 u

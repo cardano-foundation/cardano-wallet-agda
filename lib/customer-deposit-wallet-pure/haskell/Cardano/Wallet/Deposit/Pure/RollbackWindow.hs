@@ -148,12 +148,10 @@ intersection w1 w2 =
 --
 --     Invariant: 'finality' is always before or equal to the 'tip'.
 --
---     @
---     @0 prop-RollbackWindow-invariant
---       : ∀ {time} {{_ : Ord time}}
---           (w : RollbackWindow time)
---       → (finality w <= tip w) ≡ True
---     @
+--     > @0 prop-RollbackWindow-invariant
+--     >   : ∀ {time} {{_ : Ord time}}
+--     >       (w : RollbackWindow time)
+--     >   → (finality w <= tip w) ≡ True
 
 -- $prop-isJust-rollForward
 -- #p:prop-isJust-rollForward#
@@ -162,12 +160,10 @@ intersection w1 w2 =
 --
 --     'rollForward' returns 'Just' if and only if the tip is moved forward.
 --
---     @
---     @0 prop-isJust-rollForward
---       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
---           (newTip : time) (w : RollbackWindow time)
---       → isJust (rollForward newTip w) ≡ (tip w < newTip)
---     @
+--     > @0 prop-isJust-rollForward
+--     >   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--     >       (newTip : time) (w : RollbackWindow time)
+--     >   → isJust (rollForward newTip w) ≡ (tip w < newTip)
 
 -- $prop-member-finality
 -- #p:prop-member-finality#
@@ -176,12 +172,10 @@ intersection w1 w2 =
 --
 --     The 'finality' is always a 'member' of a 'RollbackWindow'.
 --
---     @
---     @0 prop-member-finality
---       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
---           (w : RollbackWindow time)
---       → member (finality w) w ≡ True
---     @
+--     > @0 prop-member-finality
+--     >   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--     >       (w : RollbackWindow time)
+--     >   → member (finality w) w ≡ True
 
 -- $prop-member-intersection
 -- #p:prop-member-intersection#
@@ -191,14 +185,12 @@ intersection w1 w2 =
 --     A time @t@ is a 'member' of an intersection
 --     if it is a member of both 'RollbackWindow's.
 --
---     @
---     @0 prop-member-intersection
---       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
---           (w1 w2 w3 : RollbackWindow time)
---           (t : time)
---       → intersection w1 w2 ≡ Just w3
---       → member t w3 ≡ (member t w1 && member t w2)
---     @
+--     > @0 prop-member-intersection
+--     >   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--     >       (w1 w2 w3 : RollbackWindow time)
+--     >       (t : time)
+--     >   → intersection w1 w2 ≡ Just w3
+--     >   → member t w3 ≡ (member t w1 && member t w2)
 
 -- $prop-member-singleton
 -- #p:prop-member-singleton#
@@ -207,12 +199,10 @@ intersection w1 w2 =
 --
 --     'singleton' contains exactly one point.
 --
---     @
---     @0 prop-member-singleton
---       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
---           (t1 t2 : time)
---       → member t1 (singleton t2) ≡ (t1 == t2)
---     @
+--     > @0 prop-member-singleton
+--     >   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--     >       (t1 t2 : time)
+--     >   → member t1 (singleton t2) ≡ (t1 == t2)
 
 -- $prop-member-tip
 -- #p:prop-member-tip#
@@ -221,12 +211,10 @@ intersection w1 w2 =
 --
 --     The 'tip' is always a 'member' of a 'RollbackWindow'.
 --
---     @
---     @0 prop-member-tip
---       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
---           (w : RollbackWindow time)
---       → member (tip w) w ≡ True
---     @
+--     > @0 prop-member-tip
+--     >   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--     >       (w : RollbackWindow time)
+--     >   → member (tip w) w ≡ True
 
 -- $prop-rollBackward-Future→tip
 -- #p:prop-rollBackward-Future→tip#
@@ -236,13 +224,11 @@ intersection w1 w2 =
 --     If 'rollBackward' returns 'Future',
 --     then the new tip was more recent than the current tip.
 --
---     @
---     @0 prop-rollBackward-Future→tip
---       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
---           (newTip : time) (w : RollbackWindow time)
---       → rollBackward newTip w ≡ Future
---       → (tip w <= newTip) ≡ True
---     @
+--     > @0 prop-rollBackward-Future→tip
+--     >   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--     >       (newTip : time) (w : RollbackWindow time)
+--     >   → rollBackward newTip w ≡ Future
+--     >   → (tip w <= newTip) ≡ True
 
 -- $prop-rollBackward-tip→Future
 -- #p:prop-rollBackward-tip→Future#
@@ -252,13 +238,11 @@ intersection w1 w2 =
 --     If the new tip is more recent than the current tip,
 --     'rollBackward' returns 'Future'.
 --
---     @
---     prop-rollBackward-tip→Future
---       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
---           (newTip : time) (w : RollbackWindow time)
---       → (tip w <= newTip) ≡ True
---       → rollBackward newTip w ≡ Future
---     @
+--     > prop-rollBackward-tip→Future
+--     >   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--     >       (newTip : time) (w : RollbackWindow time)
+--     >   → (tip w <= newTip) ≡ True
+--     >   → rollBackward newTip w ≡ Future
 
 -- $prop-tip-rollForward
 -- #p:prop-tip-rollForward#
@@ -267,10 +251,8 @@ intersection w1 w2 =
 --
 --     'rollForward' moves the tip to the new tip.
 --
---     @
---     @0 prop-tip-rollForward
---       : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
---           (newTip : time) (w w' : RollbackWindow time)
---       → rollForward newTip w ≡ Just w'
---       → tip w' ≡ newTip
---     @
+--     > @0 prop-tip-rollForward
+--     >   : ∀ {time} {{_ : Ord time}} {{@0 _ : IsLawfulOrd time}}
+--     >       (newTip : time) (w w' : RollbackWindow time)
+--     >   → rollForward newTip w ≡ Just w'
+--     >   → tip w' ≡ newTip

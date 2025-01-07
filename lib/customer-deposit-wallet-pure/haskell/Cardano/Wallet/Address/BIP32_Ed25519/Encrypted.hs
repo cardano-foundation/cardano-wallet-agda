@@ -217,12 +217,10 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 -- [prop-check-decrypt]:
 --     A key matches a passphrase iff it can be decrypted.
 --
---     @
---     prop-check-decrypt
---       : ∀ (key : EncryptedXPrv) (pass : Passphrase)
---       → check pass key
---         ≡ isJust (decrypt pass key)
---     @
+--     > prop-check-decrypt
+--     >   : ∀ (key : EncryptedXPrv) (pass : Passphrase)
+--     >   → check pass key
+--     >     ≡ isJust (decrypt pass key)
 
 -- $prop-check-mkEncryptedXPrv
 -- #p:prop-check-mkEncryptedXPrv#
@@ -231,12 +229,10 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 --     'mkEncryptedXPrv' will generate a key that matches the
 --     given passphrase.
 --
---     @
---     prop-check-mkEncryptedXPrv
---       : ∀ (pass : Passphrase) (salt : ByteString) (xprv : XPrv)
---       → check pass (mkEncryptedXPrv pass salt xprv)
---         ≡ True
---     @
+--     > prop-check-mkEncryptedXPrv
+--     >   : ∀ (pass : Passphrase) (salt : ByteString) (xprv : XPrv)
+--     >   → check pass (mkEncryptedXPrv pass salt xprv)
+--     >     ≡ True
 
 -- $prop-decrypt-encrypt
 -- #p:prop-decrypt-encrypt#
@@ -244,12 +240,10 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 -- [prop-decrypt-encrypt]:
 --     Decrypting an encrypted 'XPrv' will return the original.
 --
---     @
---     prop-decrypt-encrypt
---       : ∀ (pass : Passphrase) (salt : ByteString) (xprv : XPrv)
---       → decrypt pass (encrypt pass salt xprv)
---         ≡ Just xprv
---     @
+--     > prop-decrypt-encrypt
+--     >   : ∀ (pass : Passphrase) (salt : ByteString) (xprv : XPrv)
+--     >   → decrypt pass (encrypt pass salt xprv)
+--     >     ≡ Just xprv
 
 -- $prop-decrypt-mkEncryptedXPrv
 -- #p:prop-decrypt-mkEncryptedXPrv#
@@ -258,12 +252,10 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 --     Decrypting 'mkEncryptedXPrv' will yield
 --     the decrypted key.
 --
---     @
---     prop-decrypt-mkEncryptedXPrv
---       : ∀ (pass : Passphrase) (salt : ByteString) (xprv : XPrv)
---       → decrypt pass (mkEncryptedXPrv pass salt xprv)
---         ≡ Just (decryptXPrv pass xprv)
---     @
+--     > prop-decrypt-mkEncryptedXPrv
+--     >   : ∀ (pass : Passphrase) (salt : ByteString) (xprv : XPrv)
+--     >   → decrypt pass (mkEncryptedXPrv pass salt xprv)
+--     >     ≡ Just (decryptXPrv pass xprv)
 
 -- $prop-deriveEncryptedXPrvHard-decrypt
 -- #p:prop-deriveEncryptedXPrvHard-decrypt#
@@ -272,14 +264,12 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 --     Key derivation of an encrypted private key
 --     yields the same result as the plain variant.
 --
---     @
---     prop-deriveEncryptedXPrvHard-decrypt
---       : ∀ (pass : Passphrase)
---           (key : EncryptedXPrv)
---           (ix : Word31)
---       → (decrypt pass =<< deriveEncryptedXPrvHard pass key ix)
---         ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvHard xprv ix) <$> decrypt pass key)
---     @
+--     > prop-deriveEncryptedXPrvHard-decrypt
+--     >   : ∀ (pass : Passphrase)
+--     >       (key : EncryptedXPrv)
+--     >       (ix : Word31)
+--     >   → (decrypt pass =<< deriveEncryptedXPrvHard pass key ix)
+--     >     ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvHard xprv ix) <$> decrypt pass key)
 
 -- $prop-deriveEncryptedXPrvSoft-decrypt
 -- #p:prop-deriveEncryptedXPrvSoft-decrypt#
@@ -288,14 +278,12 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 --     Key derivation of an encrypted private key
 --     yields the same result as the plain variant.
 --
---     @
---     prop-deriveEncryptedXPrvSoft-decrypt
---       : ∀ (pass : Passphrase)
---           (key : EncryptedXPrv)
---           (ix : Word31)
---       → (decrypt pass =<< deriveEncryptedXPrvSoft pass key ix)
---         ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvSoft xprv ix) <$> decrypt pass key)
---     @
+--     > prop-deriveEncryptedXPrvSoft-decrypt
+--     >   : ∀ (pass : Passphrase)
+--     >       (key : EncryptedXPrv)
+--     >       (ix : Word31)
+--     >   → (decrypt pass =<< deriveEncryptedXPrvSoft pass key ix)
+--     >     ≡ ((λ xprv → BIP32_Ed25519.deriveXPrvSoft xprv ix) <$> decrypt pass key)
 
 -- $prop-deserialize-serializeEncryptedXPrv
 -- #p:prop-deserialize-serializeEncryptedXPrv#
@@ -303,12 +291,10 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 -- [prop-deserialize-serializeEncryptedXPrv]:
 --     'deserializeEncryptedXPrv' always deserializes 'serializeEncryptedXPrv'.
 --
---     @
---     prop-deserialize-serializeEncryptedXPrv
---       : ∀ (x : EncryptedXPrv)
---       → deserializeEncryptedXPrv (serializeEncryptedXPrv x)
---         ≡ Right x
---     @
+--     > prop-deserialize-serializeEncryptedXPrv
+--     >   : ∀ (x : EncryptedXPrv)
+--     >   → deserializeEncryptedXPrv (serializeEncryptedXPrv x)
+--     >     ≡ Right x
 
 -- $prop-sign-decrypt
 -- #p:prop-sign-decrypt#
@@ -317,12 +303,10 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 --     Signing with an encrypted key is the same as signing with
 --     the unencrypted key.
 --
---     @
---     prop-sign-decrypt
---       : ∀ (key : EncryptedXPrv) (pass : Passphrase) (msg : ByteString)
---       → sign pass key msg
---         ≡ ((λ xprv → BIP32_Ed25519.sign xprv msg) <$> decrypt pass key)
---     @
+--     > prop-sign-decrypt
+--     >   : ∀ (key : EncryptedXPrv) (pass : Passphrase) (msg : ByteString)
+--     >   → sign pass key msg
+--     >     ≡ ((λ xprv → BIP32_Ed25519.sign xprv msg) <$> decrypt pass key)
 
 -- $prop-toXPub-decrypt
 -- #p:prop-toXPub-decrypt#
@@ -331,9 +315,7 @@ deriveEncryptedXPrvBIP32Path pass key (Segment path Soft ix) =
 --     The extended public key can be obtained by first decrypting the key
 --     and then taking extended public key.
 --
---     @
---     prop-toXPub-decrypt
---       : ∀ (key : EncryptedXPrv) (pass : Passphrase)
---       → toXPub pass key
---         ≡ (BIP32_Ed25519.toXPub <$> decrypt pass key)
---     @
+--     > prop-toXPub-decrypt
+--     >   : ∀ (key : EncryptedXPrv) (pass : Passphrase)
+--     >   → toXPub pass key
+--     >     ≡ (BIP32_Ed25519.toXPub <$> decrypt pass key)

@@ -45,8 +45,6 @@ instance Monoid ValueTransfer where
 --
 --     'ValueTransfer' is a commutative semigroup.
 --
---     @
---     prop-ValueTansfer-<>-comm
---       : ∀ (x y : ValueTransfer)
---       → x <> y ≡ y <> x
---     @
+--     > prop-ValueTansfer-<>-comm
+--     >   : ∀ (x y : ValueTransfer)
+--     >   → x <> y ≡ y <> x
