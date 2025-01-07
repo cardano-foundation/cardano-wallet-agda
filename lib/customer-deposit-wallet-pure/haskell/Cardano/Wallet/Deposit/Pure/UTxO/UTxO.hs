@@ -113,11 +113,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     Taking the union of a 'UTxO' with one of its exclusions
 --     does nothing.
 --
---     @
---     @0 prop-excluding-absorb
---       : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
---       → (x ⋪ utxo) ∪ utxo ≡ utxo
---     @
+--     > @0 prop-excluding-absorb
+--     >   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
+--     >   → (x ⋪ utxo) ∪ utxo ≡ utxo
 
 -- $prop-excluding-difference
 -- #p:prop-excluding-difference#
@@ -127,12 +125,10 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     Excluding the difference is the same as excluding
 --     everything and putting back the difference.
 --
---     @
---     prop-excluding-difference
---       : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
---       → (Set.difference x y) ⋪ utxo
---         ≡ (x ⋪ utxo) ∪ (restrictedBy utxo y)
---     @
+--     > prop-excluding-difference
+--     >   : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
+--     >   → (Set.difference x y) ⋪ utxo
+--     >     ≡ (x ⋪ utxo) ∪ (restrictedBy utxo y)
 
 -- $prop-excluding-dom
 -- #p:prop-excluding-dom#
@@ -141,11 +137,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     Excluding the entire domain gives the empty 'UTxO'.
 --
---     @
---     prop-excluding-dom
---       : ∀ {utxo : UTxO}
---       → dom utxo ⋪ utxo ≡ empty
---     @
+--     > prop-excluding-dom
+--     >   : ∀ {utxo : UTxO}
+--     >   → dom utxo ⋪ utxo ≡ empty
 
 -- $prop-excluding-empty
 -- #p:prop-excluding-empty#
@@ -154,11 +148,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     Excluding the empty set does nothing.
 --
---     @
---     @0 prop-excluding-empty
---       : ∀ (utxo : UTxO)
---       → excluding utxo Set.empty ≡ utxo
---     @
+--     > @0 prop-excluding-empty
+--     >   : ∀ (utxo : UTxO)
+--     >   → excluding utxo Set.empty ≡ utxo
 
 -- $prop-excluding-excluding
 -- #p:prop-excluding-excluding#
@@ -167,11 +159,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     Excluding from an exclusion is the same as excluding the union.
 --
---     @
---     prop-excluding-excluding
---       : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
---       → x ⋪ (y ⋪ utxo) ≡ (Set.union x y) ⋪ utxo
---     @
+--     > prop-excluding-excluding
+--     >   : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
+--     >   → x ⋪ (y ⋪ utxo) ≡ (Set.union x y) ⋪ utxo
 
 -- $prop-excluding-excludingS
 -- #p:prop-excluding-excludingS#
@@ -181,12 +171,10 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     Not excluding inputs makes no difference if these
 --     inputs have nothing in common with the 'UTxO'.
 --
---     @
---     prop-excluding-excludingS
---       : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
---       → Set.intersection (dom ua) (dom ub) ≡ Set.empty
---       → (excludingS x ua) ⋪ ub ≡ x ⋪ ub
---     @
+--     > prop-excluding-excludingS
+--     >   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
+--     >   → Set.intersection (dom ua) (dom ub) ≡ Set.empty
+--     >   → (excludingS x ua) ⋪ ub ≡ x ⋪ ub
 
 -- $prop-excluding-intersection
 -- #p:prop-excluding-intersection#
@@ -195,11 +183,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     Excluding the intersection is the same as the union of the exclusions.
 --
---     @
---     @0 prop-excluding-intersection
---       : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
---       → (Set.intersection x y) ⋪ utxo ≡ (x ⋪ utxo) ∪ (y ⋪ utxo)
---     @
+--     > @0 prop-excluding-intersection
+--     >   : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
+--     >   → (Set.intersection x y) ⋪ utxo ≡ (x ⋪ utxo) ∪ (y ⋪ utxo)
 
 -- $prop-excluding-sym
 -- #p:prop-excluding-sym#
@@ -208,11 +194,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     Excluding two sets of 'TxIn's can be done in either order.
 --
---     @
---     prop-excluding-sym
---       : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
---       → x ⋪ (y ⋪ utxo) ≡ y ⋪ (x ⋪ utxo)
---     @
+--     > prop-excluding-sym
+--     >   : ∀ {x y : Set.ℙ TxIn} {utxo : UTxO}
+--     >   → x ⋪ (y ⋪ utxo) ≡ y ⋪ (x ⋪ utxo)
 
 -- $prop-excluding-union
 -- #p:prop-excluding-union#
@@ -222,11 +206,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     Excluding from a union is the same as excluding
 --     from each member of the union.
 --
---     @
---     @0 prop-excluding-union
---       : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
---       → x ⋪ (ua ∪ ub) ≡ (x ⋪ ua) ∪ (x ⋪ ub)
---     @
+--     > @0 prop-excluding-union
+--     >   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
+--     >   → x ⋪ (ua ∪ ub) ≡ (x ⋪ ua) ∪ (x ⋪ ub)
 
 -- $prop-filterByAddress-filters
 -- #p:prop-filterByAddress-filters#
@@ -235,14 +217,12 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     Those outputs whose address satisfies the predicate are kept.
 --
---     @
---     prop-filterByAddress-filters
---         : ∀ (p : Address → Bool)
---             (utxo : UTxO) (txin : TxIn) (txout : TxOut)
---         → Map.lookup txin utxo ≡ Just txout
---         → Map.member txin (filterByAddress p utxo)
---             ≡ p (getCompactAddr txout)
---     @
+--     > prop-filterByAddress-filters
+--     >     : ∀ (p : Address → Bool)
+--     >         (utxo : UTxO) (txin : TxIn) (txout : TxOut)
+--     >     → Map.lookup txin utxo ≡ Just txout
+--     >     → Map.member txin (filterByAddress p utxo)
+--     >         ≡ p (getCompactAddr txout)
 
 -- $prop-union-assoc
 -- #p:prop-union-assoc#
@@ -251,11 +231,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     'union' is associative.
 --
---     @
---     prop-union-assoc
---       : ∀ {ua ub uc : UTxO}
---       → (ua ∪ ub) ∪ uc ≡ ua ∪ (ub ∪ uc)
---     @
+--     > prop-union-assoc
+--     >   : ∀ {ua ub uc : UTxO}
+--     >   → (ua ∪ ub) ∪ uc ≡ ua ∪ (ub ∪ uc)
 
 -- $prop-union-empty-left
 -- #p:prop-union-empty-left#
@@ -264,11 +242,9 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     'empty' is a left identity of 'union'.
 --
---     @
---     prop-union-empty-left
---       : ∀ {utxo : UTxO}
---       → union empty utxo ≡ utxo
---     @
+--     > prop-union-empty-left
+--     >   : ∀ {utxo : UTxO}
+--     >   → union empty utxo ≡ utxo
 
 -- $prop-union-empty-right
 -- #p:prop-union-empty-right#
@@ -277,8 +253,6 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --
 --     'empty' is a right identity of 'union'.
 --
---     @
---     prop-union-empty-right
---       : ∀ {utxo : UTxO}
---       → union utxo empty ≡ utxo
---     @
+--     > prop-union-empty-right
+--     >   : ∀ {utxo : UTxO}
+--     >   → union utxo empty ≡ utxo

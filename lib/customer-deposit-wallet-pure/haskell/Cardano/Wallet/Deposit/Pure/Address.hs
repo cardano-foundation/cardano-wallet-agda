@@ -301,13 +301,11 @@ mockMaxLengthChangeAddress s =
 --
 --     Customer addresses are never change addresses.
 --
---     @
---     @0 prop-changeAddress-not-Customer
---       : ∀ (s : AddressState)
---           (addr : Address)
---       → knownCustomerAddress addr s ≡ True
---       → ¬(isChange (newChangeAddress s) addr)
---     @
+--     > @0 prop-changeAddress-not-Customer
+--     >   : ∀ (s : AddressState)
+--     >       (addr : Address)
+--     >   → knownCustomerAddress addr s ≡ True
+--     >   → ¬(isChange (newChangeAddress s) addr)
 
 -- $prop-create-derive
 -- #p:prop-create-derive#
@@ -316,13 +314,11 @@ mockMaxLengthChangeAddress s =
 --     Creating a customer address is deterministic,
 --     and depends essentially on the 'XPub'.
 --
---     @
---     prop-create-derive
---       : ∀ (c : Customer)
---           (s0 : AddressState)
---       → let (address , _) = createAddress c s0
---         in  deriveCustomerAddress (getNetworkTag s0) (stateXPub s0) c ≡ address
---     @
+--     > prop-create-derive
+--     >   : ∀ (c : Customer)
+--     >       (s0 : AddressState)
+--     >   → let (address , _) = createAddress c s0
+--     >     in  deriveCustomerAddress (getNetworkTag s0) (stateXPub s0) c ≡ address
 
 -- $prop-create-known
 -- #p:prop-create-known#
@@ -330,13 +326,11 @@ mockMaxLengthChangeAddress s =
 -- [prop-create-known]:
 --     Creating an address makes it known.
 --
---     @
---     @0 prop-create-known
---       : ∀ (c  : Customer)
---           (s0 : AddressState)
---       → let (address , s1) = createAddress c s0
---         in  knownCustomerAddress address s1 ≡ True
---     @
+--     > @0 prop-create-known
+--     >   : ∀ (c  : Customer)
+--     >       (s0 : AddressState)
+--     >   → let (address , s1) = createAddress c s0
+--     >     in  knownCustomerAddress address s1 ≡ True
 
 -- $prop-isCustomerAddress-deriveCustomerAddress
 -- #p:prop-isCustomerAddress-deriveCustomerAddress#
@@ -345,13 +339,11 @@ mockMaxLengthChangeAddress s =
 --     If an address is a known customer address,
 --     then it was derived from a 'Customer' ID.
 --
---     @
---     @0 prop-isCustomerAddress-deriveCustomerAddress
---       : ∀ (s : AddressState)
---           (addr : Address)
---       → isCustomerAddress s addr ≡ True
---       → ∃ (λ c → addr ≡ deriveCustomerAddress (getNetworkTag s) (getXPub s) c)
---     @
+--     > @0 prop-isCustomerAddress-deriveCustomerAddress
+--     >   : ∀ (s : AddressState)
+--     >       (addr : Address)
+--     >   → isCustomerAddress s addr ≡ True
+--     >   → ∃ (λ c → addr ≡ deriveCustomerAddress (getNetworkTag s) (getXPub s) c)
 
 -- $prop-isOurs
 -- #p:prop-isOurs#
@@ -360,13 +352,11 @@ mockMaxLengthChangeAddress s =
 --     It's ours if it's an internal change address or a known
 --     customer address.
 --
---     @
---     @0 prop-isOurs
---       : ∀ (s : AddressState)
---           (addr : Address)
---       → isOurs s addr
---         ≡ (isChangeAddress s addr || isCustomerAddress s addr)
---     @
+--     > @0 prop-isOurs
+--     >   : ∀ (s : AddressState)
+--     >       (addr : Address)
+--     >   → isOurs s addr
+--     >     ≡ (isChangeAddress s addr || isCustomerAddress s addr)
 
 -- $prop-isOurs-from-isCustomerAddress
 -- #p:prop-isOurs-from-isCustomerAddress#
@@ -374,13 +364,11 @@ mockMaxLengthChangeAddress s =
 -- [prop-isOurs-from-isCustomerAddress]:
 --     If known customer address belongs to the wallet.
 --
---     @
---     @0 prop-isOurs-from-isCustomerAddress
---       : ∀ (s : AddressState)
---           (addr : Address)
---       → isCustomerAddress s addr ≡ True
---       → isOurs s addr ≡ True
---     @
+--     > @0 prop-isOurs-from-isCustomerAddress
+--     >   : ∀ (s : AddressState)
+--     >       (addr : Address)
+--     >   → isCustomerAddress s addr ≡ True
+--     >   → isOurs s addr ≡ True
 
 -- $prop-isOurs-mockMaxLengthChangeAddress-False
 -- #p:prop-isOurs-mockMaxLengthChangeAddress-False#
@@ -388,8 +376,6 @@ mockMaxLengthChangeAddress s =
 -- [prop-isOurs-mockMaxLengthChangeAddress-False]:
 --     'mockMaxLengthChangeAddress' never belongs to the 'AddressState'.
 --
---     @
---     @0 prop-isOurs-mockMaxLengthChangeAddress-False
---       : ∀ (s : AddressState)
---       → isOurs s (mockMaxLengthChangeAddress s) ≡ False
---     @
+--     > @0 prop-isOurs-mockMaxLengthChangeAddress-False
+--     >   : ∀ (s : AddressState)
+--     >   → isOurs s (mockMaxLengthChangeAddress s) ≡ False
