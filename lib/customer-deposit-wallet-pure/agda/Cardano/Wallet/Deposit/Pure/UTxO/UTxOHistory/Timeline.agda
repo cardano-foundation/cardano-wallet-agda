@@ -63,22 +63,26 @@ import Haskell.Data.Set as Set
     Type
 ------------------------------------------------------------------------------}
 
--- | 'TimelineUTxO' represents a timeline of changes to the 'UTxO' set.
+-- | 'TimelineUTxO' represents a timeline of changes to an initial 'UTxO' set.
+--
+-- This data type is useful for keeping track of a 'UTxO' set that
+-- can be rolled forward and backward in time.
 --
 -- We keep track of the creation
--- and spending of slot of each TxIn.
+-- and spending of slot of each 'TxIn'.
 -- This allows us to rollback to a given slot
 -- and prune to a given slot.
+--
+-- * 'history' — Transaction outputs in the history, both spent and unspent.
+-- * 'created' — Creation slots of all 'TxIn' present in the 'history'.
+-- * 'spent' — Spending slots for those 'TxIn' that have been spent.
+-- * 'boot' — Transaction outputs that were created at genesis.
 record TimelineUTxO : Set where
   field
     history : UTxO
-        -- ^ All UTxO , spent and unspent.
     created : Timeline Slot TxIn
-        -- ^ Creation slots of the TxIn, spent and unspent.
     spent : Timeline SlotNo TxIn
-        -- ^ Spending slot number of the TxIn, spent.
     boot : UTxO
-        -- ^ UTxO created at genesis.
 
 open TimelineUTxO public
 
@@ -88,7 +92,8 @@ open TimelineUTxO public
     Functions
 ------------------------------------------------------------------------------}
 
--- | Apply all changes to the 'UTxO'.
+-- | Current 'UTxO' at the end of the timeline,
+-- obtained by applying all changes in the timeline.
 getUTxO : TimelineUTxO → UTxO
 getUTxO us = excluding (history us) (Timeline.items (spent us))
 
@@ -102,24 +107,33 @@ getSpent = Timeline.getMapTime ∘ spent
 
 {-# COMPILE AGDA2HS getSpent #-}
 
--- | An empty 'TimelineUTxO'.
+-- | A 'TimelineUTxO' created from an initial 'UTxO' at genesis.
 fromOrigin : UTxO → TimelineUTxO
 fromOrigin utxo = record
     { history = utxo
     ; created =
-        Timeline.insertMany WithOrigin.Origin (dom utxo)
-        (Timeline.empty)
+        Timeline.insertMany WithOrigin.Origin (dom utxo) (Timeline.empty)
     ; spent = Timeline.empty
     ; boot = utxo
     }
 
 {-# COMPILE AGDA2HS fromOrigin #-}
 
--- | Insert a 'UTxO' change at a specific slot.
+-- | Change the 'history' at a given slot by applying a 'DeltaUTxO'.
+--
+-- This action will
+--
+-- * add the 'received' transaction outputs from the delta
+--   to the 'history' and the 'created' collections,
+-- * add the 'excluded' inpts to the 'spent' collection.
+--
+-- In order for this operation to make sense,
+-- we typically need to assume that the 'DeltaUTxO' 'fit's the 'history'.
 insertDeltaUTxO
   : SlotNo → DeltaUTxO → TimelineUTxO → TimelineUTxO
 insertDeltaUTxO newTip delta old = record
-    { history = UTxO.union (history old) (DeltaUTxO.received delta)
+    { history =
+        UTxO.union (history old) (DeltaUTxO.received delta)
     ; created =
         Timeline.insertMany
             (WithOrigin.At newTip) receivedTxIns (created old)
@@ -146,7 +160,7 @@ dropAfterSpent
 dropAfterSpent WithOrigin.Origin spents = Timeline.empty
 dropAfterSpent (WithOrigin.At slot) spents = Timeline.dropAfter slot spents
 
--- | Drop all 'UTxO' changes after a given slot.
+-- | Drop all changes recored in the timeline after a given slot.
 dropAfter
   : Slot → TimelineUTxO → TimelineUTxO
 dropAfter newTip old = record
@@ -241,10 +255,11 @@ lemma-UTxO-difference x y =
     Properties
     getUTxO
 ------------------------------------------------------------------------------}
+-- | Rolling forward updates the 'UTxO'.
 postulate
- -- | Rolling forward updates the 'UTxO'.
  prop-getUTxO-insertDeltaUTxO
   : ∀ (u : TimelineUTxO) (du : DeltaUTxO) (slot : SlotNo)
+  → DeltaUTxO.fits du (history u) ≡ True
   → getUTxO (insertDeltaUTxO slot du u)
     ≡ DeltaUTxO.apply du (getUTxO u)
 
@@ -254,7 +269,6 @@ postulate
 ------------------------------------------------------------------------------}
 
 -- | Rolling backward will cancel rolling forward.
--- Bare version.
 @0 prop-insertDeltaUTxO-dropAfter-cancel
   : ∀ (u : TimelineUTxO) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
   → (slot1 < WithOrigin.At slot2) ≡ True
@@ -328,3 +342,4 @@ prop-insertDeltaUTxO-dropAfter-cancel u du slot1 slot2 cond =
           TimelineUTxO.spent u2
         ∎
       }
+

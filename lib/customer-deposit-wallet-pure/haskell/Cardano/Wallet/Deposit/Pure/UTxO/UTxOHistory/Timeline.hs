@@ -42,12 +42,20 @@ import qualified Haskell.Data.Set as Set (difference, intersection)
 import Prelude hiding (null, subtract)
 
 -- |
--- 'TimelineUTxO' represents a timeline of changes to the 'UTxO' set.
+-- 'TimelineUTxO' represents a timeline of changes to an initial 'UTxO' set.
+--
+-- This data type is useful for keeping track of a 'UTxO' set that
+-- can be rolled forward and backward in time.
 --
 -- We keep track of the creation
--- and spending of slot of each TxIn.
+-- and spending of slot of each 'TxIn'.
 -- This allows us to rollback to a given slot
 -- and prune to a given slot.
+--
+-- * 'history' — Transaction outputs in the history, both spent and unspent.
+-- * 'created' — Creation slots of all 'TxIn' present in the 'history'.
+-- * 'spent' — Spending slots for those 'TxIn' that have been spent.
+-- * 'boot' — Transaction outputs that were created at genesis.
 data TimelineUTxO = TimelineUTxO
     { history :: UTxO
     , created :: Timeline Slot TxIn
@@ -56,7 +64,8 @@ data TimelineUTxO = TimelineUTxO
     }
 
 -- |
--- Apply all changes to the 'UTxO'.
+-- Current 'UTxO' at the end of the timeline,
+-- obtained by applying all changes in the timeline.
 getUTxO :: TimelineUTxO -> UTxO
 getUTxO us =
     excluding
@@ -71,7 +80,7 @@ getSpent :: TimelineUTxO -> Map TxIn SlotNo
 getSpent = Haskell.Data.Maps.Timeline.getMapTime . \r -> spent r
 
 -- |
--- An empty 'TimelineUTxO'.
+-- A 'TimelineUTxO' created from an initial 'UTxO' at genesis.
 fromOrigin :: UTxO -> TimelineUTxO
 fromOrigin utxo =
     TimelineUTxO
@@ -85,7 +94,16 @@ fromOrigin utxo =
         utxo
 
 -- |
--- Insert a 'UTxO' change at a specific slot.
+-- Change the 'history' at a given slot by applying a 'DeltaUTxO'.
+--
+-- This action will
+--
+-- * add the 'received' transaction outputs from the delta
+-- to the 'history' and the 'created' collections,
+-- * add the 'excluded' inpts to the 'spent' collection.
+--
+-- In order for this operation to make sense,
+-- we typically need to assume that the 'DeltaUTxO' 'fit's the 'history'.
 insertDeltaUTxO
     :: SlotNo -> DeltaUTxO -> TimelineUTxO -> TimelineUTxO
 insertDeltaUTxO newTip delta old =
@@ -121,7 +139,7 @@ dropAfterSpent (At slot) spents =
     Haskell.Data.Maps.Timeline.dropAfter slot spents
 
 -- |
--- Drop all 'UTxO' changes after a given slot.
+-- Drop all changes recored in the timeline after a given slot.
 dropAfter :: Slot -> TimelineUTxO -> TimelineUTxO
 dropAfter newTip old =
     TimelineUTxO
@@ -168,7 +186,6 @@ pruneBefore newFinality old =
 --
 -- [prop-insertDeltaUTxO-dropAfter-cancel]:
 --     Rolling backward will cancel rolling forward.
---     Bare version.
 --
 --     > @0 prop-insertDeltaUTxO-dropAfter-cancel
 --     >   : ∀ (u : TimelineUTxO) (du : DeltaUTxO) (slot1 : Slot) (slot2 : SlotNo)
