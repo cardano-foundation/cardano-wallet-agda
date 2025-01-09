@@ -145,6 +145,14 @@ instance
   iSetMonoid = record {DefaultMonoid (record {mempty = empty})}
 
 module _ {a : Set} {{_ : Ord a}} where
+
+  --
+  prop-null-empty
+    : null {a} empty ≡ True
+  --
+  prop-null-empty =
+    prop-member-null empty prop-member-empty 
+
   --
   prop-union-sym
     : ∀ {s1 s2 : ℙ a}

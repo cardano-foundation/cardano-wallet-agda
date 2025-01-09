@@ -38,6 +38,15 @@ module _ {k a : Set} {{_ : Ord k}} where
       lem-isJust {Nothing} refl = refl
 
   --
+  prop-null-empty
+    : null (empty {k} {a}) ≡ True
+  --
+  prop-null-empty =
+    prop-member-null
+      (empty {k} {a})
+      (λ key → cong isJust (prop-lookup-empty key))
+
+  --
   prop-lookup-singleton
     : ∀ (key keyi : k) (x : a)
     → lookup key (singleton keyi x)
