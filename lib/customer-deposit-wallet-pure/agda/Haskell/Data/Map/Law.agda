@@ -606,6 +606,7 @@ module _ {k a : Set} {{_ : Ord k}} where
     : ∀ (m : Map k a) (ka kb : Set.ℙ k)
     → withoutKeys m (Set.intersection ka kb)
       ≡ union (withoutKeys m ka) (withoutKeys m kb)
+  --
   prop-withoutKeys-intersection m ka kb = prop-equality eq-key
     where
       eq-key
@@ -648,3 +649,26 @@ module _ {k a : Set} {{_ : Ord k}} where
             ≡⟨ prop-deMorgan-not-&& (Set.member key ka) (Set.member key kb) ⟩
               (not (Set.member key ka) || not (Set.member key kb))
             ∎
+
+  --
+  prop-union-restrictKeys-absorbs
+    : ∀ (ma mb : Map k a)
+    → union ma (restrictKeys mb (keysSet ma))
+      ≡ ma
+  --
+  prop-union-restrictKeys-absorbs ma mb = prop-equality eq-key
+    where
+      eq-key
+        : ∀ (key : k)
+        → lookup key (union ma (restrictKeys mb (keysSet ma)))
+          ≡ lookup key ma
+      eq-key key
+        rewrite prop-lookup-union key ma (restrictKeys mb (keysSet ma))
+        rewrite prop-lookup-restrictKeys key mb (keysSet ma)
+        rewrite prop-member-keysSet {k} {a} {key} {ma}
+        with lookup key ma
+      ... | Nothing = refl
+      ... | Just a
+          with lookup key mb
+      ...   | Just b = refl
+      ...   | Nothing = refl
