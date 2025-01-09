@@ -257,3 +257,11 @@ module _ {a : Set} {{_ : Ord a}} where
         rewrite prop-member-intersection x s1 s2
         = lem1 (member x s1) (member x s2)
  
+  -- |
+  -- The 'empty' set is a subset of every set.
+  prop-isSubsetOf-empty
+    : ∀ {s : ℙ a}
+    → isSubsetOf empty s ≡ True
+  --
+  prop-isSubsetOf-empty {s} =
+    prop-intersection→isSubsetOf empty s prop-intersection-empty-left
