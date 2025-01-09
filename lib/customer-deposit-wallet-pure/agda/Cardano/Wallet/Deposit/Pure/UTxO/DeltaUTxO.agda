@@ -13,6 +13,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
       ; excludingD
         ; prop-excluding-excludingD
         ; prop-apply-excludingD
+        ; prop-fits-excludingD
       ; receiveD
         ; prop-union-receiveD
         ; prop-apply-receiveD
@@ -240,6 +241,18 @@ prop-apply-excludingD {txins} {u0} =
   where
     du = fst (excludingD u0 txins)
     u1 = snd (excludingD u0 txins)
+
+-- |
+-- The 'DeltaUTxO' returned by 'excludingD' 'fits' the 'UTxO'.
+prop-fits-excludingD
+  : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+  → let (du , u1) = excludingD u0 txins
+    in  fits du u0 ≡ True
+--
+prop-fits-excludingD {txins} {u0}
+  rewrite UTxO.prop-disjoint-empty {u0}
+  rewrite Set.prop-intersection-isSubsetOf {TxIn} {txins} {dom u0}
+  = refl
 
 -- | The 'UTxO' returned by 'receiveD' is the same as 'union'.
 --

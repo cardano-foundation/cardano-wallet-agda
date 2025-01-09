@@ -12,6 +12,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     , excludingD
       -- $prop-excluding-excludingD
       -- $prop-apply-excludingD
+      -- $prop-fits-excludingD
     , receiveD
       -- $prop-union-receiveD
       -- $prop-apply-receiveD
@@ -188,6 +189,18 @@ appends = foldr append empty
 --     >     ≡ ( Set.isSubsetOf (excluded du) (dom u)
 --     >         && UTxO.disjoint (received du) u
 --     >       )
+
+-- $prop-fits-excludingD
+-- #p:prop-fits-excludingD#
+--
+-- [prop-fits-excludingD]:
+--
+--     The 'DeltaUTxO' returned by 'excludingD' 'fits' the 'UTxO'.
+--
+--     > prop-fits-excludingD
+--     >   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+--     >   → let (du , u1) = excludingD u0 txins
+--     >     in  fits du u0 ≡ True
 
 -- $prop-null→empty
 -- #p:prop-null→empty#

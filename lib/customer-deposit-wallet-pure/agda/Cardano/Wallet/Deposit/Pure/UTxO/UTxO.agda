@@ -8,6 +8,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
       ; dom
       ; disjoint
         ; prop-disjoint-dom
+        ; prop-disjoint-empty
       ; balance
       ; union
         ; prop-union-empty-left
@@ -152,6 +153,25 @@ prop-disjoint-dom
   → disjoint ua ub ≡ Set.disjoint (dom ua) (dom ub)
 --
 prop-disjoint-dom = Map.prop-disjoint-keysSet
+
+-- |
+-- The 'empty' 'UTxO' is always 'disjoint'.
+prop-disjoint-empty
+  : ∀ {ua : UTxO}
+  → disjoint empty ua ≡ True
+--
+prop-disjoint-empty {ua} =
+  begin
+    disjoint empty ua
+  ≡⟨ prop-disjoint-dom ⟩
+    Set.null (Set.intersection (dom empty) (dom ua))
+  ≡⟨ cong (λ o → Set.null (Set.intersection o (dom ua))) Map.prop-keysSet-empty ⟩
+    Set.null (Set.intersection Set.empty (dom ua))
+  ≡⟨ cong Set.null Set.prop-intersection-empty-left ⟩
+    Set.null {TxIn} Set.empty
+  ≡⟨ Set.prop-null-empty ⟩
+    True
+  ∎
 
 -- |
 -- 'empty' is a left identity of 'union'.
