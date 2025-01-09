@@ -25,7 +25,12 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
         ; prop-excluding-intersection
         ; prop-excluding-union
       ; restrictedBy
+        ; prop-restrictedBy-dom
+        ; prop-restrictedBy-disjoint
+        ; prop-restrictedBy-union
+        ; prop-union-restrictedBy-absorbs
       ; excludingS
+        ; prop-excludingS
         ; prop-excluding-excludingS
       ; filterByAddress
         ; prop-filterByAddress-filters
@@ -303,11 +308,11 @@ prop-excluding-difference {x} {y} {utxo} =
 -- |
 -- Restricting to the entire domain does nothing.
 --
-postulate
- prop-restrictedBy-dom
+prop-restrictedBy-dom
   : ∀ {utxo : UTxO}
   → restrictedBy utxo (dom utxo) ≡ utxo
 --
+prop-restrictedBy-dom {u} = Map.prop-restrictKeys-keysSet u
 
 -- |
 -- Restricting to a set that has nothing common in common
@@ -354,22 +359,24 @@ prop-restrictedBy-disjoint {x} {utxo} cond =
 -- Restricting a union is the same as restricting
 -- from each member of the union.
 --
-postulate
- prop-restrictedBy-union
+prop-restrictedBy-union
   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
   → x ⊲ (ua ∪ ub) ≡ (x ⊲ ua) ∪ (x ⊲ ub)
 --
+prop-restrictedBy-union {x} {ua} {ub} =
+  Map.prop-restrictKeys-union ua ub x
 
 -- |
 -- Since 'union' is left-biased,
 -- taking the union with a 'UTxO' whose domain is a subset
 -- does nothing.
 --
-postulate
- prop-union-restrictedBy-absorbs
+prop-union-restrictedBy-absorbs
   : ∀ {ua ub : UTxO}
   → ua ∪ (dom ua ⊲ ub) ≡ ua
 --
+prop-union-restrictedBy-absorbs {ua} {ub} =
+  Map.prop-union-restrictKeys-absorbs ua ub
 
 -- |
 -- Excluding two sets of 'TxIn's can be done in either order.

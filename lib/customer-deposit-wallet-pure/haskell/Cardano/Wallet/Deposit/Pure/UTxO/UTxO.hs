@@ -22,7 +22,12 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
       -- $prop-excluding-intersection
       -- $prop-excluding-union
     , restrictedBy
+      -- $prop-restrictedBy-dom
+      -- $prop-restrictedBy-disjoint
+      -- $prop-restrictedBy-union
+      -- $prop-union-restrictedBy-absorbs
     , excludingS
+      -- $prop-excludingS
       -- $prop-excluding-excludingS
     , filterByAddress
       -- $prop-filterByAddress-filters
@@ -242,6 +247,18 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     >   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
 --     >   → x ⋪ (ua ∪ ub) ≡ (x ⋪ ua) ∪ (x ⋪ ub)
 
+-- $prop-excludingS
+-- #p:prop-excludingS#
+--
+-- [prop-excludingS]:
+--     Specification of 'excludingS':
+--     Set difference with the domain of the 'UTxO'.
+--
+--     > prop-excludingS
+--     >   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
+--     >   → excludingS x utxo
+--     >     ≡ Set.difference x (dom utxo)
+
 -- $prop-filterByAddress-filters
 -- #p:prop-filterByAddress-filters#
 --
@@ -255,6 +272,42 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     >     → Map.lookup txin utxo ≡ Just txout
 --     >     → Map.member txin (filterByAddress p utxo)
 --     >         ≡ p (getCompactAddr txout)
+
+-- $prop-restrictedBy-disjoint
+-- #p:prop-restrictedBy-disjoint#
+--
+-- [prop-restrictedBy-disjoint]:
+--
+--     Restricting to a set that has nothing common in common
+--     will give the empty 'UTxO'.
+--
+--     > prop-restrictedBy-disjoint
+--     >   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
+--     >   → Set.disjoint x (dom utxo) ≡ True
+--     >   → restrictedBy utxo x ≡ empty
+
+-- $prop-restrictedBy-dom
+-- #p:prop-restrictedBy-dom#
+--
+-- [prop-restrictedBy-dom]:
+--
+--     Restricting to the entire domain does nothing.
+--
+--     > prop-restrictedBy-dom
+--     >   : ∀ {utxo : UTxO}
+--     >   → restrictedBy utxo (dom utxo) ≡ utxo
+
+-- $prop-restrictedBy-union
+-- #p:prop-restrictedBy-union#
+--
+-- [prop-restrictedBy-union]:
+--
+--     Restricting a union is the same as restricting
+--     from each member of the union.
+--
+--     > prop-restrictedBy-union
+--     >   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
+--     >   → x ⊲ (ua ∪ ub) ≡ (x ⊲ ua) ∪ (x ⊲ ub)
 
 -- $prop-union-assoc
 -- #p:prop-union-assoc#
@@ -288,6 +341,19 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     > prop-union-empty-right
 --     >   : ∀ {utxo : UTxO}
 --     >   → utxo ∪ empty ≡ utxo
+
+-- $prop-union-restrictedBy-absorbs
+-- #p:prop-union-restrictedBy-absorbs#
+--
+-- [prop-union-restrictedBy-absorbs]:
+--
+--     Since 'union' is left-biased,
+--     taking the union with a 'UTxO' whose domain is a subset
+--     does nothing.
+--
+--     > prop-union-restrictedBy-absorbs
+--     >   : ∀ {ua ub : UTxO}
+--     >   → ua ∪ (dom ua ⊲ ub) ≡ ua
 
 -- $prop-union-sym
 -- #p:prop-union-sym#
