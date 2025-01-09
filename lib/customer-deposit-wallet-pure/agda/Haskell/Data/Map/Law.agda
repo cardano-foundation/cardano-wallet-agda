@@ -125,7 +125,7 @@ module _ {k a : Set} {{_ : Ord k}} where
   prop-union-sym {ma} {mb} cond = prop-equality eq-key
     where
       lem1 : intersection ma mb ≡ empty
-      lem1 = prop-null-empty (intersection ma mb) cond
+      lem1 = prop-null→empty (intersection ma mb) cond
 
       lem-disjoint = λ key →
         begin
@@ -237,7 +237,7 @@ module _ {k a : Set} {{_ : Ord k}} where
           Set.member key (keysSet m)
         ≡⟨ prop-member-keysSet ⟩
           member key m
-        ≡⟨ cong (member key) (prop-null-empty m eql) ⟩
+        ≡⟨ cong (member key) (prop-null→empty m eql) ⟩
           member key empty
         ≡⟨ cong isJust (prop-lookup-empty key) ⟩
           False
@@ -251,7 +251,7 @@ module _ {k a : Set} {{_ : Ord k}} where
           member key m
         ≡⟨ sym prop-member-keysSet ⟩
           Set.member key (keysSet m)
-        ≡⟨ cong (Set.member key) (Set.prop-null-empty (keysSet m) eqr) ⟩
+        ≡⟨ cong (Set.member key) (Set.prop-null→empty (keysSet m) eqr) ⟩
           Set.member key Set.empty
         ≡⟨ Set.prop-member-empty key ⟩
           False

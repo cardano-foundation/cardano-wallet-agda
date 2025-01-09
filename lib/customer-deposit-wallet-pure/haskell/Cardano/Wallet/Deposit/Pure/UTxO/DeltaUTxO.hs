@@ -3,7 +3,7 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     ( DeltaUTxO (..)
     , null
-      -- $prop-null-empty
+      -- $prop-null→empty
     , empty
       -- $prop-apply-empty
     , apply
@@ -157,14 +157,14 @@ appends = foldr append empty
 --     >   → let (du , u1) = excludingD u0 txins
 --     >     in  u1 ≡ UTxO.excluding u0 txins
 
--- $prop-null-empty
--- #p:prop-null-empty#
+-- $prop-null→empty
+-- #p:prop-null→empty#
 --
--- [prop-null-empty]:
+-- [prop-null→empty]:
 --
 --     'null' tests whether the delta is 'empty'.
 --
---     > prop-null-empty
+--     > prop-null→empty
 --     >   : ∀ (du : DeltaUTxO)
 --     >   → null du ≡ True
 --     >   → du ≡ empty

@@ -4,7 +4,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     {-|
     ; DeltaUTxO (..)
       ; null
-        ; prop-null-empty
+        ; prop-null→empty
       ; empty
         ; prop-apply-empty
       ; apply
@@ -136,16 +136,16 @@ lemma-intro-DeltaUTxO-≡ dd refl refl = refl
 
 -- |
 -- 'null' tests whether the delta is 'empty'.
-prop-null-empty
+prop-null→empty
   : ∀ (du : DeltaUTxO)
   → null du ≡ True
   → du ≡ empty
 --
-prop-null-empty du eq =
+prop-null→empty du eq =
     lemma-intro-DeltaUTxO-≡
       du
-      (Set.prop-null-empty (excluded du) lem1)
-      (Map.prop-null-empty (received du) lem2)
+      (Set.prop-null→empty (excluded du) lem1)
+      (Map.prop-null→empty (received du) lem2)
   where
     lem1 : Set.null (excluded du) ≡ True
     lem1 = projl (prop-&&-⋀ eq)

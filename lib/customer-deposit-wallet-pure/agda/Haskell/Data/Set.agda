@@ -55,7 +55,7 @@ module _ {a : Set} {{_ : Ord a}} where
           (_ : ∀ (x : a) → member x s ≡ False)
       → null s ≡ True
 
-    prop-null-empty
+    prop-null→empty
       : ∀ (s : ℙ a)
       → null s ≡ True
       → s ≡ empty

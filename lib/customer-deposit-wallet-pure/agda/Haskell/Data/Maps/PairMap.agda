@@ -92,7 +92,7 @@ prop-explicitEmpty-bind x m = case Map.null m of λ
       Nothing
     ≡⟨ sym (Map.prop-lookup-empty x) ⟩
       Map.lookup x Map.empty
-    ≡⟨ cong (λ o → Map.lookup x o) (sym (Map.prop-null-empty m eq)) ⟩
+    ≡⟨ cong (λ o → Map.lookup x o) (sym (Map.prop-null→empty m eq)) ⟩
       Map.lookup x m
     ∎
   ; False {{eq}} →
