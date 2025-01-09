@@ -16,6 +16,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     , receiveD
       -- $prop-union-receiveD
       -- $prop-apply-receiveD
+      -- $prop-fits-receiveD
     , append
       -- $prop-apply-append
     , appends
@@ -200,6 +201,20 @@ appends = foldr append empty
 --     > prop-fits-excludingD
 --     >   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
 --     >   → let (du , u1) = excludingD u0 txins
+--     >     in  fits du u0 ≡ True
+
+-- $prop-fits-receiveD
+-- #p:prop-fits-receiveD#
+--
+-- [prop-fits-receiveD]:
+--
+--     The 'DeltaUTxO' returned by 'receiveD' 'fits' the 'UTxO',
+--     but only if the 'received' 'UTxO' are 'disjoint'.
+--
+--     > prop-fits-receiveD
+--     >   : ∀ {ua : UTxO} {u0 : UTxO}
+--     >   → UTxO.disjoint ua u0 ≡ True
+--     >   → let (du , u1) = receiveD u0 ua
 --     >     in  fits du u0 ≡ True
 
 -- $prop-null→empty

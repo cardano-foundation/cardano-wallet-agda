@@ -17,6 +17,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
       ; receiveD
         ; prop-union-receiveD
         ; prop-apply-receiveD
+        ; prop-fits-receiveD
       ; append
         ; prop-apply-append
       ; appends
@@ -284,6 +285,21 @@ prop-apply-receiveD {ua} {u0} =
   where
     du = fst (receiveD u0 ua)
     u1 = snd (receiveD u0 ua)
+
+-- |
+-- The 'DeltaUTxO' returned by 'receiveD' 'fits' the 'UTxO',
+-- but only if the 'received' 'UTxO' are 'disjoint'.
+prop-fits-receiveD
+  : ∀ {ua : UTxO} {u0 : UTxO}
+  → UTxO.disjoint ua u0 ≡ True
+  → let (du , u1) = receiveD u0 ua
+    in  fits du u0 ≡ True
+--
+prop-fits-receiveD {ua} {u0} cond
+  rewrite UTxO.prop-disjoint-empty {u0}
+  rewrite Set.prop-isSubsetOf-empty {TxIn} {dom u0}
+  rewrite cond
+  = refl
 
 -- | Defining property of 'append':
 -- Applying the combination of two deltas is the same as
