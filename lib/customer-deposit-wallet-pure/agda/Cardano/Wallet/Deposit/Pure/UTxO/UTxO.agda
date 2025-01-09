@@ -313,12 +313,42 @@ postulate
 -- Restricting to a set that has nothing common in common
 -- will give the empty 'UTxO'.
 --
-postulate
- prop-restrictedBy-disjoint
+prop-restrictedBy-disjoint
   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO} 
   → Set.disjoint x (dom utxo) ≡ True
   → restrictedBy utxo x ≡ empty
 --
+prop-restrictedBy-disjoint {x} {utxo} cond =
+    Map.prop-null→empty utxo1 (Map.prop-lookup-null utxo1 lem2)
+  where
+    utxo1 = Map.restrictKeys utxo x
+    cond1 = Set.prop-null→empty {TxIn} _ cond
+
+    lem1
+      : ∀ (key : TxIn)
+      → Set.member key (Set.intersection x (dom utxo)) ≡ Set.member key Set.empty
+      → (Set.member key x && isJust (Map.lookup key utxo)) ≡ False
+    lem1 key
+      rewrite Set.prop-member-intersection key x (dom utxo)
+      rewrite Map.prop-member-keysSet {TxIn} {TxOut} {key} {utxo}
+      rewrite Set.prop-member-empty key
+      with Set.member key x
+      with Map.lookup key utxo
+    ... | True  | Nothing = λ eq → refl
+    ... | True  | Just a  = λ ()
+    ... | False | Nothing = λ eq → refl
+    ... | False | Just a  = λ eq → refl
+
+    lem2
+      : ∀ (key : TxIn)
+      → Map.lookup key (Map.restrictKeys utxo x) ≡ Nothing
+    lem2 key
+      rewrite Map.prop-lookup-restrictKeys key utxo x
+      with Set.member key x
+      with Map.lookup key utxo
+      with lem1 key (cong (Set.member key) cond1)
+    ... | True  | Nothing | eq = refl
+    ... | False | t       | eq = refl
 
 -- |
 -- Restricting a union is the same as restricting
