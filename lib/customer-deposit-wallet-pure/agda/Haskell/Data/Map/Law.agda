@@ -418,6 +418,38 @@ module _ {k a : Set} {{_ : Ord k}} where
         ∎
 
   --
+  prop-restrictKeys-union
+    : ∀ (ma mb : Map k a) (ks : Set.ℙ k)
+    → restrictKeys (union ma mb) ks
+      ≡ union (restrictKeys ma ks) (restrictKeys mb ks)
+  --
+  prop-restrictKeys-union ma mb ks = prop-equality eq-key
+    where
+      eq-key = λ key → let p = Set.member key ks in
+        begin
+          lookup key (restrictKeys (union ma mb) ks)
+        ≡⟨ prop-lookup-restrictKeys key (union ma mb) ks ⟩
+          Maybe.filt p (lookup key (union ma mb))
+        ≡⟨ cong (Maybe.filt p) (prop-lookup-union key ma mb)  ⟩
+          Maybe.filt p
+            (Maybe.union (lookup key ma) (lookup key mb))
+        ≡⟨ Maybe.prop-filt-union p {lookup key ma} {lookup key mb} ⟩
+          Maybe.union
+            (Maybe.filt p (lookup key ma))
+            (Maybe.filt p (lookup key mb))
+        ≡⟨ cong (λ o → Maybe.union o (Maybe.filt p (lookup key mb))) (sym (prop-lookup-restrictKeys key ma ks)) ⟩
+          Maybe.union
+            (lookup key (restrictKeys ma ks))
+            (Maybe.filt p (lookup key mb))
+        ≡⟨ cong (λ o → Maybe.union (lookup key (restrictKeys ma ks)) o) (sym (prop-lookup-restrictKeys key mb ks)) ⟩
+          Maybe.union
+            (lookup key (restrictKeys ma ks))
+            (lookup key (restrictKeys mb ks))
+        ≡⟨ sym (prop-lookup-union key _ _) ⟩
+          lookup key (union (restrictKeys ma ks) (restrictKeys mb ks))
+        ∎
+
+  --
   prop-restrictKeys-keysSet
     : ∀ (m : Map k a)
     → restrictKeys m (keysSet m) ≡ m
