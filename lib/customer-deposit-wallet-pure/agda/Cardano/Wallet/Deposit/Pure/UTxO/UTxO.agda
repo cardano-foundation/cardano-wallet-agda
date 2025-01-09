@@ -361,12 +361,29 @@ prop-excluding-sym {x} {y} {utxo} =
 
 -- | Specification of 'excludingS':
 -- Set difference with the domain of the 'UTxO'.
-postulate
- prop-excludingS
+prop-excludingS
   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
   → excludingS x utxo
     ≡ Set.difference x (dom utxo)
 --
+prop-excludingS {x} {utxo} = Set.prop-equality eq-member
+  where
+    p = not ∘ (λ txin → Map.member txin utxo)
+
+    eq-member
+      : ∀ (z : TxIn)
+      → Set.member z (excludingS x utxo)
+        ≡ Set.member z (Set.difference x (dom utxo))
+    eq-member z
+      rewrite Set.prop-member-filter z p x
+      rewrite Set.prop-member-difference z x (dom utxo)
+      rewrite sym (Map.prop-member-keysSet {TxIn} {TxOut} {z} {utxo})
+      with Set.member z x
+      with Set.member z (dom utxo)
+    ... | True  | True = refl
+    ... | True  | False = refl
+    ... | False | True = refl
+    ... | False | False = refl
 
 -- |
 -- Not excluding inputs makes no difference if these
