@@ -268,6 +268,22 @@ module _ {k a : Set} {{_ : Ord k}} where
       lem2 = prop-member-null m lem1
 
   --
+  prop-keysSet-empty
+    : keysSet {k} {a} empty ≡ Set.empty {k}
+  --
+  prop-keysSet-empty =
+      Set.prop-null→empty _ lem1
+    where
+      lem1 =
+        begin
+          Set.null (keysSet {k} {a} empty)
+        ≡⟨ prop-null-keysSet ⟩
+          null {k} {a} empty
+        ≡⟨ prop-null-empty ⟩
+          True
+        ∎
+
+  --
   prop-keysSet-intersection
       : ∀ {ma mb : Map k a}
       → keysSet (intersection ma mb)
