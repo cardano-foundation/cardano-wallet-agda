@@ -418,6 +418,64 @@ module _ {k a : Set} {{_ : Ord k}} where
         ∎
 
   --
+  prop-restrictKeys-union
+    : ∀ (ma mb : Map k a) (ks : Set.ℙ k)
+    → restrictKeys (union ma mb) ks
+      ≡ union (restrictKeys ma ks) (restrictKeys mb ks)
+  --
+  prop-restrictKeys-union ma mb ks = prop-equality eq-key
+    where
+      eq-key = λ key → let p = Set.member key ks in
+        begin
+          lookup key (restrictKeys (union ma mb) ks)
+        ≡⟨ prop-lookup-restrictKeys key (union ma mb) ks ⟩
+          Maybe.filt p (lookup key (union ma mb))
+        ≡⟨ cong (Maybe.filt p) (prop-lookup-union key ma mb)  ⟩
+          Maybe.filt p
+            (Maybe.union (lookup key ma) (lookup key mb))
+        ≡⟨ Maybe.prop-filt-union p {lookup key ma} {lookup key mb} ⟩
+          Maybe.union
+            (Maybe.filt p (lookup key ma))
+            (Maybe.filt p (lookup key mb))
+        ≡⟨ cong (λ o → Maybe.union o (Maybe.filt p (lookup key mb))) (sym (prop-lookup-restrictKeys key ma ks)) ⟩
+          Maybe.union
+            (lookup key (restrictKeys ma ks))
+            (Maybe.filt p (lookup key mb))
+        ≡⟨ cong (λ o → Maybe.union (lookup key (restrictKeys ma ks)) o) (sym (prop-lookup-restrictKeys key mb ks)) ⟩
+          Maybe.union
+            (lookup key (restrictKeys ma ks))
+            (lookup key (restrictKeys mb ks))
+        ≡⟨ sym (prop-lookup-union key _ _) ⟩
+          lookup key (union (restrictKeys ma ks) (restrictKeys mb ks))
+        ∎
+
+  --
+  prop-restrictKeys-keysSet
+    : ∀ (m : Map k a)
+    → restrictKeys m (keysSet m) ≡ m
+  --
+  prop-restrictKeys-keysSet m = prop-equality eq-key
+    where
+      ks = keysSet m
+
+      lem1
+        : ∀ (mx : Maybe a)
+        → Maybe.filt (isJust mx) mx ≡ mx
+      lem1 Nothing = refl
+      lem1 (Just x) = refl
+
+      eq-key = λ key →
+        begin
+          lookup key (restrictKeys m ks)
+        ≡⟨ prop-lookup-restrictKeys key m ks ⟩
+          Maybe.filt (Set.member key ks) (lookup key m)
+        ≡⟨ cong (λ o → Maybe.filt o (lookup key m)) prop-member-keysSet ⟩
+          Maybe.filt (isJust (lookup key m)) (lookup key m)
+        ≡⟨ lem1 (lookup key m) ⟩
+          lookup key m
+        ∎
+
+  --
   prop-withoutKeys-union
     : ∀ (ma mb : Map k a) (ks : Set.ℙ k)
     → withoutKeys (union ma mb) ks
@@ -548,6 +606,7 @@ module _ {k a : Set} {{_ : Ord k}} where
     : ∀ (m : Map k a) (ka kb : Set.ℙ k)
     → withoutKeys m (Set.intersection ka kb)
       ≡ union (withoutKeys m ka) (withoutKeys m kb)
+  --
   prop-withoutKeys-intersection m ka kb = prop-equality eq-key
     where
       eq-key
@@ -590,3 +649,26 @@ module _ {k a : Set} {{_ : Ord k}} where
             ≡⟨ prop-deMorgan-not-&& (Set.member key ka) (Set.member key kb) ⟩
               (not (Set.member key ka) || not (Set.member key kb))
             ∎
+
+  --
+  prop-union-restrictKeys-absorbs
+    : ∀ (ma mb : Map k a)
+    → union ma (restrictKeys mb (keysSet ma))
+      ≡ ma
+  --
+  prop-union-restrictKeys-absorbs ma mb = prop-equality eq-key
+    where
+      eq-key
+        : ∀ (key : k)
+        → lookup key (union ma (restrictKeys mb (keysSet ma)))
+          ≡ lookup key ma
+      eq-key key
+        rewrite prop-lookup-union key ma (restrictKeys mb (keysSet ma))
+        rewrite prop-lookup-restrictKeys key mb (keysSet ma)
+        rewrite prop-member-keysSet {k} {a} {key} {ma}
+        with lookup key ma
+      ... | Nothing = refl
+      ... | Just a
+          with lookup key mb
+      ...   | Just b = refl
+      ...   | Nothing = refl

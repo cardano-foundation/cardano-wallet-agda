@@ -25,7 +25,12 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
         ; prop-excluding-intersection
         ; prop-excluding-union
       ; restrictedBy
+        ; prop-restrictedBy-dom
+        ; prop-restrictedBy-disjoint
+        ; prop-restrictedBy-union
+        ; prop-union-restrictedBy-absorbs
       ; excludingS
+        ; prop-excludingS
         ; prop-excluding-excludingS
       ; filterByAddress
         ; prop-filterByAddress-filters
@@ -303,43 +308,75 @@ prop-excluding-difference {x} {y} {utxo} =
 -- |
 -- Restricting to the entire domain does nothing.
 --
-postulate
- prop-restrictedBy-dom
+prop-restrictedBy-dom
   : ∀ {utxo : UTxO}
   → restrictedBy utxo (dom utxo) ≡ utxo
 --
+prop-restrictedBy-dom {u} = Map.prop-restrictKeys-keysSet u
 
 -- |
 -- Restricting to a set that has nothing common in common
 -- will give the empty 'UTxO'.
 --
-postulate
- prop-restrictedBy-disjoint
+prop-restrictedBy-disjoint
   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO} 
   → Set.disjoint x (dom utxo) ≡ True
   → restrictedBy utxo x ≡ empty
 --
+prop-restrictedBy-disjoint {x} {utxo} cond =
+    Map.prop-null→empty utxo1 (Map.prop-lookup-null utxo1 lem2)
+  where
+    utxo1 = Map.restrictKeys utxo x
+    cond1 = Set.prop-null→empty {TxIn} _ cond
+
+    lem1
+      : ∀ (key : TxIn)
+      → Set.member key (Set.intersection x (dom utxo)) ≡ Set.member key Set.empty
+      → (Set.member key x && isJust (Map.lookup key utxo)) ≡ False
+    lem1 key
+      rewrite Set.prop-member-intersection key x (dom utxo)
+      rewrite Map.prop-member-keysSet {TxIn} {TxOut} {key} {utxo}
+      rewrite Set.prop-member-empty key
+      with Set.member key x
+      with Map.lookup key utxo
+    ... | True  | Nothing = λ eq → refl
+    ... | True  | Just a  = λ ()
+    ... | False | Nothing = λ eq → refl
+    ... | False | Just a  = λ eq → refl
+
+    lem2
+      : ∀ (key : TxIn)
+      → Map.lookup key (Map.restrictKeys utxo x) ≡ Nothing
+    lem2 key
+      rewrite Map.prop-lookup-restrictKeys key utxo x
+      with Set.member key x
+      with Map.lookup key utxo
+      with lem1 key (cong (Set.member key) cond1)
+    ... | True  | Nothing | eq = refl
+    ... | False | t       | eq = refl
 
 -- |
 -- Restricting a union is the same as restricting
 -- from each member of the union.
 --
-postulate
- prop-restrictedBy-union
+prop-restrictedBy-union
   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
   → x ⊲ (ua ∪ ub) ≡ (x ⊲ ua) ∪ (x ⊲ ub)
 --
+prop-restrictedBy-union {x} {ua} {ub} =
+  Map.prop-restrictKeys-union ua ub x
 
 -- |
 -- Since 'union' is left-biased,
 -- taking the union with a 'UTxO' whose domain is a subset
 -- does nothing.
 --
-postulate
- prop-union-restrictedBy-absorbs
+prop-union-restrictedBy-absorbs
   : ∀ {ua ub : UTxO}
   → ua ∪ (dom ua ⊲ ub) ≡ ua
 --
+prop-union-restrictedBy-absorbs {ua} {ub} =
+  Map.prop-union-restrictKeys-absorbs ua ub
 
 -- |
 -- Excluding two sets of 'TxIn's can be done in either order.
@@ -361,12 +398,29 @@ prop-excluding-sym {x} {y} {utxo} =
 
 -- | Specification of 'excludingS':
 -- Set difference with the domain of the 'UTxO'.
-postulate
- prop-excludingS
+prop-excludingS
   : ∀ {x : Set.ℙ TxIn} {utxo : UTxO}
   → excludingS x utxo
     ≡ Set.difference x (dom utxo)
 --
+prop-excludingS {x} {utxo} = Set.prop-equality eq-member
+  where
+    p = not ∘ (λ txin → Map.member txin utxo)
+
+    eq-member
+      : ∀ (z : TxIn)
+      → Set.member z (excludingS x utxo)
+        ≡ Set.member z (Set.difference x (dom utxo))
+    eq-member z
+      rewrite Set.prop-member-filter z p x
+      rewrite Set.prop-member-difference z x (dom utxo)
+      rewrite sym (Map.prop-member-keysSet {TxIn} {TxOut} {z} {utxo})
+      with Set.member z x
+      with Set.member z (dom utxo)
+    ... | True  | True = refl
+    ... | True  | False = refl
+    ... | False | True = refl
+    ... | False | False = refl
 
 -- |
 -- Not excluding inputs makes no difference if these
