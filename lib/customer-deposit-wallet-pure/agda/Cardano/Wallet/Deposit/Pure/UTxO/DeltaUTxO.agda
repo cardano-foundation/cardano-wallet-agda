@@ -4,16 +4,20 @@ module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     {-|
     ; DeltaUTxO (..)
       ; null
-        ; prop-null-empty
+        ; prop-null→empty
       ; empty
         ; prop-apply-empty
       ; apply
+      ; fits
+        ; prop-fits
       ; excludingD
         ; prop-excluding-excludingD
         ; prop-apply-excludingD
+        ; prop-fits-excludingD
       ; receiveD
         ; prop-union-receiveD
         ; prop-apply-receiveD
+        ; prop-fits-receiveD
       ; append
         ; prop-apply-append
       ; appends
@@ -77,6 +81,14 @@ apply : DeltaUTxO → UTxO → UTxO
 apply du utxo =
    UTxO.union (received du) (UTxO.excluding utxo (excluded du))
 
+-- | Test whether a 'DeltaUTxO' fits onto a 'UTxO',
+-- that is whether it removes only existing 'TxIn',
+-- and adds only new 'Cardano.Wallet.Read.Tx.TxOut'.
+fits : DeltaUTxO → UTxO → Bool
+fits du u =
+  Set.isSubsetOf (excluded du) (dom u)
+  && UTxO.disjoint (received du) u
+
 -- | Variant of 'excluding' that also returns a delta.
 excludingD : UTxO → Set.ℙ TxIn → (DeltaUTxO × UTxO)
 excludingD utxo txins =
@@ -119,6 +131,7 @@ appends = foldr append empty
 {-# COMPILE AGDA2HS null #-}
 {-# COMPILE AGDA2HS empty #-}
 {-# COMPILE AGDA2HS apply #-}
+{-# COMPILE AGDA2HS fits #-}
 {-# COMPILE AGDA2HS excludingD #-}
 {-# COMPILE AGDA2HS receiveD #-}
 {-# COMPILE AGDA2HS append #-}
@@ -136,16 +149,16 @@ lemma-intro-DeltaUTxO-≡ dd refl refl = refl
 
 -- |
 -- 'null' tests whether the delta is 'empty'.
-prop-null-empty
+prop-null→empty
   : ∀ (du : DeltaUTxO)
   → null du ≡ True
   → du ≡ empty
 --
-prop-null-empty du eq =
+prop-null→empty du eq =
     lemma-intro-DeltaUTxO-≡
       du
-      (Set.prop-null-empty (excluded du) lem1)
-      (Map.prop-null-empty (received du) lem2)
+      (Set.prop-null→empty (excluded du) lem1)
+      (Map.prop-null→empty (received du) lem2)
   where
     lem1 : Set.null (excluded du) ≡ True
     lem1 = projl (prop-&&-⋀ eq)
@@ -167,6 +180,17 @@ prop-apply-empty utxo =
   ≡⟨ UTxO.prop-excluding-empty utxo ⟩
     utxo
   ∎
+
+-- |
+-- Definition of 'fits'.
+prop-fits
+  : ∀ (du : DeltaUTxO) (u : UTxO)
+  → fits du u
+    ≡ ( Set.isSubsetOf (excluded du) (dom u)
+        && UTxO.disjoint (received du) u
+      )
+--
+prop-fits du u = refl
 
 --
 @0 lemma-excluding-intersection-dom
@@ -219,6 +243,18 @@ prop-apply-excludingD {txins} {u0} =
     du = fst (excludingD u0 txins)
     u1 = snd (excludingD u0 txins)
 
+-- |
+-- The 'DeltaUTxO' returned by 'excludingD' 'fits' the 'UTxO'.
+prop-fits-excludingD
+  : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+  → let (du , u1) = excludingD u0 txins
+    in  fits du u0 ≡ True
+--
+prop-fits-excludingD {txins} {u0}
+  rewrite UTxO.prop-disjoint-empty {u0}
+  rewrite Set.prop-intersection-isSubsetOf {TxIn} {txins} {dom u0}
+  = refl
+
 -- | The 'UTxO' returned by 'receiveD' is the same as 'union'.
 --
 prop-union-receiveD
@@ -236,19 +272,24 @@ prop-union-receiveD {ua} {u0} = refl
   → let (du , u1) = receiveD u0 ua
     in  apply du u0 ≡ u1
 --
-prop-apply-receiveD {ua} {u0} =
-  begin
-    apply du u0
-  ≡⟨⟩
-    (received du) ∪ (excluded du ⋪ u0)
-  ≡⟨ cong (λ o → received du ∪ o) (UTxO.prop-excluding-empty _) ⟩
-    (received du) ∪ u0
-  ≡⟨⟩
-    u1
-  ∎
-  where
-    du = fst (receiveD u0 ua)
-    u1 = snd (receiveD u0 ua)
+prop-apply-receiveD {ua} {u0}
+  rewrite UTxO.prop-excluding-empty u0
+  = refl
+
+-- |
+-- The 'DeltaUTxO' returned by 'receiveD' 'fits' the 'UTxO',
+-- but only if the 'received' 'UTxO' are 'disjoint'.
+prop-fits-receiveD
+  : ∀ {ua : UTxO} {u0 : UTxO}
+  → UTxO.disjoint ua u0 ≡ True
+  → let (du , u1) = receiveD u0 ua
+    in  fits du u0 ≡ True
+--
+prop-fits-receiveD {ua} {u0} cond
+  rewrite UTxO.prop-disjoint-empty {u0}
+  rewrite Set.prop-isSubsetOf-empty {TxIn} {dom u0}
+  rewrite cond
+  = refl
 
 -- | Defining property of 'append':
 -- Applying the combination of two deltas is the same as

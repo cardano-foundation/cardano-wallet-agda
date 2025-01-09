@@ -5,6 +5,7 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     , dom
     , disjoint
       -- $prop-disjoint-dom
+      -- $prop-disjoint-empty
     , balance
     , union
       -- $prop-union-empty-left
@@ -124,6 +125,17 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     > prop-disjoint-dom
 --     >   : ∀ {ua ub : UTxO}
 --     >   → disjoint ua ub ≡ Set.disjoint (dom ua) (dom ub)
+
+-- $prop-disjoint-empty
+-- #p:prop-disjoint-empty#
+--
+-- [prop-disjoint-empty]:
+--
+--     The 'empty' 'UTxO' is always 'disjoint'.
+--
+--     > prop-disjoint-empty
+--     >   : ∀ {ua : UTxO}
+--     >   → disjoint empty ua ≡ True
 
 -- $prop-excluding-absorb
 -- #p:prop-excluding-absorb#

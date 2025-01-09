@@ -3,16 +3,20 @@
 module Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     ( DeltaUTxO (..)
     , null
-      -- $prop-null-empty
+      -- $prop-null→empty
     , empty
       -- $prop-apply-empty
     , apply
+    , fits
+      -- $prop-fits
     , excludingD
       -- $prop-excluding-excludingD
       -- $prop-apply-excludingD
+      -- $prop-fits-excludingD
     , receiveD
       -- $prop-union-receiveD
       -- $prop-apply-receiveD
+      -- $prop-fits-receiveD
     , append
       -- $prop-apply-append
     , appends
@@ -21,7 +25,8 @@ where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO, dom)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
-    ( empty
+    ( disjoint
+    , empty
     , excluding
     , excludingS
     , null
@@ -30,7 +35,13 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Cardano.Wallet.Read.Tx (TxIn)
 import Data.Set (Set)
 import qualified Haskell.Data.Map.Def as Map (empty)
-import qualified Haskell.Data.Set as Set (empty, intersection, null, union)
+import qualified Haskell.Data.Set as Set
+    ( empty
+    , intersection
+    , isSubsetOf
+    , null
+    , union
+    )
 import Prelude hiding (null, subtract)
 
 -- |
@@ -56,6 +67,15 @@ empty = DeltaUTxO Set.empty Map.empty
 apply :: DeltaUTxO -> UTxO -> UTxO
 apply du utxo =
     UTxO.union (received du) (UTxO.excluding utxo (excluded du))
+
+-- |
+-- Test whether a 'DeltaUTxO' fits onto a 'UTxO',
+-- that is whether it removes only existing 'TxIn',
+-- and adds only new 'Cardano.Wallet.Read.Tx.TxOut'.
+fits :: DeltaUTxO -> UTxO -> Bool
+fits du u =
+    Set.isSubsetOf (excluded du) (dom u)
+        && UTxO.disjoint (received du) u
 
 -- |
 -- Variant of 'excluding' that also returns a delta.
@@ -157,14 +177,54 @@ appends = foldr append empty
 --     >   → let (du , u1) = excludingD u0 txins
 --     >     in  u1 ≡ UTxO.excluding u0 txins
 
--- $prop-null-empty
--- #p:prop-null-empty#
+-- $prop-fits
+-- #p:prop-fits#
 --
--- [prop-null-empty]:
+-- [prop-fits]:
+--
+--     Definition of 'fits'.
+--
+--     > prop-fits
+--     >   : ∀ (du : DeltaUTxO) (u : UTxO)
+--     >   → fits du u
+--     >     ≡ ( Set.isSubsetOf (excluded du) (dom u)
+--     >         && UTxO.disjoint (received du) u
+--     >       )
+
+-- $prop-fits-excludingD
+-- #p:prop-fits-excludingD#
+--
+-- [prop-fits-excludingD]:
+--
+--     The 'DeltaUTxO' returned by 'excludingD' 'fits' the 'UTxO'.
+--
+--     > prop-fits-excludingD
+--     >   : ∀ {txins : Set.ℙ TxIn} {u0 : UTxO}
+--     >   → let (du , u1) = excludingD u0 txins
+--     >     in  fits du u0 ≡ True
+
+-- $prop-fits-receiveD
+-- #p:prop-fits-receiveD#
+--
+-- [prop-fits-receiveD]:
+--
+--     The 'DeltaUTxO' returned by 'receiveD' 'fits' the 'UTxO',
+--     but only if the 'received' 'UTxO' are 'disjoint'.
+--
+--     > prop-fits-receiveD
+--     >   : ∀ {ua : UTxO} {u0 : UTxO}
+--     >   → UTxO.disjoint ua u0 ≡ True
+--     >   → let (du , u1) = receiveD u0 ua
+--     >     in  fits du u0 ≡ True
+
+-- $prop-null→empty
+-- #p:prop-null→empty#
+--
+-- [prop-null→empty]:
 --
 --     'null' tests whether the delta is 'empty'.
 --
---     > prop-null-empty
+--     > prop-null→empty
 --     >   : ∀ (du : DeltaUTxO)
 --     >   → null du ≡ True
 --     >   → du ≡ empty

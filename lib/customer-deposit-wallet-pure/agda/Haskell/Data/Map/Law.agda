@@ -38,6 +38,15 @@ module _ {k a : Set} {{_ : Ord k}} where
       lem-isJust {Nothing} refl = refl
 
   --
+  prop-null-empty
+    : null (empty {k} {a}) ≡ True
+  --
+  prop-null-empty =
+    prop-member-null
+      (empty {k} {a})
+      (λ key → cong isJust (prop-lookup-empty key))
+
+  --
   prop-lookup-singleton
     : ∀ (key keyi : k) (x : a)
     → lookup key (singleton keyi x)
@@ -125,7 +134,7 @@ module _ {k a : Set} {{_ : Ord k}} where
   prop-union-sym {ma} {mb} cond = prop-equality eq-key
     where
       lem1 : intersection ma mb ≡ empty
-      lem1 = prop-null-empty (intersection ma mb) cond
+      lem1 = prop-null→empty (intersection ma mb) cond
 
       lem-disjoint = λ key →
         begin
@@ -237,7 +246,7 @@ module _ {k a : Set} {{_ : Ord k}} where
           Set.member key (keysSet m)
         ≡⟨ prop-member-keysSet ⟩
           member key m
-        ≡⟨ cong (member key) (prop-null-empty m eql) ⟩
+        ≡⟨ cong (member key) (prop-null→empty m eql) ⟩
           member key empty
         ≡⟨ cong isJust (prop-lookup-empty key) ⟩
           False
@@ -251,12 +260,28 @@ module _ {k a : Set} {{_ : Ord k}} where
           member key m
         ≡⟨ sym prop-member-keysSet ⟩
           Set.member key (keysSet m)
-        ≡⟨ cong (Set.member key) (Set.prop-null-empty (keysSet m) eqr) ⟩
+        ≡⟨ cong (Set.member key) (Set.prop-null→empty (keysSet m) eqr) ⟩
           Set.member key Set.empty
         ≡⟨ Set.prop-member-empty key ⟩
           False
         ∎
       lem2 = prop-member-null m lem1
+
+  --
+  prop-keysSet-empty
+    : keysSet {k} {a} empty ≡ Set.empty {k}
+  --
+  prop-keysSet-empty =
+      Set.prop-null→empty _ lem1
+    where
+      lem1 =
+        begin
+          Set.null (keysSet {k} {a} empty)
+        ≡⟨ prop-null-keysSet ⟩
+          null {k} {a} empty
+        ≡⟨ prop-null-empty ⟩
+          True
+        ∎
 
   --
   prop-keysSet-intersection

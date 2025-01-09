@@ -75,7 +75,7 @@ module _ {k a : Set} {{_ : Ord k}} where
           (_ : ∀ (key : k) → lookup key m ≡ Nothing)
       → null m ≡ True
 
-    prop-null-empty
+    prop-null→empty
       : ∀ (m : Map k a)
       → null m ≡ True
       → m ≡ empty

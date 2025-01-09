@@ -83,6 +83,13 @@ prop-x-||-True False = refl
 {-----------------------------------------------------------------------------
     Algebraic laws for logical connectives
 ------------------------------------------------------------------------------}
+--
+prop-||-idem
+  : ∀ (a : Bool)
+  → (a || a) ≡ a
+--
+prop-||-idem False = refl
+prop-||-idem True = refl
 
 --
 prop-||-sym
@@ -101,6 +108,32 @@ prop-||-assoc
 --
 prop-||-assoc False b c = refl
 prop-||-assoc True b c = refl
+
+--
+prop-&&-idem
+  : ∀ (a : Bool)
+  → (a && a) ≡ a
+--
+prop-&&-idem False = refl
+prop-&&-idem True = refl
+
+--
+prop-&&-sym
+  : ∀ (a b : Bool)
+  → (a && b) ≡ (b && a)
+--
+prop-&&-sym False False = refl
+prop-&&-sym False True = refl
+prop-&&-sym True False = refl
+prop-&&-sym True True = refl
+
+--
+prop-&&-assoc
+  : ∀ (a b c : Bool)
+  → ((a && b) && c) ≡ (a && (b && c))
+--
+prop-&&-assoc False b c = refl
+prop-&&-assoc True b c = refl
 
 --
 prop-deMorgan-not-&&
