@@ -272,19 +272,9 @@ prop-union-receiveD {ua} {u0} = refl
   → let (du , u1) = receiveD u0 ua
     in  apply du u0 ≡ u1
 --
-prop-apply-receiveD {ua} {u0} =
-  begin
-    apply du u0
-  ≡⟨⟩
-    (received du) ∪ (excluded du ⋪ u0)
-  ≡⟨ cong (λ o → received du ∪ o) (UTxO.prop-excluding-empty _) ⟩
-    (received du) ∪ u0
-  ≡⟨⟩
-    u1
-  ∎
-  where
-    du = fst (receiveD u0 ua)
-    u1 = snd (receiveD u0 ua)
+prop-apply-receiveD {ua} {u0}
+  rewrite UTxO.prop-excluding-empty u0
+  = refl
 
 -- |
 -- The 'DeltaUTxO' returned by 'receiveD' 'fits' the 'UTxO',
