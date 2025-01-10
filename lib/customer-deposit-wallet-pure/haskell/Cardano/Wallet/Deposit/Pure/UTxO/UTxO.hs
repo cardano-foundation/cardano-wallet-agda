@@ -243,7 +243,7 @@ filterByAddress p = Map.filter (p . getCompactAddr)
 --     Excluding from a union is the same as excluding
 --     from each member of the union.
 --
---     > @0 prop-excluding-union
+--     > prop-excluding-union
 --     >   : ∀ {x : Set.ℙ TxIn} {ua ub : UTxO}
 --     >   → x ⋪ (ua ∪ ub) ≡ (x ⋪ ua) ∪ (x ⋪ ub)
 
