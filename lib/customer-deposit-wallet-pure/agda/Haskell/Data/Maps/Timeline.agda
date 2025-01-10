@@ -313,6 +313,14 @@ prop-items-insertMany {time} {a} {{_}} {{iOrda}} t ys xs =
     ... | False | False = refl
 
 postulate
+ -- | 'deleteAfter' returns the 'items' that were deleted.
+ prop-fst-snd-deleteAfter
+  : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
+      (t : time) (xs : Timeline time a)
+  → let (deleted , ys) = deleteAfter t xs 
+    in  Set.union deleted (items ys) ≡ items xs
+
+postulate
  -- | 'dropAfter' cancels 'insertMany' from the future.
  prop-dropAfter-insertMany
   : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
