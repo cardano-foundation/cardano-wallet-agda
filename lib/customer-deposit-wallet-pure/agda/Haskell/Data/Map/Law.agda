@@ -315,6 +315,31 @@ module _ {k a : Set} {{_ : Ord k}} where
         ∎
 
   --
+  prop-keysSet-union
+    : ∀ {ma mb : Map k a}
+    → keysSet (union ma mb)
+      ≡ Set.union (keysSet ma) (keysSet mb)
+  -- 
+  prop-keysSet-union {ma} {mb} = Set.prop-equality lem1
+    where
+      lem1
+        : ∀ (key : k)
+        → Set.member key (keysSet (union ma mb))
+          ≡ Set.member key (Set.union (keysSet ma) (keysSet mb))
+      lem1 key
+        rewrite prop-member-keysSet {key} {union ma mb}
+        rewrite prop-lookup-union key ma mb
+        rewrite Set.prop-member-union {k} key (keysSet ma) (keysSet mb)
+        rewrite prop-member-keysSet {key} {ma}
+        rewrite prop-member-keysSet {key} {mb}
+        with lookup key ma
+        with lookup key mb
+      ... | Nothing | Nothing = refl
+      ... | Just a  | Nothing = refl
+      ... | Nothing | Just b  = refl 
+      ... | Just a  | Just b  = refl
+
+  --
   prop-disjoint-keysSet
     : ∀ {ma mb : Map k a}
     → disjoint ma mb

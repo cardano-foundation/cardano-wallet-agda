@@ -1,6 +1,40 @@
 {-# OPTIONS --erasure #-}
 
-module Haskell.Data.Maps.Timeline where
+module Haskell.Data.Maps.Timeline
+    {-|
+      -- * Type
+    ; Timeline
+
+      -- * Construction
+    ; empty
+
+      -- * Observation
+    ; lookupByTime
+    ; lookupByItem
+      ; prop-lookupByItem
+
+    ; getMapTime
+    ; items
+        ; prop-items-empty
+
+    ; toAscList
+
+      -- * Operations
+    ; insert
+    ; insertMany
+      ; prop-items-insertMany
+    ; difference
+    ; restrictRange
+    ; takeWhileAntitone
+    ; dropWhileAntitone
+    ; deleteAfter
+    ; dropAfter
+      ; prop-dropAfter-deleteAfter
+
+      -- * Internal
+    ; insertManyKeys
+    -}
+    where
 
 open import Haskell.Prelude hiding (fromMaybe)
 open import Haskell.Reasoning
@@ -13,6 +47,7 @@ open import Haskell.Data.Map using
     )
 open import Haskell.Data.Maybe using
     ( fromMaybe
+    ; isJust
     )
 open import Haskell.Data.Set using
     ( ℙ
@@ -44,10 +79,18 @@ insertManyKeys keys v m0 =
 
 {-# COMPILE AGDA2HS insertManyKeys #-}
 
+postulate
+ prop-lookup-insertManyKeys
+  : ∀ {k v : Set} {{_ : Ord k}} {{_ : Ord v}}
+  → ∀ (key : k) (keys : ℙ k) (x : v) (m : Map k v)
+  → Map.lookup key (insertManyKeys keys x m)
+    ≡ (if elem key keys then Just x else Map.lookup key m)
+
 {-----------------------------------------------------------------------------
     Timeline
 ------------------------------------------------------------------------------}
 -- | A 'Timeline' is a set of items that are associated with a timestamp.
+--
 -- Each item is unique.
 -- Multiple items can have the same timestamp associated with it.
 record Timeline (time a : Set) {{@0 _ : Ord time}} {{@0 _ : Ord a}} : Set where
@@ -179,8 +222,6 @@ deleteAfter
 deleteAfter t = takeWhileAntitone (_<= t)
 
 -- | Drop all items whose timestamp is after a given time.
---
--- > dropAfter t = snd ∘ deleteAfter t
 dropAfter
     : ∀ {{_ : Ord time}} {{_ : Ord a}}
     → time → Timeline time a → Timeline time a
@@ -215,15 +256,71 @@ restrictRange (from , to) =
 
 {-----------------------------------------------------------------------------
     Properties
+    Basic
 ------------------------------------------------------------------------------}
-postulate
- -- | 'insertMany' adds all items to the total set of items.
- prop-items-insertMany
-  : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
-      (t : time) (ys : ℙ a) (xs : Timeline time a)
+-- | Definition of 'lookupByItem'.
+prop-lookupByItem
+  : ∀ {{_ : Ord time}} {{_ : Ord a}}
+  → ∀ (x : a) (xs : Timeline time a)
+  → lookupByItem x xs ≡ Map.lookup x (getMapTime xs)
+--
+prop-lookupByItem xs x = refl
+
+-- | Definition of 'dropAfter' in terms of 'deleteAfter'.
+prop-dropAfter-deleteAfter
+  : ∀ {{_ : Ord time}} {{_ : Ord a}}
+  → ∀ (t : time) (xs : Timeline time a)
+  → dropAfter t xs ≡ snd (deleteAfter t xs)
+--
+prop-dropAfter-deleteAfter t xs = refl
+
+-- | The 'empty' 'Timeline' does not contain any items.
+prop-items-empty
+  : ∀ {{_ : Ord time}} {{_ : Ord a}}
+  → items {time} empty ≡ Set.empty {a}
+--
+prop-items-empty = Map.prop-keysSet-empty
+
+{-----------------------------------------------------------------------------
+    Properties
+------------------------------------------------------------------------------}
+-- | 'insertMany' adds all items to the total set of items.
+prop-items-insertMany
+  : ∀ {time a} {{_ : Ord time}} {{iOrda : Ord a}} {{_ : IsLawfulOrd time}}
+  → ∀ (t : time) (ys : ℙ a) (xs : Timeline time a)
   → items (insertMany t ys xs)
     ≡ Set.union ys (items xs)
+--
+prop-items-insertMany {time} {a} {{_}} {{iOrda}} t ys xs =
+    Set.prop-equality eq-member
+  where
+    eq-member
+      : ∀ (z : a)
+      → Set.member z (items (insertMany t ys xs))
+        ≡ Set.member z (Set.union ys (items xs))
+    eq-member z
+      rewrite Map.prop-member-keysSet {{iOrda}} {z} {getMapTime (insertMany t ys xs)}
+      rewrite prop-lookup-insertManyKeys z ys t (getMapTime xs)
+      rewrite prop-if-apply (elem z ys) (Just t) (Map.lookup z (getMapTime xs)) isJust 
+      rewrite sym (Map.prop-member-keysSet {{iOrda}} {z} {getMapTime xs})
+      rewrite Set.prop-member-union z ys (items xs)
+      rewrite Set.prop-member-toAscList z ys
+      with Set.member z ys
+      with Set.member z (items xs)
+    ... | True  | True  = refl
+    ... | False | True  = refl
+    ... | True  | False = refl
+    ... | False | False = refl
 
+postulate
+ -- | 'deleteAfter' returns the 'items' that were deleted.
+ prop-fst-snd-deleteAfter
+  : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
+      (t : time) (xs : Timeline time a)
+  → let (deleted , ys) = deleteAfter t xs 
+    in  Set.union deleted (items ys) ≡ items xs
+
+postulate
  -- | 'dropAfter' cancels 'insertMany' from the future.
  prop-dropAfter-insertMany
   : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
