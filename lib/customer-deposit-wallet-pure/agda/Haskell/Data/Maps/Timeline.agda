@@ -22,6 +22,7 @@ module Haskell.Data.Maps.Timeline
       -- * Operations
     ; insert
     ; insertMany
+      ; prop-items-insertMany
     ; difference
     ; restrictRange
     ; takeWhileAntitone
@@ -46,6 +47,7 @@ open import Haskell.Data.Map using
     )
 open import Haskell.Data.Maybe using
     ( fromMaybe
+    ; isJust
     )
 open import Haskell.Data.Set using
     ( ℙ
@@ -76,6 +78,13 @@ insertManyKeys keys v m0 =
     foldl' (\m key → Map.insert key v m) m0 keys
 
 {-# COMPILE AGDA2HS insertManyKeys #-}
+
+postulate
+ prop-lookup-insertManyKeys
+  : ∀ {k v : Set} {{_ : Ord k}} {{_ : Ord v}}
+  → ∀ (key : k) (keys : ℙ k) (x : v) (m : Map k v)
+  → Map.lookup key (insertManyKeys keys x m)
+    ≡ (if elem key keys then Just x else Map.lookup key m)
 
 {-----------------------------------------------------------------------------
     Timeline
@@ -275,14 +284,35 @@ prop-items-empty = Map.prop-keysSet-empty
 {-----------------------------------------------------------------------------
     Properties
 ------------------------------------------------------------------------------}
-postulate
- -- | 'insertMany' adds all items to the total set of items.
- prop-items-insertMany
-  : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}
-      (t : time) (ys : ℙ a) (xs : Timeline time a)
+-- | 'insertMany' adds all items to the total set of items.
+prop-items-insertMany
+  : ∀ {time a} {{_ : Ord time}} {{iOrda : Ord a}} {{_ : IsLawfulOrd time}}
+  → ∀ (t : time) (ys : ℙ a) (xs : Timeline time a)
   → items (insertMany t ys xs)
     ≡ Set.union ys (items xs)
+--
+prop-items-insertMany {time} {a} {{_}} {{iOrda}} t ys xs =
+    Set.prop-equality eq-member
+  where
+    eq-member
+      : ∀ (z : a)
+      → Set.member z (items (insertMany t ys xs))
+        ≡ Set.member z (Set.union ys (items xs))
+    eq-member z
+      rewrite Map.prop-member-keysSet {{iOrda}} {z} {getMapTime (insertMany t ys xs)}
+      rewrite prop-lookup-insertManyKeys z ys t (getMapTime xs)
+      rewrite prop-if-apply (elem z ys) (Just t) (Map.lookup z (getMapTime xs)) isJust 
+      rewrite sym (Map.prop-member-keysSet {{iOrda}} {z} {getMapTime xs})
+      rewrite Set.prop-member-union z ys (items xs)
+      rewrite Set.prop-member-toAscList z ys
+      with Set.member z ys
+      with Set.member z (items xs)
+    ... | True  | True  = refl
+    ... | False | True  = refl
+    ... | True  | False = refl
+    ... | False | False = refl
 
+postulate
  -- | 'dropAfter' cancels 'insertMany' from the future.
  prop-dropAfter-insertMany
   : ∀ {{_ : Ord time}} {{_ : Ord a}} {{_ : IsLawfulOrd time}}

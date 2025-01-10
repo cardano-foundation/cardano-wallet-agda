@@ -21,6 +21,7 @@ module Haskell.Data.Maps.Timeline
       -- * Operations
     , insert
     , insertMany
+      -- $prop-items-insertMany
     , difference
     , restrictRange
     , takeWhileAntitone
@@ -260,6 +261,18 @@ restrictRange (from, to) =
 --     > prop-items-empty
 --     >   : ∀ {{_ : Ord time}} {{_ : Ord a}}
 --     >   → items {time} empty ≡ Set.empty {a}
+
+-- $prop-items-insertMany
+-- #p:prop-items-insertMany#
+--
+-- [prop-items-insertMany]:
+--     'insertMany' adds all items to the total set of items.
+--
+--     > prop-items-insertMany
+--     >   : ∀ {time a} {{_ : Ord time}} {{iOrda : Ord a}} {{_ : IsLawfulOrd time}}
+--     >   → ∀ (t : time) (ys : ℙ a) (xs : Timeline time a)
+--     >   → items (insertMany t ys xs)
+--     >     ≡ Set.union ys (items xs)
 
 -- $prop-lookupByItem
 -- #p:prop-lookupByItem#
