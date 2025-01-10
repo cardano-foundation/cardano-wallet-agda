@@ -1,6 +1,39 @@
 {-# OPTIONS --erasure #-}
 
-module Haskell.Data.Maps.Timeline where
+module Haskell.Data.Maps.Timeline
+    {-|
+      -- * Type
+    ; Timeline
+
+      -- * Construction
+    ; empty
+
+      -- * Observation
+    ; lookupByTime
+    ; lookupByItem
+      ; prop-lookupByItem
+
+    ; getMapTime
+    ; items
+        ; prop-items-empty
+
+    ; toAscList
+
+      -- * Operations
+    ; insert
+    ; insertMany
+    ; difference
+    ; restrictRange
+    ; takeWhileAntitone
+    ; dropWhileAntitone
+    ; deleteAfter
+    ; dropAfter
+      ; prop-dropAfter-deleteAfter
+
+      -- * Internal
+    ; insertManyKeys
+    -}
+    where
 
 open import Haskell.Prelude hiding (fromMaybe)
 open import Haskell.Reasoning
@@ -48,6 +81,7 @@ insertManyKeys keys v m0 =
     Timeline
 ------------------------------------------------------------------------------}
 -- | A 'Timeline' is a set of items that are associated with a timestamp.
+--
 -- Each item is unique.
 -- Multiple items can have the same timestamp associated with it.
 record Timeline (time a : Set) {{@0 _ : Ord time}} {{@0 _ : Ord a}} : Set where
@@ -179,8 +213,6 @@ deleteAfter
 deleteAfter t = takeWhileAntitone (_<= t)
 
 -- | Drop all items whose timestamp is after a given time.
---
--- > dropAfter t = snd ∘ deleteAfter t
 dropAfter
     : ∀ {{_ : Ord time}} {{_ : Ord a}}
     → time → Timeline time a → Timeline time a
@@ -212,6 +244,33 @@ restrictRange (from , to) =
 {-# COMPILE AGDA2HS deleteAfter #-}
 {-# COMPILE AGDA2HS dropAfter #-}
 {-# COMPILE AGDA2HS restrictRange #-}
+
+{-----------------------------------------------------------------------------
+    Properties
+    Basic
+------------------------------------------------------------------------------}
+-- | Definition of 'lookupByItem'.
+prop-lookupByItem
+  : ∀ {{_ : Ord time}} {{_ : Ord a}}
+  → ∀ (x : a) (xs : Timeline time a)
+  → lookupByItem x xs ≡ Map.lookup x (getMapTime xs)
+--
+prop-lookupByItem xs x = refl
+
+-- | Definition of 'dropAfter' in terms of 'deleteAfter'.
+prop-dropAfter-deleteAfter
+  : ∀ {{_ : Ord time}} {{_ : Ord a}}
+  → ∀ (t : time) (xs : Timeline time a)
+  → dropAfter t xs ≡ snd (deleteAfter t xs)
+--
+prop-dropAfter-deleteAfter t xs = refl
+
+-- | The 'empty' 'Timeline' does not contain any items.
+prop-items-empty
+  : ∀ {{_ : Ord time}} {{_ : Ord a}}
+  → items {time} empty ≡ Set.empty {a}
+--
+prop-items-empty = Map.prop-keysSet-empty
 
 {-----------------------------------------------------------------------------
     Properties
