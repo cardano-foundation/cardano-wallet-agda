@@ -13,10 +13,9 @@ type DummyDataSetLaw = ()
 #-}
 
 {-----------------------------------------------------------------------------
-    Proofs
-    involving 1 value type
+    Properties
+    Basic
 ------------------------------------------------------------------------------}
-
 module _ {a : Set} {{_ : Ord a}} where
 
   --
@@ -26,84 +25,250 @@ module _ {a : Set} {{_ : Ord a}} where
   prop-null-empty =
     prop-member-null empty prop-member-empty 
 
+{-----------------------------------------------------------------------------
+    Properties
+    https://en.wikipedia.org/wiki/Boolean_algebra_(structure)
+------------------------------------------------------------------------------}
+module _ {a : Set} {{_ : Ord a}} where
+
   --
-  prop-union-sym
-    : ∀ {s1 s2 : ℙ a}
-    → union s1 s2 ≡ union s2 s1
+  prop-union-idem
+    : ∀ {sa : ℙ a}
+    → union sa sa
+        ≡ sa
   --
-  prop-union-sym {s1} {s2} =
-      prop-equality eq
+  prop-union-idem {sa} = prop-equality eq
     where
-      eq = λ x →
-        begin
-          member x (union s1 s2)
-        ≡⟨ prop-member-union _ _ _ ⟩
-          (member x s1 || member x s2)
-        ≡⟨ prop-||-sym (member x s1) (member x s2) ⟩
-          (member x s2 || member x s1)
-        ≡⟨ sym (prop-member-union _ _ _) ⟩
-          member x (union s2 s1)
-        ∎
+      eq
+        : ∀ (x : a)
+        → member x (union sa sa) ≡ member x sa
+      eq x
+        rewrite prop-member-union x sa sa
+        rewrite prop-||-idem (member x sa)
+        = refl
 
   --
   prop-union-assoc
-    : ∀ {s1 s2 s3 : ℙ a}
-    → union (union s1 s2) s3
-      ≡ union s1 (union s2 s3)
+    : ∀ {sa sb sc : ℙ a}
+    → union (union sa sb) sc
+      ≡ union sa (union sb sc)
   --
-  prop-union-assoc {s1} {s2} {s3} =
-      prop-equality eq
+  prop-union-assoc {sa} {sb} {sc} = prop-equality eq
     where
-      eq = λ x →
-        begin
-          member x (union (union s1 s2) s3)
-        ≡⟨ prop-member-union _ _ _ ⟩
-          (member x (union s1 s2) || member x s3)
-        ≡⟨ cong (λ o → o || _) (prop-member-union _ _ _) ⟩
-          ((member x s1 || member x s2) || member x s3)
-        ≡⟨ prop-||-assoc (member x s1) (member x s2) (member x s3) ⟩
-          (member x s1 || (member x s2 || member x s3))
-        ≡⟨ sym (cong (λ o → _ || o) (prop-member-union _ _ _)) ⟩
-          (member x s1 || member x (union s2 s3))
-        ≡⟨ sym (prop-member-union _ _ _) ⟩
-          member x (union s1 (union s2 s3))
-        ∎
+      eq
+        : ∀ (x : a)
+        → member x (union (union sa sb) sc)
+          ≡ member x (union sa (union sb sc))
+      eq x
+        rewrite prop-member-union x (union sa sb) sc
+        rewrite prop-member-union x sa sb
+        rewrite prop-member-union x sa (union sb sc)
+        rewrite prop-member-union x sb sc
+        rewrite prop-||-assoc (member x sa) (member x sb) (member x sc)
+        = refl
+
+  --
+  prop-union-sym
+    : ∀ {sa sb : ℙ a}
+    → union sa sb
+        ≡ union sb sa
+  --
+  prop-union-sym {sa} {sb} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (union sa sb) ≡ member x (union sb sa)
+      eq x
+        rewrite prop-member-union x sa sb
+        rewrite prop-member-union x sb sa
+        rewrite prop-||-sym (member x sa) (member x sb)
+        = refl
+
+  --
+  prop-union-absorb
+    : ∀ {sa sb : ℙ a}
+    → union sa (intersection sa sb)
+      ≡ sa
+  --
+  prop-union-absorb {sa} {sb} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (union sa (intersection sa sb)) ≡ member x sa
+      eq x
+        rewrite prop-member-union x sa (intersection sa sb)
+        rewrite prop-member-intersection x sa sb
+        rewrite prop-||-absorb (member x sa) (member x sb)
+        = refl
+
+  --
+  prop-union-identity
+    : ∀ {sa : ℙ a}
+    → union sa empty
+      ≡ sa
+  --
+  prop-union-identity {sa} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (union sa empty) ≡ member x sa
+      eq x
+        rewrite prop-member-union x sa empty
+        rewrite prop-member-empty x
+        rewrite prop-||-identity (member x sa)
+        = refl
+
+  --
+  prop-union-intersection-distribute
+    : ∀ {sa sb sc : ℙ a}
+    → union sa (intersection sb sc)
+      ≡ intersection (union sa sb) (union sa sc)
+  --
+  prop-union-intersection-distribute {sa} {sb} {sc} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (union sa (intersection sb sc))
+          ≡ member x (intersection (union sa sb) (union sa sc))
+      eq x
+        rewrite prop-member-union x sa (intersection sb sc)
+        rewrite prop-member-intersection x sb sc
+        rewrite prop-member-intersection x (union sa sb) (union sa sc)
+        rewrite prop-member-union x sa sb
+        rewrite prop-member-union x sa sc
+        rewrite prop-||-&&-distribute (member x sa) (member x sb) (member x sc)
+        = refl
+
+
+  --
+  prop-intersection-idem
+    : ∀ {sa : ℙ a}
+    → intersection sa sa
+        ≡ sa
+  --
+  prop-intersection-idem {sa} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (intersection sa sa) ≡ member x sa
+      eq x
+        rewrite prop-member-intersection x sa sa
+        rewrite prop-&&-idem (member x sa)
+        = refl
+
+  --
+  prop-intersection-assoc
+    : ∀ {sa sb sc : ℙ a}
+    → intersection (intersection sa sb) sc
+      ≡ intersection sa (intersection sb sc)
+  --
+  prop-intersection-assoc {sa} {sb} {sc} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (intersection (intersection sa sb) sc)
+          ≡ member x (intersection sa (intersection sb sc))
+      eq x
+        rewrite prop-member-intersection x (intersection sa sb) sc
+        rewrite prop-member-intersection x sa sb
+        rewrite prop-member-intersection x sa (intersection sb sc)
+        rewrite prop-member-intersection x sb sc
+        rewrite prop-&&-assoc (member x sa) (member x sb) (member x sc)
+        = refl
+
+  --
+  prop-intersection-sym
+    : ∀ {sa sb : ℙ a}
+    → intersection sa sb
+        ≡ intersection sb sa
+  --
+  prop-intersection-sym {sa} {sb} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (intersection sa sb) ≡ member x (intersection sb sa)
+      eq x
+        rewrite prop-member-intersection x sa sb
+        rewrite prop-member-intersection x sb sa
+        rewrite prop-&&-sym (member x sa) (member x sb)
+        = refl
+
+  --
+  prop-intersection-absorb
+    : ∀ {sa sb : ℙ a}
+    → intersection sa (union sa sb)
+      ≡ sa
+  --
+  prop-intersection-absorb {sa} {sb} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (intersection sa (union sa sb)) ≡ member x sa
+      eq x
+        rewrite prop-member-intersection x sa (union sa sb)
+        rewrite prop-member-union x sa sb
+        rewrite prop-&&-absorb (member x sa) (member x sb)
+        = refl
+
+  --
+  prop-intersection-union-distribute
+    : ∀ {sa sb sc : ℙ a}
+    → intersection sa (union sb sc)
+      ≡ union (intersection sa sb) (intersection sa sc)
+  --
+  prop-intersection-union-distribute {sa} {sb} {sc} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (intersection sa (union sb sc))
+          ≡ member x (union (intersection sa sb) (intersection sa sc))
+      eq x
+        rewrite prop-member-intersection x sa (union sb sc)
+        rewrite prop-member-union x sb sc
+        rewrite prop-member-union x (intersection sa sb) (intersection sa sc)
+        rewrite prop-member-intersection x sa sb
+        rewrite prop-member-intersection x sa sc
+        rewrite prop-&&-||-distribute (member x sa) (member x sb) (member x sc)
+        = refl
 
   --
   prop-intersection-empty-right
-    : ∀ {s : ℙ a}
-    → intersection s empty ≡ empty
+    : ∀ {sa : ℙ a}
+    → intersection sa empty
+      ≡ empty
   --
-  prop-intersection-empty-right {s} = prop-equality eq
+  prop-intersection-empty-right {sa} = prop-equality eq
     where
-      eq = λ x → begin
-          member x (intersection s empty)
-        ≡⟨ prop-member-intersection x s empty ⟩
-          (member x s && member x empty)
-        ≡⟨ cong (λ o → member x s && o) (prop-member-empty x) ⟩
-          (member x s && False)
-        ≡⟨ prop-x-&&-False (member x s) ⟩
-          False
-        ≡⟨ sym (prop-member-empty x) ⟩
-          member x empty
-        ∎
+      eq
+        : ∀ (x : a)
+        → member x (intersection sa empty) ≡ member x empty
+      eq x
+        rewrite prop-member-intersection x sa empty
+        rewrite prop-member-empty x
+        rewrite prop-x-&&-False (member x sa)
+        = refl
 
   --
   prop-intersection-empty-left
-    : ∀ {s : ℙ a}
-    → intersection empty s ≡ empty
+    : ∀ {sa : ℙ a}
+    → intersection empty sa
+      ≡ empty
   --
-  prop-intersection-empty-left {s} = prop-equality eq
+  prop-intersection-empty-left {sa} = prop-equality eq
     where
-      eq = λ x → begin
-          member x (intersection empty s)
-        ≡⟨ prop-member-intersection x empty s ⟩
-          (member x empty && member x s)
-        ≡⟨ cong (λ o → o && member x s) (prop-member-empty x) ⟩
-          False
-        ≡⟨ sym (prop-member-empty x) ⟩
-          member x empty
-        ∎
+      eq
+        : ∀ (x : a)
+        → member x (intersection empty sa) ≡ member x empty
+      eq x
+        rewrite prop-member-intersection x empty sa
+        rewrite prop-member-empty x
+        = refl
+
+{-----------------------------------------------------------------------------
+    Properties
+    involving  isSubsetOf
+------------------------------------------------------------------------------}
+module _ {a : Set} {{_ : Ord a}} where
 
   --
   prop-intersection-isSubsetOf
@@ -128,7 +293,8 @@ module _ {a : Set} {{_ : Ord a}} where
       lem2 x
         rewrite prop-member-intersection x (intersection s1 s2) s2
         rewrite prop-member-intersection x s1 s2
-        = lem1 (member x s1) (member x s2)
+        rewrite lem1 (member x s1) (member x s2)
+        = refl
  
   -- |
   -- The 'empty' set is a subset of every set.
