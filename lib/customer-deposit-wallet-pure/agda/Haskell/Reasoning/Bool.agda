@@ -6,6 +6,7 @@ open import Haskell.Prelude
 open import Haskell.Reasoning.Core
 
 {-----------------------------------------------------------------------------
+    Properties
     Relate (≡ True) to logical connectives
 ------------------------------------------------------------------------------}
 -- Logical conjunction
@@ -60,28 +61,45 @@ prop-¬-not {False} contra = refl
 prop-¬-not {True} contra = case contra refl of λ ()
 
 {-----------------------------------------------------------------------------
+    Properties
     Logical connectives and constants
 ------------------------------------------------------------------------------}
+--
 prop-x-&&-True
   : ∀ (x : Bool)
   → (x && True) ≡ x
+--
 prop-x-&&-True True = refl
 prop-x-&&-True False = refl
 
+--
 prop-x-&&-False
   : ∀ (x : Bool)
   → (x && False) ≡ False
+--
 prop-x-&&-False True = refl
 prop-x-&&-False False = refl
 
+--
 prop-x-||-True
   : ∀ (x : Bool)
   → (x || True) ≡ True
+--
 prop-x-||-True True = refl
 prop-x-||-True False = refl
 
+--
+prop-x-||-False
+  : ∀ (x : Bool)
+  → (x || False) ≡ x
+--
+prop-x-||-False True = refl
+prop-x-||-False False = refl
+
 {-----------------------------------------------------------------------------
-    Algebraic laws for logical connectives
+    Properties
+    Boolean algebra
+    https://en.wikipedia.org/wiki/Boolean_algebra_(structure)
 ------------------------------------------------------------------------------}
 --
 prop-||-idem
@@ -90,6 +108,14 @@ prop-||-idem
 --
 prop-||-idem False = refl
 prop-||-idem True = refl
+
+--
+prop-||-assoc
+  : ∀ (a b c : Bool)
+  → ((a || b) || c) ≡ (a || (b || c))
+--
+prop-||-assoc False b c = refl
+prop-||-assoc True b c = refl
 
 --
 prop-||-sym
@@ -102,12 +128,36 @@ prop-||-sym True False = refl
 prop-||-sym True True = refl
 
 --
-prop-||-assoc
-  : ∀ (a b c : Bool)
-  → ((a || b) || c) ≡ (a || (b || c))
+prop-||-absorb
+  : ∀ (a b : Bool)
+  → (a || (a && b)) ≡ a
 --
-prop-||-assoc False b c = refl
-prop-||-assoc True b c = refl
+prop-||-absorb False b = refl
+prop-||-absorb True b = refl
+
+--
+prop-||-identity
+  : ∀ (a : Bool)
+  → (a || False) ≡ a
+--
+prop-||-identity False = refl
+prop-||-identity True = refl
+
+--
+prop-||-&&-distribute
+  : ∀ (a b c : Bool)
+  → (a || (b && c)) ≡ ((a || b) && (a || c))
+--
+prop-||-&&-distribute False b c = refl
+prop-||-&&-distribute True b c = refl
+
+--
+prop-||-complement
+  : ∀ (a : Bool)
+  → (a || not a) ≡ True
+--
+prop-||-complement False = refl
+prop-||-complement True = refl
 
 --
 prop-&&-idem
@@ -116,6 +166,14 @@ prop-&&-idem
 --
 prop-&&-idem False = refl
 prop-&&-idem True = refl
+
+--
+prop-&&-assoc
+  : ∀ (a b c : Bool)
+  → ((a && b) && c) ≡ (a && (b && c))
+--
+prop-&&-assoc False b c = refl
+prop-&&-assoc True b c = refl
 
 --
 prop-&&-sym
@@ -128,12 +186,36 @@ prop-&&-sym True False = refl
 prop-&&-sym True True = refl
 
 --
-prop-&&-assoc
-  : ∀ (a b c : Bool)
-  → ((a && b) && c) ≡ (a && (b && c))
+prop-&&-absorb
+  : ∀ (a b : Bool)
+  → (a && (a || b)) ≡ a
 --
-prop-&&-assoc False b c = refl
-prop-&&-assoc True b c = refl
+prop-&&-absorb False b = refl
+prop-&&-absorb True b = refl
+
+--
+prop-&&-identity
+  : ∀ (a : Bool)
+  → (a && True) ≡ a
+--
+prop-&&-identity False = refl
+prop-&&-identity True = refl
+
+--
+prop-&&-||-distribute
+  : ∀ (a b c : Bool)
+  → (a && (b || c)) ≡ ((a && b) || (a && c))
+--
+prop-&&-||-distribute False b c = refl
+prop-&&-||-distribute True b c = refl
+
+--
+prop-&&-complement
+  : ∀ (a : Bool)
+  → (a && not a) ≡ False
+--
+prop-&&-complement False = refl
+prop-&&-complement True = refl
 
 --
 prop-deMorgan-not-&&
@@ -152,7 +234,8 @@ prop-deMorgan-not-|| False b = refl
 prop-deMorgan-not-|| True b = refl
 
 {-----------------------------------------------------------------------------
-    Properties of if_then_else
+    Properties
+    if_then_else
 ------------------------------------------------------------------------------}
 prop-if-apply
   : ∀ (b : Bool) (t e : a) (f : a → c)
@@ -192,4 +275,3 @@ prop-if-eq-subst x y t e subst =
         (if x == y then t y else e)
       ∎
     }
- 
