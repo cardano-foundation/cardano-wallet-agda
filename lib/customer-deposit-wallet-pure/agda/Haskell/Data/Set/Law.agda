@@ -266,6 +266,87 @@ module _ {a : Set} {{_ : Ord a}} where
 
 {-----------------------------------------------------------------------------
     Properties
+    involving  difference
+------------------------------------------------------------------------------}
+module _ {a : Set} {{_ : Ord a}} where
+
+  --
+  prop-intersection-difference
+    : ∀ {sa sb : ℙ a}
+    → intersection sb (difference sa sb)
+      ≡ empty
+  --
+  prop-intersection-difference {sa} {sb} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (intersection sb (difference sa sb)) ≡ member x empty
+      eq x
+        rewrite prop-member-intersection x sb (difference sa sb)
+        rewrite prop-member-difference x sa sb
+        rewrite prop-member-empty x
+        with member x sa
+        with member x sb
+      ... | True  | True  = refl
+      ... | False | True  = refl
+      ... | True  | False = refl
+      ... | False | False = refl
+
+  --
+  prop-disjoint-difference
+    : ∀ {sa sb : ℙ a}
+    → disjoint sb (difference sa sb)
+      ≡ True
+  --
+  prop-disjoint-difference {sa} {sb} =
+    trans (cong null prop-intersection-difference) prop-null-empty
+
+  --
+  prop-deMorgan-difference-intersection
+    : ∀ {sa sb sc : ℙ a}
+    → difference sa (intersection sb sc)
+      ≡ union (difference sa sb) (difference sa sc)
+  --
+  prop-deMorgan-difference-intersection {sa} {sb} {sc} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (difference sa (intersection sb sc))
+          ≡ member x (union (difference sa sb) (difference sa sc))
+      eq x
+        rewrite prop-member-difference x sa (intersection sb sc)
+        rewrite prop-member-intersection x sb sc
+        rewrite prop-member-union x (difference sa sb) (difference sa sc)
+        rewrite prop-member-difference x sa sb
+        rewrite prop-member-difference x sa sc
+        with member x sa
+      ... | False = refl
+      ... | True  = prop-deMorgan-not-&& (member x sb) (member x sc)
+
+  --
+  prop-deMorgan-difference-union
+    : ∀ {sa sb sc : ℙ a}
+    → difference sa (union sb sc)
+      ≡ intersection (difference sa sb) (difference sa sc)
+  --
+  prop-deMorgan-difference-union {sa} {sb} {sc} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (difference sa (union sb sc))
+          ≡ member x (intersection (difference sa sb) (difference sa sc))
+      eq x
+        rewrite prop-member-difference x sa (union sb sc)
+        rewrite prop-member-union x sb sc
+        rewrite prop-member-intersection x (difference sa sb) (difference sa sc)
+        rewrite prop-member-difference x sa sb
+        rewrite prop-member-difference x sa sc
+        with member x sa
+      ... | False = refl
+      ... | True  = prop-deMorgan-not-|| (member x sb) (member x sc)
+
+{-----------------------------------------------------------------------------
+    Properties
     involving  isSubsetOf
 ------------------------------------------------------------------------------}
 module _ {a : Set} {{_ : Ord a}} where
