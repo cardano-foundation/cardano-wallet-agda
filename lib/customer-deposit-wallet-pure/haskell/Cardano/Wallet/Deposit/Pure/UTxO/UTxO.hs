@@ -50,7 +50,7 @@ import qualified Haskell.Data.Map.Def as Map
     , unionWith
     , withoutKeys
     )
-import qualified Haskell.Data.Set as Set (filter)
+import qualified Haskell.Data.Set.Def as Set (filter)
 import Prelude hiding (null, subtract)
 
 -- |

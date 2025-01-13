@@ -10,7 +10,7 @@ import qualified Haskell.Data.Map.Def as Map
     , toAscList
     , update
     )
-import qualified Haskell.Data.Set as Set (delete, null, singleton, union)
+import qualified Haskell.Data.Set.Def as Set (delete, null, singleton, union)
 import Prelude hiding (null, subtract)
 
 type InverseMap key v = Map v (Set key)

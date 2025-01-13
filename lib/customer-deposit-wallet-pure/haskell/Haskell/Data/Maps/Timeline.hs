@@ -55,7 +55,7 @@ import qualified Haskell.Data.Maps.InverseMap as InverseMap
     , insertManyKeys
     )
 import Haskell.Data.Maybe (fromMaybe)
-import qualified Haskell.Data.Set as Set (empty, toAscList)
+import qualified Haskell.Data.Set.Def as Set (empty, toAscList)
 import Prelude hiding (null, subtract)
 
 -- |

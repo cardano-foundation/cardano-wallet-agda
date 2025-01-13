@@ -5,7 +5,7 @@ prelude:
     - "subtract"
 
 rewrites:
-  - from: "Haskell.Data.Set.ℙ"
+  - from: "Haskell.Data.Set.Def.ℙ"
     to: "Set"
     importing: "Data.Set"
   - from: "Agda.Builtin.Nat.Nat.suc"
