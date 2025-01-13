@@ -38,7 +38,7 @@ import qualified Haskell.Data.Maps.Timeline
     , insertMany
     , items
     )
-import qualified Haskell.Data.Set as Set (difference, intersection)
+import qualified Haskell.Data.Set.Def as Set (difference, intersection)
 import Prelude hiding (null, subtract)
 
 -- |

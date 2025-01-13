@@ -1,5 +1,5 @@
-module Haskell.Data.Set
-    ( module Data.Set
-    ) where
+module Haskell.Data.Set where
 
-import Data.Set
+import Prelude hiding (null, subtract)
+
+type DummyDataSet = ()

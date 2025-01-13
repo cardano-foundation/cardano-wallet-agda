@@ -102,5 +102,7 @@ library
     Haskell.Data.Maps.Timeline
     Haskell.Data.Maybe
     Haskell.Data.Set
+    Haskell.Data.Set.Def
+    Haskell.Data.Set.Law
     Haskell.Data.Word
     Haskell.Data.Word.Odd
