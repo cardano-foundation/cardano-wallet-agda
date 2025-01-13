@@ -252,7 +252,7 @@ prop-fits-excludingD
 --
 prop-fits-excludingD {txins} {u0}
   rewrite UTxO.prop-disjoint-empty {u0}
-  rewrite Set.prop-intersection-isSubsetOf {TxIn} {txins} {dom u0}
+  rewrite Set.prop-isSubsetOf-intersection {TxIn} {txins} {dom u0}
   = refl
 
 -- | The 'UTxO' returned by 'receiveD' is the same as 'union'.

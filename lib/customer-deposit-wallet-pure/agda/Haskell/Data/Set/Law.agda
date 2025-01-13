@@ -351,37 +351,92 @@ module _ {a : Set} {{_ : Ord a}} where
 ------------------------------------------------------------------------------}
 module _ {a : Set} {{_ : Ord a}} where
 
-  --
-  prop-intersection-isSubsetOf
-    : ∀ {s1 s2 : ℙ a}
-    → isSubsetOf (intersection s1 s2) s2 ≡ True
-  --
-  prop-intersection-isSubsetOf {s1} {s2} =
-      prop-intersection→isSubsetOf _ _ (prop-equality lem2)
-    where
-      lem1
-        : (x y : Bool)
-        → ((x && y) && y) ≡ (x && y)
-      lem1 x y
-        rewrite prop-&&-assoc x y y
-        rewrite prop-&&-idem y
-        = refl
-
-      lem2
-        : ∀ (x : a)
-        → member x (intersection (intersection s1 s2) s2)
-            ≡ member x (intersection s1 s2)
-      lem2 x
-        rewrite prop-member-intersection x (intersection s1 s2) s2
-        rewrite prop-member-intersection x s1 s2
-        rewrite lem1 (member x s1) (member x s2)
-        = refl
- 
-  -- |
-  -- The 'empty' set is a subset of every set.
+  -- | The 'empty' set is a subset of every set.
   prop-isSubsetOf-empty
-    : ∀ {s : ℙ a}
-    → isSubsetOf empty s ≡ True
+    : ∀ {sa : ℙ a}
+    → isSubsetOf empty sa ≡ True
   --
-  prop-isSubsetOf-empty {s} =
-    prop-intersection→isSubsetOf empty s prop-intersection-empty-left
+  prop-isSubsetOf-empty {sa} =
+    prop-intersection→isSubsetOf empty sa prop-intersection-empty-left
+
+  -- | 'isSubsetOf' is reflexive
+  prop-isSubsetOf-refl
+    : ∀ {sa : ℙ a}
+    → isSubsetOf sa sa ≡ True
+  --
+  prop-isSubsetOf-refl {sa} =
+    prop-intersection→isSubsetOf sa sa prop-intersection-idem
+
+  -- | 'isSubsetOf' is antisymmetric
+  prop-isSubsetOf-antisym
+    : ∀ {sa sb : ℙ a}
+    → isSubsetOf sa sb ≡ True
+    → isSubsetOf sb sa ≡ True
+    → sa ≡ sb
+  --
+  prop-isSubsetOf-antisym {sa} {sb} condab condba =
+    lem
+      (prop-isSubsetOf→intersection sa sb condab)
+      (prop-isSubsetOf→intersection sb sa condba)
+   where
+    lem
+      : intersection sa sb ≡ sa
+      → intersection sb sa ≡ sb
+      → sa ≡ sb
+    lem eq1 eq2 =
+      begin
+        sa
+      ≡⟨ sym eq1 ⟩
+        intersection sa sb
+      ≡⟨ prop-intersection-sym ⟩
+        intersection sb sa
+      ≡⟨ eq2 ⟩
+        sb
+      ∎
+
+  -- | 'isSubsetOf' is transitive
+  prop-isSubsetOf-trans
+    : ∀ {sa sb sc : ℙ a}
+    → isSubsetOf sa sb ≡ True
+    → isSubsetOf sb sc ≡ True
+    → isSubsetOf sa sc ≡ True
+  --
+  prop-isSubsetOf-trans {sa} {sb} {sc} condab condbc =
+    prop-intersection→isSubsetOf sa sc
+      (lem
+        (prop-isSubsetOf→intersection sa sb condab)
+        (prop-isSubsetOf→intersection sb sc condbc)
+      )
+   where
+    lem
+      : intersection sa sb ≡ sa
+      → intersection sb sc ≡ sb
+      → intersection sa sc ≡ sa
+    lem eq1 eq2 =
+      begin
+        intersection sa sc
+      ≡⟨ cong (λ o → intersection o sc) (sym eq1) ⟩
+        intersection (intersection sa sb) sc
+      ≡⟨ prop-intersection-assoc ⟩
+        intersection sa (intersection sb sc)
+      ≡⟨ cong (λ o → intersection sa o) eq2 ⟩
+        intersection sa sb
+      ≡⟨ eq1 ⟩
+        sa
+      ∎
+
+  --
+  prop-isSubsetOf-intersection
+    : ∀ {sa sb : ℙ a}
+    → isSubsetOf (intersection sa sb) sb ≡ True
+  --
+  prop-isSubsetOf-intersection {sa} {sb} =
+      prop-intersection→isSubsetOf _ _ eq
+    where
+      eq
+        : intersection (intersection sa sb) sb
+        ≡ intersection sa sb
+      eq
+        rewrite prop-intersection-assoc {_} {sa} {sb} {sb}
+        rewrite prop-intersection-idem {_} {sb}
+        = refl
