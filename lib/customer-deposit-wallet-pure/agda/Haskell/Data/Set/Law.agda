@@ -302,6 +302,53 @@ module _ {a : Set} {{_ : Ord a}} where
     trans (cong null prop-intersection-difference) prop-null-empty
 
   --
+  prop-union-difference
+    : ∀ {sa sb : ℙ a}
+    → union (difference sa sb) sb
+      ≡ union sa sb
+  --
+  prop-union-difference {sa} {sb} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (union (difference sa sb) sb)
+          ≡ member x (union sa sb)
+      eq x
+        rewrite prop-member-union x (difference sa sb) sb
+        rewrite prop-member-difference x sa sb
+        rewrite prop-member-union x sa sb
+        with member x sa
+        with member x sb
+      ... | True  | True  = refl
+      ... | False | True  = refl
+      ... | True  | False = refl
+      ... | False | False = refl
+
+  --
+  prop-difference-union-x
+    : ∀ {sa sb sc : ℙ a}
+    → difference (union sa sb) sc
+      ≡ union (difference sa sc) (difference sb sc)
+  --
+  prop-difference-union-x {sa} {sb} {sc} = prop-equality eq
+    where
+      eq
+        : ∀ (x : a)
+        → member x (difference (union sa sb) sc)
+          ≡ member x (union (difference sa sc) (difference sb sc))
+      eq x
+        rewrite prop-member-difference x (union sa sb) sc
+        rewrite prop-member-union x sa sb
+        rewrite prop-member-union x (difference sa sc) (difference sb sc)
+        rewrite prop-member-difference x sa sc
+        rewrite prop-member-difference x sb sc
+        with member x sa
+        with member x sb
+      ... | False | r = refl
+      ... | True  | True  = sym (prop-||-idem (not (member x sc)))
+      ... | True  | False = sym (prop-x-||-False (not (member x sc)))
+
+  --
   prop-deMorgan-difference-intersection
     : ∀ {sa sb sc : ℙ a}
     → difference sa (intersection sb sc)
@@ -440,3 +487,22 @@ module _ {a : Set} {{_ : Ord a}} where
         rewrite prop-intersection-assoc {_} {sa} {sb} {sb}
         rewrite prop-intersection-idem {_} {sb}
         = refl
+
+  --
+  prop-isSubsetOf-difference
+    : ∀ {sa sb : ℙ a}
+    → isSubsetOf (difference sa sb) sa ≡ True
+  --
+  prop-isSubsetOf-difference {sa} {sb} =
+      prop-intersection→isSubsetOf _ _ (prop-equality eq)
+    where
+      eq
+        : ∀ (x : a)
+        → member x (intersection (difference sa sb) sa)
+          ≡ member x (difference sa sb)
+      eq x
+        rewrite prop-member-intersection x (difference sa sb) sa
+        rewrite prop-member-difference x sa sb
+        with member x sa
+      ... | False = refl
+      ... | True  = prop-x-&&-True (not (member x sb))
