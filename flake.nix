@@ -16,7 +16,7 @@
 
     flake-utils.url = "github:hamishmack/flake-utils/hkm/nested-hydraJobs";
 
-    agda2hs.url = "github:agda/agda2hs?ref=770f209c3e1aa94ba9d34c1488379e83190d589d";
+    agda2hs.url = "github:agda/agda2hs?ref=v1.3";
 #    agda-tools.url = "github:HeinrichApfelmus/agda-notes?dir=nix/agda-hs-tools";
   };
 
