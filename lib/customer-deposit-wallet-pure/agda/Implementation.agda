@@ -6,7 +6,7 @@
 -- pragma can be successfully removed from this file.
 {-# OPTIONS --allow-unsolved-metas #-}
 
-module Cardano.Wallet.Deposit.Implementation where
+module Implementation where
 
 open import Haskell.Prelude
 open import Haskell.Reasoning
