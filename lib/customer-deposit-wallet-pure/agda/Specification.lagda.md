@@ -21,17 +21,34 @@ This document is a [literate Agda][lagda] file: It contains prose that
 describes and explains the specification, but it also contains definitions
 and logical properties that can be checked by the proof assistant [Agda][].
 
-We use Agda because we plan to create a **machine-checked proof**
-that our implementation adheres to this specification.
-Specifically, we plan to implement the core functionality in Agda,
-i.e. the functionality specificied in this document, and export
-the code to Haskell using [agda2hs][] so that the core functionality
-can be embedded in a full software application.
+When implementing this specification,
+we intend to create a **machine-checked proof**
+that our implementation matches this specification.
+However, this specification only covers the **core functionality** of
+the software application to be implemented, not the full software.
+We proceed as follows:
+
+* The full software application will be implemented in [Haskell][].
+  Sizeable parts of the functionality will be tested, not proven.
+
+* However, the core functionality that is covered by this specification
+  will be implemented using [Agda][] and exported to Haskell
+  via the [agda2hs][] transpiler.
+  This core functionality will be proven, not tested.
+
+* In turn, proofs about the core functionality will depend on the
+  assumption that more basic data types provided by Haskell libraries,
+  such as the [Data.Set][containers] type,
+  have implementations that match a specification.
+  For the time being, we accept that this is an assumption
+  and that the library implementations have only been tested.
+  We `postulate` specifications in Agda as far as needed.
 
   [agda]: https://github.com/agda/agda
   [lagda]: https://agda.readthedocs.io/en/v2.6.4/tools/literate-programming.html
   [agda2hs]: https://github.com/agda/agda2hs
-
+  [haskell]: https://www.haskell.org
+  [containers]: https://hackage.haskell.org/package/containers-0.7/docs/Data-Set.html
 
 ```agda
 module Specification where
@@ -80,6 +97,7 @@ isSubsetOf xs ys = all (λ x → elem x ys) xs
 ### Cardano
 
 We also need to import concepts that are specific to Cardano.
+These concepts are specified here:
 
 * [Specification.Value](Specification/Value.lagda.md)
 
