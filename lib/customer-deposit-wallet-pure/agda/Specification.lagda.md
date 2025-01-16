@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-🚧 DRAFT 2023-12-19
+🚧 DRAFT 2025-01-16
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
@@ -32,11 +32,14 @@ can be embedded in a full software application.
   [lagda]: https://agda.readthedocs.io/en/v2.6.4/tools/literate-programming.html
   [agda2hs]: https://github.com/agda/agda2hs
 
-## Imports
 
 ```agda
 module Specification where
 ```
+
+## Imports
+
+### Standard
 
 In order to formulate the specification, we need to import standard vocabulary:
 
@@ -74,6 +77,18 @@ isSubsetOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
 isSubsetOf xs ys = all (λ x → elem x ys) xs
 ```
 
+### Cardano
+
+We also need to import concepts that are specific to Cardano.
+
+* [Specification.Value](Specification/Value.lagda.md)
+
+<!--
+```agda
+import Specification.Value
+```
+-->
+
 # Specification
 
 ## Overview
@@ -99,10 +114,11 @@ module
     (TxBody : Set)
     (TxId : Set)
     (Slot : Set)
-    (Value : Set)
-    {{_ : Eq Value}}
+    (ValueSig : Specification.Value.Signature)
     (PParams : Set)
   where
+
+  open Specification.Value.Signature ValueSig
 ```
 
 ## Operations
