@@ -38,13 +38,13 @@ instance Monoid ValueTransfer where
 
 -- * Properties
 
--- $prop-ValueTansfer-<>-comm
--- #p:prop-ValueTansfer-<>-comm#
+-- $prop-ValueTansfer-<>-sym
+-- #p:prop-ValueTansfer-<>-sym#
 --
--- [prop-ValueTansfer-<>-comm]:
+-- [prop-ValueTansfer-<>-sym]:
 --
 --     'ValueTransfer' is a commutative semigroup.
 --
---     > prop-ValueTansfer-<>-comm
+--     > prop-ValueTansfer-<>-sym
 --     >   : ∀ (x y : ValueTransfer)
 --     >   → x <> y ≡ y <> x

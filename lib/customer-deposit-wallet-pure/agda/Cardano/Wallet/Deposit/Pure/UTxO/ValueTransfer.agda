@@ -7,7 +7,7 @@ open import Cardano.Wallet.Read using
     ( Value
       ; iIsLawfulSemigroupValue
       ; iIsLawfulMonoidValue
-      ; prop-Value-<>-comm
+      ; prop-Value-<>-sym
     )
 
 import Cardano.Wallet.Read as Read
@@ -95,11 +95,11 @@ instance
 -- |
 -- 'ValueTransfer' is a commutative semigroup.
 --
-prop-ValueTansfer-<>-comm
+prop-ValueTansfer-<>-sym
   : ∀ (x y : ValueTransfer)
   → x <> y ≡ y <> x
 --
-prop-ValueTansfer-<>-comm x y
-  rewrite prop-Value-<>-comm (spent x) (spent y)
-  rewrite prop-Value-<>-comm (received x) (received y)
+prop-ValueTansfer-<>-sym x y
+  rewrite prop-Value-<>-sym (spent x) (spent y)
+  rewrite prop-Value-<>-sym (received x) (received y)
   = refl
