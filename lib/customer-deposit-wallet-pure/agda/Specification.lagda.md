@@ -353,47 +353,17 @@ Finally, we expose an operation
       : List (Address × Value)
       → PParams → WalletState → Maybe Tx
 
-which constructs and signs a transaction that sends given values to given addresses.
+which constructs a transaction that sends given values to given addresses.
 Here, `PParams` are protocol parameters needed for computation the fee to
 include in the `Tx`.
 
-First, this function will succeed in creating a transaction if there are sufficient
-funds available:
+First, as the main purpose of a wallet is to be able to send funds,
+it would be most desirable to require that this function always **succeeds**
+in creating a transaction provided that the wallet has **sufficient funds**.
+Unfortunately, however, we do not yet have an implementation
+where we can prove this property. This topic is discussed in
 
-```agda
-
-    field
-      totalValue : List (Address × Value) → Value
-      -- totalValue = mconcat ∘ map snd
-
-      maxFee : Value -- maximum fee of a transaction
-      exceeds : Value → Value → Set
-      _<>_ : Value → Value → Value
-
-      prop-createPayment-success
-        : ∀ (s : WalletState)
-            (pp : PParams)
-            (destinations : List (Address × Value))
-        → exceeds (availableBalance s) (totalValue destinations <> maxFee)
-        → isJust (createPayment destinations pp s) ≡ True
-```
-
-TODO: The above statement cannot hold as written,
-but it would be highly desirable to have something in this spirit.
-(This would be part of a separate specification file
-related to `balanceTransaction`.)
-Aside from insufficient funds, reasons for failure include:
-
-* Wallet UTxO is poor
-  * Few UTxO which are too close to minimum ADA quantity
-  * UTxO with too many native assets
-* Destinations are poor
-  * `Value` does not carry minimum ADA quantity
-  * `Value` size too large (native assets, `Datum`, …)
-* Combination of both:
-  * Too many UTxO with small ADA amount
-    that we need to cover a large `Value` payment.
-    Example: "Have 1 million x 1 ADA coins, want to send 1 x 1'000'000 ADA coin."
+* [Specification.Wallet.Payment](Specification/Wallet/Payment.lagda.md)
 
 Second, the transaction sends funds as indicated
 

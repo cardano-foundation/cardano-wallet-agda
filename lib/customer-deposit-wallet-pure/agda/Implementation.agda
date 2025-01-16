@@ -120,11 +120,6 @@ properties = record
     ; prop-getAddressHistory-summary = {!  !}
     ; prop-tx-known-address = {!   !}
 
-    ; totalValue = Wallet.totalValue
-    ; maxFee = Wallet.maxFee
-    ; exceeds = λ v1 v2 → Wallet.largerOrEqual v1 v2 ≡ True
-    ; _<>_ = _<>_
-    ; prop-createPayment-success = {!   !}
     ; outputs = map pairFromTxOut ∘ TxBody.outputs
     ; prop-createPayment-pays = {!   !}
     ; prop-createPayment-not-known =
