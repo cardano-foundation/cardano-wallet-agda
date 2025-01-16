@@ -16,8 +16,10 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Timeline
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
 
 import Cardano.Wallet.Deposit.Pure.Experimental
-import Cardano.Wallet.Deposit.Implementation
 import Specification
+import Specification.Value
+import Specification.Wallet.Payment
+import Implementation
 
 import Haskell.Cardano.Crypto.Wallet
 

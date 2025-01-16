@@ -103,6 +103,14 @@ postulate
     iIsLawfulSemigroupValue : IsLawfulSemigroup Value
     iIsLawfulMonoidValue : IsLawfulMonoid Value
 
-  prop-Value-<>-comm
+  prop-Value-<>-sym
     : ∀ (x y : Value)
     → x <> y ≡ y <> x
+  
+  prop-largerOrEqual-lessOrEqual
+    : ∀ (x y : Value)
+    → largerOrEqual x y ≡ lessOrEqual y x
+
+  prop-add-monotone
+    : ∀ (x y z : Value)
+    → largerOrEqual (add x z) (add y z) ≡ largerOrEqual x y

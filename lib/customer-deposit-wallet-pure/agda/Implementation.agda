@@ -6,7 +6,7 @@
 -- pragma can be successfully removed from this file.
 {-# OPTIONS --allow-unsolved-metas #-}
 
-module Cardano.Wallet.Deposit.Implementation where
+module Implementation where
 
 open import Haskell.Prelude
 open import Haskell.Reasoning
@@ -36,6 +36,29 @@ import Cardano.Wallet.Deposit.Pure.Experimental as Wallet
 import Cardano.Wallet.Read as Read
 import Haskell.Data.Map as Map
 
+{-----------------------------------------------------------------------------
+    Signature
+    Value
+------------------------------------------------------------------------------}
+
+import Specification.Value
+
+ValueSig : Specification.Value.Signature
+ValueSig = record
+  { Value = Read.Value
+  ; add = Read.add
+  ; iEqValue = Read.iEqValue
+  ; largerOrEqual = Read.largerOrEqual
+  ; prop-add-assoc = λ x y z → sym (IsLawfulSemigroup.associativity Read.iIsLawfulSemigroupValue x y z)
+  ; prop-add-sym = Read.prop-Value-<>-sym
+  ; prop-add-monotone = Read.prop-add-monotone
+  }
+
+{-----------------------------------------------------------------------------
+    Module
+    DepositWallet
+------------------------------------------------------------------------------}
+
 import Specification
 
 module DepositWallet =
@@ -46,7 +69,7 @@ module DepositWallet =
         TxBody
         TxId
         Slot
-        Value
+        ValueSig
         ⊤
 
 {-----------------------------------------------------------------------------
@@ -97,11 +120,6 @@ properties = record
     ; prop-getAddressHistory-summary = {!  !}
     ; prop-tx-known-address = {!   !}
 
-    ; totalValue = Wallet.totalValue
-    ; maxFee = Wallet.maxFee
-    ; exceeds = λ v1 v2 → Wallet.largerOrEqual v1 v2 ≡ True
-    ; _<>_ = _<>_
-    ; prop-createPayment-success = {!   !}
     ; outputs = map pairFromTxOut ∘ TxBody.outputs
     ; prop-createPayment-pays = {!   !}
     ; prop-createPayment-not-known =

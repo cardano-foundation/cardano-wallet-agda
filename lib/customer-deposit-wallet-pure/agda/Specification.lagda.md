@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-🚧 DRAFT 2023-12-19
+🚧 DRAFT 2025-01-16
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
@@ -21,22 +21,42 @@ This document is a [literate Agda][lagda] file: It contains prose that
 describes and explains the specification, but it also contains definitions
 and logical properties that can be checked by the proof assistant [Agda][].
 
-We use Agda because we plan to create a **machine-checked proof**
-that our implementation adheres to this specification.
-Specifically, we plan to implement the core functionality in Agda,
-i.e. the functionality specificied in this document, and export
-the code to Haskell using [agda2hs][] so that the core functionality
-can be embedded in a full software application.
+When implementing this specification,
+we intend to create a **machine-checked proof**
+that our implementation matches this specification.
+However, this specification only covers the **core functionality** of
+the software application to be implemented, not the full software.
+We proceed as follows:
+
+* The full software application will be implemented in [Haskell][].
+  Sizeable parts of the functionality will be tested, not proven.
+
+* However, the core functionality that is covered by this specification
+  will be implemented using [Agda][] and exported to Haskell
+  via the [agda2hs][] transpiler.
+  This core functionality will be proven, not tested.
+
+* In turn, proofs about the core functionality will depend on the
+  assumption that more basic data types provided by Haskell libraries,
+  such as the [Data.Set][containers] type,
+  have implementations that match a specification.
+  For the time being, we accept that this is an assumption
+  and that the library implementations have only been tested.
+  We `postulate` specifications in Agda as far as needed.
 
   [agda]: https://github.com/agda/agda
   [lagda]: https://agda.readthedocs.io/en/v2.6.4/tools/literate-programming.html
   [agda2hs]: https://github.com/agda/agda2hs
-
-## Imports
+  [haskell]: https://www.haskell.org
+  [containers]: https://hackage.haskell.org/package/containers-0.7/docs/Data-Set.html
 
 ```agda
 module Specification where
 ```
+
+## Imports
+
+### Standard
 
 In order to formulate the specification, we need to import standard vocabulary:
 
@@ -64,15 +84,22 @@ x ⇔ y = (x → y) ⋀ (y → x)
 ```
 
 ```agda
-isJust : ∀ {a : Set} → Maybe a → Bool
-isJust (Just _) = True
-isJust Nothing = False
-```
-
-```agda
 isSubsetOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
 isSubsetOf xs ys = all (λ x → elem x ys) xs
 ```
+
+### Cardano
+
+We also need to import concepts that are specific to Cardano.
+These concepts are specified here:
+
+* [Specification.Value](Specification/Value.lagda.md)
+
+<!--
+```agda
+import Specification.Value
+```
+-->
 
 # Specification
 
@@ -99,10 +126,11 @@ module
     (TxBody : Set)
     (TxId : Set)
     (Slot : Set)
-    (Value : Set)
-    {{_ : Eq Value}}
+    (ValueSig : Specification.Value.Signature)
     (PParams : Set)
   where
+
+  open Specification.Value.Signature ValueSig
 ```
 
 ## Operations
@@ -319,47 +347,17 @@ Finally, we expose an operation
       : List (Address × Value)
       → PParams → WalletState → Maybe Tx
 
-which constructs and signs a transaction that sends given values to given addresses.
+which constructs a transaction that sends given values to given addresses.
 Here, `PParams` are protocol parameters needed for computation the fee to
 include in the `Tx`.
 
-First, this function will succeed in creating a transaction if there are sufficient
-funds available:
+First, as the main purpose of a wallet is to be able to send funds,
+it would be most desirable to require that this function always **succeeds**
+in creating a transaction provided that the wallet has **sufficient funds**.
+Unfortunately, however, we do not yet have an implementation
+where we can prove this property. This topic is discussed in
 
-```agda
-
-    field
-      totalValue : List (Address × Value) → Value
-      -- totalValue = mconcat ∘ map snd
-
-      maxFee : Value -- maximum fee of a transaction
-      exceeds : Value → Value → Set
-      _<>_ : Value → Value → Value
-
-      prop-createPayment-success
-        : ∀ (s : WalletState)
-            (pp : PParams)
-            (destinations : List (Address × Value))
-        → exceeds (availableBalance s) (totalValue destinations <> maxFee)
-        → isJust (createPayment destinations pp s) ≡ True
-```
-
-TODO: The above statement cannot hold as written,
-but it would be highly desirable to have something in this spirit.
-(This would be part of a separate specification file
-related to `balanceTransaction`.)
-Aside from insufficient funds, reasons for failure include:
-
-* Wallet UTxO is poor
-  * Few UTxO which are too close to minimum ADA quantity
-  * UTxO with too many native assets
-* Destinations are poor
-  * `Value` does not carry minimum ADA quantity
-  * `Value` size too large (native assets, `Datum`, …)
-* Combination of both:
-  * Too many UTxO with small ADA amount
-    that we need to cover a large `Value` payment.
-    Example: "Have 1 million x 1 ADA coins, want to send 1 x 1'000'000 ADA coin."
+* [Specification.Wallet.Payment](Specification/Wallet/Payment.lagda.md)
 
 Second, the transaction sends funds as indicated
 
