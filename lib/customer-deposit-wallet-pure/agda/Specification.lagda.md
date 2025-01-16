@@ -84,12 +84,6 @@ x ⇔ y = (x → y) ⋀ (y → x)
 ```
 
 ```agda
-isJust : ∀ {a : Set} → Maybe a → Bool
-isJust (Just _) = True
-isJust Nothing = False
-```
-
-```agda
 isSubsetOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
 isSubsetOf xs ys = all (λ x → elem x ys) xs
 ```
