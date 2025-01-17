@@ -77,7 +77,7 @@ and also
 
 In addition, we need to import concepts that are specific to Cardano:
 
-* [Specification.Value](Specification/Value.lagda.md)
+* [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
   — Monetary `Value`.
 
 <!--
@@ -86,7 +86,7 @@ open import Haskell.Data.Word.Odd using (Word31)
 
 open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
 
-import Specification.Value
+import Specification.Cardano.Value
 ```
 -->
 
@@ -115,11 +115,11 @@ module
     (TxBody : Set)
     (TxId : Set)
     (Slot : Set)
-    (ValueSig : Specification.Value.Signature)
+    (ValueSig : Specification.Cardano.Value.Signature)
     (PParams : Set)
   where
 
-  open Specification.Value.Signature ValueSig
+  open Specification.Cardano.Value.Signature ValueSig
 ```
 
 ## Operations

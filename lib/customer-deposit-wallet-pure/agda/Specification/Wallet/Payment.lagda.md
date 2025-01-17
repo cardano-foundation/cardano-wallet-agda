@@ -11,14 +11,14 @@ open import Haskell.Prelude
 open import Haskell.Reasoning
 open import Haskell.Data.Maybe using (isJust)
 
-import Specification.Value
+import Specification.Cardano.Value
 
 module
   Specification.Wallet.Payment
-    (ValueSig : Specification.Value.Signature)
+    (ValueSig : Specification.Cardano.Value.Signature)
   where
 
-open Specification.Value.Signature ValueSig
+open Specification.Cardano.Value.Signature ValueSig
 ```
 
 ## Signature

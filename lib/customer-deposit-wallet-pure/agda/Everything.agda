@@ -17,7 +17,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
 
 import Cardano.Wallet.Deposit.Pure.Experimental
 import Specification
-import Specification.Value
+import Specification.Cardano.Value
 import Specification.Wallet.Payment
 import Implementation
 

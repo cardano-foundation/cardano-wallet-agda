@@ -43,9 +43,9 @@ import Haskell.Data.Map as Map
     Value
 ------------------------------------------------------------------------------}
 
-import Specification.Value
+import Specification.Cardano.Value
 
-ValueSig : Specification.Value.Signature
+ValueSig : Specification.Cardano.Value.Signature
 ValueSig = record
   { Value = Read.Value
   ; add = Read.add
