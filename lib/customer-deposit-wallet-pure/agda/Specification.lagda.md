@@ -2,17 +2,24 @@
 
 ## Synopsis
 
-🚧 DRAFT 2025-01-16
+🚧 DRAFT 2025-01-17
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
 
-A customer deposit wallet allows you to track the origin of incoming funds:
+A deposit wallet allows you to track the **origin of incoming funds**:
 Each customer is assigned a unique address belonging to the wallet;
 a deposit made at this address is treated as originating from the customer.
 
+However, outgoing funds are not distinguished by customer
+— once funds have gone into the wallet,
+they are all part of a **single wallet balance**.
+
+A deposit wallet is useful for businesses such
+as centralized exchanges (CEX) or e-shops on Cardano.
+
 Technically, each customer is represented by a numerical index (natural number).
-Essentially, the deposit wallet manages a mapping between indices and addresses,
+The deposit wallet manages a mapping between indices and addresses,
 and tracks incoming funds for each known address.
 
 # Setup
