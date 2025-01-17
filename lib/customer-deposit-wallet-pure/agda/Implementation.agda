@@ -11,6 +11,8 @@ module Implementation where
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
+open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
+
 open import Cardano.Wallet.Deposit.Pure.Experimental using
     ( TxSummary
     ; ValueTransfer
@@ -126,7 +128,7 @@ properties = record
         λ _ s destinations tx eq1 address eq2 neq3 rel4 →
             Wallet.prop-createPayment-not-known
                 s destinations tx eq1 address eq2 neq3
-                (subst (Specification._∈_ address) (lem1 (TxBody.outputs tx)) rel4)
+                (subst (_∈_ address) (lem1 (TxBody.outputs tx)) rel4)
     }
   where
     lem1

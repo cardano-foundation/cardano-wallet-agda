@@ -63,47 +63,29 @@ module Specification where
 
 ## Imports
 
-### Standard
-
-In order to formulate the specification, we need to import standard vocabulary:
+In order to formulate the specification, we need to import standard Haskell vocabulary:
 
 ```agda
 open import Haskell.Prelude
 open import Haskell.Reasoning
-
-open import Haskell.Data.Word.Odd using (Word31)
 ```
 
-We also define a few conveniences:
+and also
 
-A predicate `_∈_` that records whether an item is an element of a list
+* [Specification.Common](Specification/Common.lagda.md)
+  — Minor additional Haskell concepts.
 
-```agda
-_∈_ : ∀ {a : Set} {{_ : Eq a}} → a → List a → Set
-x ∈ xs = elem x xs ≡ True
-```
-
-The logical combinator "if and only if"
-
-```agda
-_⇔_ : Set → Set → Set
-x ⇔ y = (x → y) ⋀ (y → x)
-```
-
-```agda
-isSubsetOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
-isSubsetOf xs ys = all (λ x → elem x ys) xs
-```
-
-### Cardano
-
-We also need to import concepts that are specific to Cardano.
-These concepts are specified here:
+In addition, we need to import concepts that are specific to Cardano:
 
 * [Specification.Value](Specification/Value.lagda.md)
+  — Monetary `Value`.
 
 <!--
 ```agda
+open import Haskell.Data.Word.Odd using (Word31)
+
+open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
+
 import Specification.Value
 ```
 -->
