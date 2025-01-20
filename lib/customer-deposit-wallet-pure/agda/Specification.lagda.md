@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-🚧 DRAFT 2025-01-17
+🚧 DRAFT 2025-01-20
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
@@ -63,7 +63,7 @@ module Specification where
 
 ## Imports
 
-In order to formulate the specification, we need to import standard Haskell vocabulary:
+In order to formulate the specification, we need to import standard Haskell vocabulary
 
 ```agda
 open import Haskell.Prelude
@@ -75,11 +75,12 @@ and also
 * [Specification.Common](Specification/Common.lagda.md)
   — Minor additional Haskell concepts.
 
-In addition, we need to import concepts that are specific to Cardano:
+In addition, we also need to import concepts that are specific to Cardano:
 
-* [Specification.Cardano.Tx](Specification/Cardano/Value.lagda.md)
+* [Specification.Cardano](Specification/Cardano.lagda.md)
+  * [Specification.Cardano.Tx](Specification/Cardano/Value.lagda.md)
   — Transaction type `Tx`.
-* [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
+  * [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
   — Monetary `Value`.
 
 <!--
@@ -88,8 +89,7 @@ open import Haskell.Data.Word.Odd using (Word31)
 
 open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
 
-import Specification.Cardano.Value
-import Specification.Cardano.Tx
+import Specification.Cardano
 ```
 -->
 
@@ -105,24 +105,28 @@ The goal of this document is to specify the operations
 on this abstract data type and the logical properties that relate them.
 
 We define a `module` `DepositWallet` which is parametrized by
-several definitions from the Cardano ledger,
-but also by the abstract data type `WalletState` that we wish to specify.
+
+* the abstract data type `WalletState` that we wish to specify, and
+* an implementation `CardanoSig` of concepts that are related to Cardano,
+and which we need to express the specification.
 
 ```agda
 module
   DepositWallet
     (WalletState : Set)
-    (Address : Set)
-    {{_ : Eq Address}}
-    (Slot : Set)
-    (ValueSig : Specification.Cardano.Value.Signature)
-    (TxSig : Specification.Cardano.Tx.Signature Address (Specification.Cardano.Value.Signature.Value ValueSig))
-    (PParams : Set)
+    (CardanoSig : Specification.Cardano.Signature)
   where
 
-  open Specification.Cardano.Value.Signature ValueSig
-  open Specification.Cardano.Tx.Signature TxSig
+  open Specification.Cardano.Signature CardanoSig
 ```
+
+For improved readability, we use the synonym
+
+```agda
+  Address = CompactAddr
+```
+
+to refer to addresses on Cardano.
 
 ## Operations
 

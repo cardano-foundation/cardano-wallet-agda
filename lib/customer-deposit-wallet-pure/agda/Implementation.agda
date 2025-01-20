@@ -39,14 +39,13 @@ import Cardano.Wallet.Read as Read
 import Haskell.Data.Map as Map
 
 {-----------------------------------------------------------------------------
-    Signature
-    Value
+    Specification.Cardano
 ------------------------------------------------------------------------------}
 
 import Specification.Cardano.Value
 
-ValueSig : Specification.Cardano.Value.Signature
-ValueSig = record
+SigValue : Specification.Cardano.Value.Signature
+SigValue = record
   { Value = Read.Value
   ; add = Read.add
   ; empty = mempty
@@ -59,11 +58,6 @@ ValueSig = record
   ; prop-add-monotone = Read.prop-add-monotone
   }
 
-{-----------------------------------------------------------------------------
-    Signature
-    Tx
-------------------------------------------------------------------------------}
-
 import Specification.Cardano.Tx
 
 -- Helper function
@@ -71,12 +65,24 @@ pairFromTxOut : Read.TxOut → (Read.CompactAddr × Read.Value)
 pairFromTxOut =
     λ txout → (Read.getCompactAddr txout , Read.getValue txout)
 
-TxSig : Specification.Cardano.Tx.Signature Read.CompactAddr Read.Value
-TxSig = record
+SigTx : Specification.Cardano.Tx.Signature Read.CompactAddr Read.Value
+SigTx = record
   { TxBody = TxBody
   ; Tx = Read.Tx Conway
   ; TxId = Read.TxId
   ; outputs = map pairFromTxOut ∘ TxBody.outputs
+  }
+
+import Specification.Cardano
+
+SigCardano : Specification.Cardano.Signature
+SigCardano = record
+  { CompactAddr = Address
+  ; iEqCompactAddr = Read.iEqCompactAddr
+  ; PParams = ⊤
+  ; Slot = Slot
+  ; SigValue = SigValue
+  ; SigTx = SigTx
   }
 
 {-----------------------------------------------------------------------------
@@ -89,11 +95,7 @@ import Specification
 module DepositWallet =
     Specification.DepositWallet
         WalletState
-        Address
-        Slot
-        ValueSig
-        TxSig
-        ⊤
+        SigCardano
 
 {-----------------------------------------------------------------------------
     Operations
