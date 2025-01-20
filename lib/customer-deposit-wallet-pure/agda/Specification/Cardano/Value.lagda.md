@@ -4,7 +4,7 @@ This document provides a partial specification of the `Value` type,
 as needed by the Deposit Wallet.
 
 ```agda
-module Specification.Value where
+module Specification.Cardano.Value where
 ```
 
 A `Value` represents monetary value.

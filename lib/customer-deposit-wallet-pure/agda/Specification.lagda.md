@@ -2,17 +2,24 @@
 
 ## Synopsis
 
-🚧 DRAFT 2025-01-16
+🚧 DRAFT 2025-01-20
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
 
-A customer deposit wallet allows you to track the origin of incoming funds:
+A deposit wallet allows you to track the **origin of incoming funds**:
 Each customer is assigned a unique address belonging to the wallet;
 a deposit made at this address is treated as originating from the customer.
 
-Technically, each customer is represented by a numerical index (natural number).
-Essentially, the deposit wallet manages a mapping between indices and addresses,
+However, outgoing funds are not distinguished by customer
+— once funds have gone into the wallet,
+they are all part of a **single wallet balance**.
+
+A deposit wallet is useful for businesses such
+as centralized exchanges (CEX) or e-shops on Cardano.
+
+Technically, each customer is represented by a numerical index starting at `0`.
+The deposit wallet manages a mapping between indices and addresses,
 and tracks incoming funds for each known address.
 
 # Setup
@@ -56,48 +63,33 @@ module Specification where
 
 ## Imports
 
-### Standard
-
-In order to formulate the specification, we need to import standard vocabulary:
+In order to formulate the specification, we need to import standard Haskell vocabulary
 
 ```agda
 open import Haskell.Prelude
 open import Haskell.Reasoning
-
-open import Haskell.Data.Word.Odd using (Word31)
 ```
 
-We also define a few conveniences:
+and also
 
-A predicate `_∈_` that records whether an item is an element of a list
+* [Specification.Common](Specification/Common.lagda.md)
+  — Minor additional Haskell concepts.
 
-```agda
-_∈_ : ∀ {a : Set} {{_ : Eq a}} → a → List a → Set
-x ∈ xs = elem x xs ≡ True
-```
+In addition, we also need to import concepts that are specific to Cardano:
 
-The logical combinator "if and only if"
-
-```agda
-_⇔_ : Set → Set → Set
-x ⇔ y = (x → y) ⋀ (y → x)
-```
-
-```agda
-isSubsetOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
-isSubsetOf xs ys = all (λ x → elem x ys) xs
-```
-
-### Cardano
-
-We also need to import concepts that are specific to Cardano.
-These concepts are specified here:
-
-* [Specification.Value](Specification/Value.lagda.md)
+* [Specification.Cardano](Specification/Cardano.lagda.md)
+  * [Specification.Cardano.Tx](Specification/Cardano/Value.lagda.md)
+  — Transaction type `Tx`.
+  * [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
+  — Monetary `Value`.
 
 <!--
 ```agda
-import Specification.Value
+open import Haskell.Data.Word.Odd using (Word31)
+
+open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
+
+import Specification.Cardano
 ```
 -->
 
@@ -113,25 +105,28 @@ The goal of this document is to specify the operations
 on this abstract data type and the logical properties that relate them.
 
 We define a `module` `DepositWallet` which is parametrized by
-several definitions from the Cardano ledger,
-but also by the abstract data type `WalletState` that we wish to specify.
+
+* the abstract data type `WalletState` that we wish to specify, and
+* an implementation `CardanoSig` of concepts that are related to Cardano,
+and which we need to express the specification.
 
 ```agda
 module
   DepositWallet
     (WalletState : Set)
-    (Address : Set)
-    {{_ : Eq Address}}
-    (Tx : Set)
-    (TxBody : Set)
-    (TxId : Set)
-    (Slot : Set)
-    (ValueSig : Specification.Value.Signature)
-    (PParams : Set)
+    (CardanoSig : Specification.Cardano.Signature)
   where
 
-  open Specification.Value.Signature ValueSig
+  open Specification.Cardano.Signature CardanoSig
 ```
+
+For improved readability, we use the synonym
+
+```agda
+  Address = CompactAddr
+```
+
+to refer to addresses on Cardano.
 
 ## Operations
 
@@ -196,9 +191,9 @@ The following record collects the properties:
 
 The type `Customer` denotes a unique identier for a customer.
 For reasons explained later, we choose to represent this type
-as numerical indices, i.e. natural numbers:
+as numerical indices:
 
-    Customer = Nat
+    Customer = Word31
 
 The mapping between customers and addresses will be queried and established with
 the following operations:
@@ -362,9 +357,6 @@ where we can prove this property. This topic is discussed in
 Second, the transaction sends funds as indicated
 
 ```agda
-    field
-      outputs : TxBody → List (Address × Value)
-
     field
       prop-createPayment-pays
         : ∀ (s : WalletState)
