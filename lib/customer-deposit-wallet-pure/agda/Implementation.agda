@@ -57,6 +57,26 @@ ValueSig = record
   }
 
 {-----------------------------------------------------------------------------
+    Signature
+    Tx
+------------------------------------------------------------------------------}
+
+import Specification.Cardano.Tx
+
+-- Helper function
+pairFromTxOut : Read.TxOut → (Read.CompactAddr × Read.Value)
+pairFromTxOut =
+    λ txout → (Read.getCompactAddr txout , Read.getValue txout)
+
+TxSig : Specification.Cardano.Tx.Signature Read.CompactAddr Read.Value
+TxSig = record
+  { TxBody = TxBody
+  ; Tx = Read.Tx Conway
+  ; TxId = Read.TxId
+  ; outputs = map pairFromTxOut ∘ TxBody.outputs
+  }
+
+{-----------------------------------------------------------------------------
     Module
     DepositWallet
 ------------------------------------------------------------------------------}
@@ -67,11 +87,9 @@ module DepositWallet =
     Specification.DepositWallet
         WalletState
         Address
-        (Tx Conway)
-        TxBody
-        TxId
         Slot
         ValueSig
+        TxSig
         ⊤
 
 {-----------------------------------------------------------------------------
@@ -106,10 +124,6 @@ operations = record
 {-----------------------------------------------------------------------------
     Properties
 ------------------------------------------------------------------------------}
--- Helper function
-pairFromTxOut : Read.TxOut → (Read.CompactAddr × Read.Value)
-pairFromTxOut =
-    λ txout → (Read.getCompactAddr txout , Read.getValue txout)
 
 @0 properties : DepositWallet.Properties operations
 properties = record
@@ -122,7 +136,6 @@ properties = record
     ; prop-getAddressHistory-summary = {!  !}
     ; prop-tx-known-address = {!   !}
 
-    ; outputs = map pairFromTxOut ∘ TxBody.outputs
     ; prop-createPayment-pays = {!   !}
     ; prop-createPayment-not-known =
         λ _ s destinations tx eq1 address eq2 neq3 rel4 →

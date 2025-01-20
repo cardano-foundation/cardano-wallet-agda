@@ -77,6 +77,8 @@ and also
 
 In addition, we need to import concepts that are specific to Cardano:
 
+* [Specification.Cardano.Tx](Specification/Cardano/Value.lagda.md)
+  — Transaction type `Tx`.
 * [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
   — Monetary `Value`.
 
@@ -87,6 +89,7 @@ open import Haskell.Data.Word.Odd using (Word31)
 open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
 
 import Specification.Cardano.Value
+import Specification.Cardano.Tx
 ```
 -->
 
@@ -111,15 +114,14 @@ module
     (WalletState : Set)
     (Address : Set)
     {{_ : Eq Address}}
-    (Tx : Set)
-    (TxBody : Set)
-    (TxId : Set)
     (Slot : Set)
     (ValueSig : Specification.Cardano.Value.Signature)
+    (TxSig : Specification.Cardano.Tx.Signature Address (Specification.Cardano.Value.Signature.Value ValueSig))
     (PParams : Set)
   where
 
   open Specification.Cardano.Value.Signature ValueSig
+  open Specification.Cardano.Tx.Signature TxSig
 ```
 
 ## Operations
@@ -351,9 +353,6 @@ where we can prove this property. This topic is discussed in
 Second, the transaction sends funds as indicated
 
 ```agda
-    field
-      outputs : TxBody → List (Address × Value)
-
     field
       prop-createPayment-pays
         : ∀ (s : WalletState)
