@@ -49,8 +49,11 @@ ValueSig : Specification.Cardano.Value.Signature
 ValueSig = record
   { Value = Read.Value
   ; add = Read.add
+  ; empty = mempty
   ; iEqValue = Read.iEqValue
   ; largerOrEqual = Read.largerOrEqual
+  ; prop-add-x-empty = IsLawfulMonoid.rightIdentity Read.iIsLawfulMonoidValue
+  ; prop-add-empty-x = IsLawfulMonoid.leftIdentity Read.iIsLawfulMonoidValue
   ; prop-add-assoc = λ x y z → sym (IsLawfulSemigroup.associativity Read.iIsLawfulSemigroupValue x y z)
   ; prop-add-sym = Read.prop-Value-<>-sym
   ; prop-add-monotone = Read.prop-add-monotone
