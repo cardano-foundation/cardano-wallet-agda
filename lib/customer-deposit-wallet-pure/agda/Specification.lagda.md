@@ -18,7 +18,7 @@ they are all part of a **single wallet balance**.
 A deposit wallet is useful for businesses such
 as centralized exchanges (CEX) or e-shops on Cardano.
 
-Technically, each customer is represented by a numerical index (natural number).
+Technically, each customer is represented by a numerical index starting at `0`.
 The deposit wallet manages a mapping between indices and addresses,
 and tracks incoming funds for each known address.
 
@@ -187,9 +187,9 @@ The following record collects the properties:
 
 The type `Customer` denotes a unique identier for a customer.
 For reasons explained later, we choose to represent this type
-as numerical indices, i.e. natural numbers:
+as numerical indices:
 
-    Customer = Nat
+    Customer = Word31
 
 The mapping between customers and addresses will be queried and established with
 the following operations:
