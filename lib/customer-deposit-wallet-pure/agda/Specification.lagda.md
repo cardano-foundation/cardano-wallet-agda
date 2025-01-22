@@ -87,7 +87,8 @@ In addition, we also need to import concepts that are specific to Cardano:
 ```agda
 open import Haskell.Data.Word.Odd using (Word31)
 
-open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
+open import Specification.Common using
+  (_⇔_; _∈_; isSubsetOf; isJust; nub)
 
 import Specification.Cardano
 ```
@@ -114,6 +115,7 @@ and which we need to express the specification.
 module
   DepositWallet
     (WalletState : Set)
+    (XPub : Set)
     (CardanoSig : Specification.Cardano.Signature)
   where
 
@@ -157,8 +159,9 @@ Operations:
   record Operations : Set where
     field
 
-      listCustomers : WalletState → List (Customer × Address)
-      createAddress : Customer → WalletState → (Address × WalletState)
+      deriveCustomerAddress : XPub → Customer → Address
+      fromXPubAndMax        : XPub → Word31 → WalletState
+      listCustomers         : WalletState → List (Customer × Address)
 
       availableBalance : WalletState → Value
       applyTx : Tx → WalletState → WalletState
@@ -178,77 +181,110 @@ the operations should satisfy.
 The following record collects the properties:
 
 ```agda
-  record Properties
-      (O : Operations)
-      : Set₁
-    where
+  record Properties (O : Operations) : Set₁ where
     open Operations O
 ```
 
-(For some reason, it needs to be in `Set₁`.)
-
 ### Mapping between Customers and Address
 
-The type `Customer` denotes a unique identier for a customer.
+The type `Customer` denotes a unique identifier for a customer.
 For reasons explained later, we choose to represent this type
 as numerical indices:
 
     Customer = Word31
 
-The mapping between customers and addresses will be queried and established with
+The mapping between customers and addresses is maintained by
 the following operations:
 
-    listCustomers : WalletState → List (Customer × Address)
-    createAddress : Customer → WalletState → (Address × WalletState)
+    deriveCustomerAddress : XPub → Customer → Address
 
-Here, `listCustomers` lists all customer/address pairs that have been mapped to each other so far.
-In turn, `createAddress` adds a new customer/address to the mapping.
+    fromXPubAndMax        : XPub → Word31 → WalletState
+    listCustomers         : WalletState → List (Customer × Address)
 
-In order to express how these functions are related, we define
+Here
+
+* `deriveCustomerAddress` deterministically creates an address
+  for a given customer index.
+
+* `fromXPubAndMax xpub cmax` creates an empty `WalletState`
+  at genesis which keeps track of customers indices `0` to `cmax`.
+  Their addresses are derived deterministically from the public key `xpub`.
+
+* `listCustomers` returns the mapping between customers and addresses
+  currently maintained by the `WalletState`.
+
+In order to make the specification clear and simple,
+we do not allow the mapping between customers and addresses
+to change after creation
+— the idea is that `listCustomers` will always return the same result,
+no matter how the `WalletState` is changed subsequently.
+
+The result of the function `listCustomers` contains
+the entire mapping between customers and addresses.
+The following definitions make this mapping easier to discuss:
 
 ```agda
+    customerAddress : Customer → WalletState → Maybe Address
+    customerAddress c = lookup c ∘ listCustomers
+
     knownCustomer : Customer → WalletState → Bool
-    knownCustomer c = elem c ∘ map fst ∘ listCustomers
+    knownCustomer c = isJust ∘ customerAddress c
 
     knownCustomerAddress : Address → WalletState → Bool
-    knownCustomerAddress address = elem address ∘ map snd ∘ listCustomers
+    knownCustomerAddress a = elem a ∘ map snd ∘ listCustomers
 ```
 
-Here, a `knownCustomer` is a `Customer` that appears in the result of `listCustomers`,
-while `knownCustomerAddress` is an `Address` that appears in the result.
-Note that a deposit wallet may own additional `Addresses` not included here,
-such as change addresses — but these addresses are not customer addresses.
-
-The two operations are related by the property
+We require that the mapping is a bijection
 
 ```agda
-    field
+    unique : {{Eq a}} → List a → Bool
+    unique xs = nub xs == xs
 
-      prop-create-known
-        : ∀(c : Customer) (s0 : WalletState)
-        → let (address , s1) = createAddress c s0
-          in  knownCustomerAddress address s1 ≡ True
+    isBijection : ∀ {{_ : Eq a}} {{_ : Eq b}} → List (a × b) → Bool
+    isBijection xys = unique (map fst xys) && unique (map snd xys)
+
+    field
+      prop-listCustomers-isBijection
+        : ∀ (s : WalletState)
+        → isBijection (listCustomers s) ≡ True
 ```
 
-### Address derivation
+The relation between `listCustomers` and `fromXPubAndMax`
+is specified as follows:
+
+First, the mapping precisely contains customers indices `0` to `count - 1`:
+
+```agda
+      prop-listCustomers-fromXPubAndMax-max
+        : ∀ (c : Customer) (xpub : XPub) (cmax : Word31)
+        → knownCustomer c (fromXPubAndMax xpub cmax)
+          ≡ (0 <= c && c <= cmax)
+```
+
+Second, the addresses are derived deterministically from
+the public key and the customer index.
+
+```agda
+      prop-listCustomers-fromXPubAndMax-xpub
+        : ∀ (c : Customer) (xpub : XPub) (cmax : Word31) (addr : Address)
+        → customerAddress c (fromXPubAndMax xpub cmax)
+          ≡ Just addr
+        → deriveCustomerAddress xpub c
+          ≡ addr
+```
+
+The idea is that these properties hold not only for the initial state
+at `fromXPubAndMax`, but also for any state obtained through
+other operations such as `applyTx`.
 
 For compatibility with hardware wallets and the [BIP-32][] standard,
 we derive the `Address` of each customer from the root private key
-of the wallet in a deterministic fashion:
+of the wallet in a deterministic fashion.
+Specifically, using the notation of [BIP-32][] in pseudo-code,
+we require that
 
-```agda
-      deriveAddress : WalletState → (Customer → Address)
-
-      prop-create-derive
-        : ∀(c : Customer) (s0 : WalletState)
-        → let (address , _) = createAddress c s0
-          in  deriveAddress s0 c ≡ address
-```
-
-Specifically, in the notation of [BIP-32][], we use
-
-  	deriveAddress : WalletState → Nat → Address
-	  deriveAddress s ix = rootXPrv s / 1857' / 1815' / 0' / 0 / ix
+  	deriveCustomerAddress : WalletState → Word31 → Address
+	  deriveCustomerAddress s ix = rootXPrv s / 1857' / 1815' / 0' / 0 / ix
 
 Here, `1857` is a new “purpose” identifier; we cannot reuse the [CIP-1852][] standard, because it behaves differently when discovering funds in blocks.
 
@@ -256,7 +292,7 @@ Here, `1857` is a new “purpose” identifier; we cannot reuse the [CIP-1852][]
   [cip-1852]: https://cips.cardano.org/cips/cip1852/
 
 This method of deriving addresses is also the reason why we choose
-a concrete representation of `Customer` as a natural number.
+a concrete representation of `Customer` as `Word31`.
 
 ### Applying transactions
 
@@ -269,9 +305,9 @@ by Edsko and Duncan in Agda. To be specified in a separate document.
 
 ### Tracking incoming funds
 
-Beyond assigning an address to a customer,
-the new wallet state returned by `createAddress`
-also tracks this address whenever new blocks are incorporated into the wallet state.
+The wallet tracks all addresses in `listCustomers`
+whenever new blocks are incorporated into the wallet state.
+
 For this purpose of tracking, we introduce an operation
 
     getCustomerHistory : WalletState → Customer → List TxSummary
@@ -288,9 +324,7 @@ which returns a list of transaction summaries. For a given transaction, such a s
     TxSummary : Set
     TxSummary = Slot × TxId × ValueTransfer
 
-Note that `Value` includes both native coins (ADA) and
-user-defined assets, such as stablecoins NFTs.
-Also note that the customer deposit wallet does not support
+Note that the customer deposit wallet does not support
 delegation and reward accounts, and the `spent` value
 can only be spent from transaction outputs.
 
