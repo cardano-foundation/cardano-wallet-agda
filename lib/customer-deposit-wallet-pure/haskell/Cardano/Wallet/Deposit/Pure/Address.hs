@@ -51,19 +51,19 @@ import Cardano.Wallet.Address.Encoding
     , fromNetworkId
     )
 import Cardano.Wallet.Deposit.Read.Temp (Address)
-import qualified Cardano.Wallet.Read.Address (CompactAddr)
-import Cardano.Wallet.Read.Chain (NetworkId)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
 import Data.Word.Odd (Word31)
-import qualified Haskell.Data.Map.Def as Map
-    ( Map
-    , empty
-    , insert
-    , lookup
-    , toAscList
-    )
-import Haskell.Data.Maybe (isJust)
 import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( NetworkId (..)
+    )
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe
+    ( isJust
+    )
 
 -- |
 -- A 'Customer' is represented as a numerical ID.
@@ -233,8 +233,7 @@ createAddress c s0 = (addr, s1)
     net = getNetworkTag s0
     addr :: Address
     addr = deriveCustomerAddress net xpub c
-    addresses1
-        :: Map.Map Cardano.Wallet.Read.Address.CompactAddr Word31
+    addresses1 :: Map.Map Address Customer
     addresses1 = Map.insert addr c (addresses s0)
     s1 :: AddressState
     s1 =

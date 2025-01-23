@@ -22,13 +22,26 @@ module Cardano.Wallet.Address.Encoding
 where
 
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub, rawPublicKeyFromXPub)
-import Cardano.Wallet.Address.Hash (blake2b'224)
-import Cardano.Wallet.Read.Address (CompactAddr, fromShortByteString)
-import Cardano.Wallet.Read.Chain (NetworkId (Mainnet, Testnet))
 import Data.Word (Word8)
-import Haskell.Data.ByteString.Short (ShortByteString, singleton, toShort)
-import Haskell.Data.Maybe (fromJust)
 import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import Cardano.Crypto.Hash.Monomorphic
+    ( blake2b'224
+    )
+import Cardano.Wallet.Read
+    ( CompactAddr
+    , NetworkId (..)
+    , fromShortByteString
+    )
+import Data.ByteString.Short
+    ( ShortByteString
+    , singleton
+    , toShort
+    )
+import Data.Maybe
+    ( fromJust
+    )
 
 -- |
 -- Hash of a public key.

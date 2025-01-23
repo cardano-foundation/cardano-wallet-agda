@@ -12,6 +12,15 @@ open import Cardano.Wallet.Read public using
     ; TxOut
     )
 
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( CompactAddr
+    , TxIn
+    , TxOut
+    )
+#-}
+
 {-----------------------------------------------------------------------------
     Address
 ------------------------------------------------------------------------------}

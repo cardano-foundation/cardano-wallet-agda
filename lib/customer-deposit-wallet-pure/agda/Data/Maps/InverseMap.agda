@@ -1,5 +1,5 @@
 -- | A type representing the inverse of a 'Map'
-module Haskell.Data.Maps.InverseMap where
+module Data.Maps.InverseMap where
 
 open import Haskell.Prelude
 
@@ -18,6 +18,15 @@ open import Haskell.Data.Set using
 
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Data.List (foldl')
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
+#-}
 
 {-----------------------------------------------------------------------------
     Inverse Map

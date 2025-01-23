@@ -14,11 +14,11 @@ open import Cardano.Wallet.Deposit.Pure.RollbackWindow using
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
+open import Data.Maps.Timeline using
+    ( Timeline
+    )
 open import Haskell.Data.Map using
     ( Map
-    )
-open import Haskell.Data.Maps.Timeline using
-    ( Timeline
     )
 open import Haskell.Data.Set using
     ( ℙ
@@ -26,6 +26,18 @@ open import Haskell.Data.Set using
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
+#-}
+
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( Slot
+    , SlotNo
+    , TxIn
+    )
+import Data.Map (Map)
+import Data.Set (Set)
 #-}
 
 {-----------------------------------------------------------------------------

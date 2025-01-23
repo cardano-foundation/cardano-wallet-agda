@@ -33,23 +33,12 @@ import Cardano.Wallet.Address.BIP32
     )
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPrv, XPub, XSignature, verify)
 import Data.Word.Odd (Word31)
-import qualified Haskell.Cardano.Crypto.Wallet as CC
-    ( DerivationScheme (DerivationScheme2)
-    , XPub
-    , deriveXPrv
-    , sign
-    , toXPub
-    , unXPrv
-    , unXSignature
-    , word32fromWord31High
-    , word32fromWord31Low
-    , xPrvChangePass
-    , xprv
-    , xsignature
-    )
-import Haskell.Data.ByteString (ByteString)
-import qualified Haskell.Data.ByteString as BS (empty)
 import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import qualified Cardano.Crypto.Wallet.Extra as CC
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 
 -- |
 -- A passphrase for encrypting a private key.

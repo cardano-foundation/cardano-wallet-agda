@@ -1,6 +1,6 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Haskell.Cardano.Crypto.Wallet
+module Cardano.Crypto.Wallet.Extra
     ( module Cardano.Crypto.Wallet
     , xpub
     , xPrvChangePass

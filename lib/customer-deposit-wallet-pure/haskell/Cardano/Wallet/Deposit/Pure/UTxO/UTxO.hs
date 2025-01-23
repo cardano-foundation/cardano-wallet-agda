@@ -35,23 +35,19 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxO
 where
 
 import Cardano.Wallet.Deposit.Read.Temp (Address)
-import Cardano.Wallet.Read.Tx (TxIn, TxOut, getCompactAddr, getValue)
-import Cardano.Wallet.Read.Value (Value)
 import Data.Set (Set)
-import qualified Haskell.Data.Map.Def as Map
-    ( Map
-    , disjoint
-    , empty
-    , filter
-    , keysSet
-    , member
-    , null
-    , restrictKeys
-    , unionWith
-    , withoutKeys
-    )
-import qualified Haskell.Data.Set.Def as Set (filter)
 import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( TxIn
+    , TxOut
+    , Value
+    , getCompactAddr
+    , getValue
+    )
+import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 -- |
 -- The type 'UTxO' is used to keep track of unspent transaction outputs.

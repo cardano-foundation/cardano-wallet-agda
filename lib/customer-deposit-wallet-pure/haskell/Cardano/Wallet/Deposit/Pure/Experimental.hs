@@ -16,17 +16,11 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO (applyTx)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (balance)
 import Cardano.Wallet.Deposit.Read.Temp (Address, TxBody)
-import Cardano.Wallet.Read.Block (Block, getEraTransactions)
-import Cardano.Wallet.Read.Chain (ChainPoint, getChainPoint)
-import Cardano.Wallet.Read.Eras (IsEra)
-import Cardano.Wallet.Read.Tx (Tx, TxOut, mkBasicTxOut)
-import Cardano.Wallet.Read.Value (Value)
 import Cardano.Write.Tx.Balance
     ( ChangeAddressGen
     , PartialTx (PartialTxC)
     , balanceTransaction
     )
-import qualified Haskell.Data.Map.Def as Map (Map, lookup)
 import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
@@ -43,6 +37,31 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     ( UTxO
     )
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
+
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( Block
+    , ChainPoint (..)
+    , IsEra
+    , NetworkId
+    , Slot
+    , Tx
+    , TxId
+    , TxIn
+    , TxOut
+    , Value
+    , getChainPoint
+    , getCompactAddr
+    , getEraTransactions
+    , getValue
+    , largerOrEqual
+    , mkBasicTxOut
+    )
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe
+    ( isJust
+    )
 
 data WalletState = WalletState
     { addresses :: AddressState

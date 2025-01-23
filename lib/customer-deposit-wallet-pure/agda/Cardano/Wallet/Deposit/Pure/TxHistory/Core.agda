@@ -41,9 +41,9 @@ open import Haskell.Data.Set using
     ( ℙ
     )
 
+import Data.Maps.PairMap as PairMap
+import Data.Maps.Timeline as Timeline
 import Haskell.Data.Map as Map
-import Haskell.Data.Maps.PairMap as PairMap
-import Haskell.Data.Maps.Timeline as Timeline
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS
@@ -51,9 +51,26 @@ import Haskell.Data.Set as Set
 import Cardano.Wallet.Deposit.Pure.TxHistory.Type
     ( TxHistory (..)
     )
+import Data.List
+    ( foldl'
+    )
 import Data.Foldable
     ( toList
     )
+import Cardano.Wallet.Read
+    ( ChainPoint (..)
+    , Slot
+    , SlotNo
+    , TxId
+    , WithOrigin (..)
+    , IsEra
+    , slotFromChainPoint
+    )
+import qualified Cardano.Wallet.Read as Read
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 #-}
 
 {-----------------------------------------------------------------------------
@@ -183,7 +200,9 @@ rollForward {era} newTip txs history =
     insertValueTransfer m0 (txid , tx) =
         foldl' (uncurry ∘ fun) m0 (Map.toAscList mv)
       where
+        mv : Map Address ValueTransfer
         mv = valueTransferFromResolvedTx tx
+
         fun = λ m addr v → PairMap.insert txid addr v m
 
 {-|

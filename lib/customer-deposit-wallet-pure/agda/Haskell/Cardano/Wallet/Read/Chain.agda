@@ -7,15 +7,15 @@ Unfortunately, mirroring the hidden child modules is not supported
 Cardano.Wallet.Read.Chain *here*.
 
 -}
-module Cardano.Wallet.Read.Chain where
+module Haskell.Cardano.Wallet.Read.Chain where
 
 open import Haskell.Reasoning
 open import Haskell.Prelude
 
-open import Cardano.Wallet.Read.Eras using
+open import Haskell.Cardano.Wallet.Read.Eras using
     ( IsEra
     )
-open import Cardano.Wallet.Read.Block using
+open import Haskell.Cardano.Wallet.Read.Block using
     ( Block
     ; BlockNo
     ; HeaderHash
@@ -23,7 +23,7 @@ open import Cardano.Wallet.Read.Block using
     ; SlotNo
     )
 
-import Cardano.Wallet.Read.Block as Block
+import Haskell.Cardano.Wallet.Read.Block as Block
 
 {-----------------------------------------------------------------------------
     Cardano.Wallet.Read.Chain.Point

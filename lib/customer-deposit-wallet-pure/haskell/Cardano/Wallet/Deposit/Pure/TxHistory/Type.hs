@@ -4,12 +4,17 @@ module Cardano.Wallet.Deposit.Pure.TxHistory.Type where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
 import Cardano.Wallet.Deposit.Read.Temp (Address)
-import Cardano.Wallet.Read.Chain (ChainPoint, Slot)
-import Cardano.Wallet.Read.Tx (TxId)
-import Haskell.Data.Map.Def (Map)
-import Haskell.Data.Maps.PairMap (PairMap)
-import Haskell.Data.Maps.Timeline (Timeline)
+import Data.Maps.PairMap (PairMap)
+import Data.Maps.Timeline (Timeline)
 import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( ChainPoint (..)
+    , Slot
+    , TxId
+    )
+import Data.Map (Map)
 
 -- |
 -- 'TxHistory'.

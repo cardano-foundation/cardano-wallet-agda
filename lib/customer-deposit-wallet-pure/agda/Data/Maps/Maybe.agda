@@ -1,6 +1,6 @@
 {-# OPTIONS --erasure #-}
 
-module Haskell.Data.Maps.Maybe
+module Data.Maps.Maybe
     {-
     This module adds functions for the 'Maybe' type
     that are analogous to the functions in 'Data.Map'.

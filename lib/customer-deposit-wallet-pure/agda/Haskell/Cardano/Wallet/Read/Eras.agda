@@ -1,7 +1,7 @@
 {-# OPTIONS --erasure #-}
 
 -- Synchronized manually with the corresponding Haskell module.
-module Cardano.Wallet.Read.Eras where
+module Haskell.Cardano.Wallet.Read.Eras where
 
 open import Haskell.Prelude
 

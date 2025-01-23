@@ -95,9 +95,7 @@ open import Cardano.Wallet.Read using
       ; getValue
       ; mkBasicTxOut
       ; prop-getCompactAddr-mkBasicTxOut
-    )
-open import Cardano.Wallet.Read.Value public using
-    ( Value
+    ; Value
       ; largerOrEqual
       ; iEqValue
     )
@@ -120,6 +118,33 @@ import Cardano.Wallet.Deposit.Pure.Address as Addr
 import Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Haskell.Data.Map as Map
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+  ( Block
+  , getEraTransactions
+  , ChainPoint (..)
+  , getChainPoint
+  , IsEra
+  , NetworkId
+  , Slot
+  , Tx
+  , TxId
+  , TxIn
+  , TxOut
+  , getCompactAddr
+  , getValue
+  , mkBasicTxOut
+  , Value
+  , largerOrEqual
+  )
+import Data.Maybe
+  ( isJust
+  )
+import Data.Map (Map)
+import qualified Data.Map as Map
+#-}
 
 {-----------------------------------------------------------------------------
     Type definition

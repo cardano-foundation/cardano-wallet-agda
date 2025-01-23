@@ -62,11 +62,11 @@ library
     , text
     , OddWord
   exposed-modules:
+    Cardano.Crypto.Hash.Monomorphic
     Cardano.Wallet.Address.BIP32
     Cardano.Wallet.Address.BIP32_Ed25519
     Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
     Cardano.Wallet.Address.Encoding
-    Cardano.Wallet.Address.Hash
     Cardano.Wallet.Deposit.Pure.Experimental
     Cardano.Wallet.Deposit.Pure.Address
     Cardano.Wallet.Deposit.Pure.RollbackWindow
@@ -87,22 +87,6 @@ library
     Data.Maps.InverseMap
     Data.Maps.PairMap
     Data.Maps.Timeline
-    Data.Map.Law
   other-modules:
-    Haskell.Cardano.Crypto.Wallet
-    Haskell.Data.ByteString
-    Haskell.Data.ByteString.Short
-    Haskell.Data.List
-    Haskell.Data.Map
-    Haskell.Data.Map.Def
-    Haskell.Data.Map.Law
-    Haskell.Data.Maps.Maybe
-    Haskell.Data.Maps.InverseMap
-    Haskell.Data.Maps.PairMap
-    Haskell.Data.Maps.Timeline
-    Haskell.Data.Maybe
-    Haskell.Data.Set
-    Haskell.Data.Set.Def
-    Haskell.Data.Set.Law
-    Haskell.Data.Word
-    Haskell.Data.Word.Odd
+    Cardano.Crypto.Wallet.Extra
+    Data.Maps.Maybe

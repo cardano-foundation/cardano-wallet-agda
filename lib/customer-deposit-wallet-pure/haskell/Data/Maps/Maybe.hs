@@ -1,4 +1,4 @@
-module Haskell.Data.Maps.Maybe where
+module Data.Maps.Maybe where
 
 import Prelude hiding (null, subtract)
 

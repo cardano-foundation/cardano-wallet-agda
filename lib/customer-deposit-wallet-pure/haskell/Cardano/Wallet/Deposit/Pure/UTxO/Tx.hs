@@ -36,30 +36,20 @@ import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
     , fromReceived
     , fromSpent
     )
-import qualified Cardano.Wallet.Read.Address as Read (CompactAddr)
-import Cardano.Wallet.Read.Eras (IsEra)
-import Cardano.Wallet.Read.Tx
-    ( IsValid (IsValidC)
+import Data.Set (Set)
+import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( IsEra
+    , IsValid (..)
     , Tx
     , TxIn
     , TxOut
-    , getCollateralInputs
-    , getCompactAddr
-    , getInputs
-    , getScriptValidity
-    , getValue
-    , utxoFromEraTx
     )
-import qualified Cardano.Wallet.Read.Value as Read (Value)
-import Data.Set (Set)
-import qualified Haskell.Data.Map.Def as Map
-    ( Map
-    , elems
-    , fromListWith
-    , map
-    , unionWith
-    )
-import Prelude hiding (null, subtract)
+import qualified Cardano.Wallet.Read as Read
+import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 -- |
 -- Remove unspent outputs that are consumed by the given transaction.
@@ -72,14 +62,14 @@ spendTxD tx u =
   where
     inputsToExclude :: Set TxIn
     inputsToExclude =
-        case getScriptValidity tx of
-            IsValidC True -> getInputs tx
-            IsValidC False -> getCollateralInputs tx
+        case Read.getScriptValidity tx of
+            IsValidC True -> Read.getInputs tx
+            IsValidC False -> Read.getCollateralInputs tx
 
 -- |
 -- Convert the transaction outputs into a 'UTxO'.
 utxoFromTxOutputs :: IsEra era => Tx era -> UTxO
-utxoFromTxOutputs = utxoFromEraTx
+utxoFromTxOutputs = Read.utxoFromEraTx
 
 -- |
 -- Type for a predicate that tests whether @addr@ belongs to us.
@@ -137,14 +127,15 @@ data ResolvedTx era = ResolvedTx
 -- Resolve transaction inputs by consulting a known 'UTxO' set.
 resolveInputs :: IsEra era => UTxO -> Tx era -> ResolvedTx era
 resolveInputs utxo tx =
-    ResolvedTx tx (UTxO.restrictedBy utxo (getInputs tx))
+    ResolvedTx tx (UTxO.restrictedBy utxo (Read.getInputs tx))
 
 -- |
 -- Helper function
 --
 -- (Internal, exported for technical reasons.)
 pairFromTxOut :: TxOut -> (Read.CompactAddr, Read.Value)
-pairFromTxOut = \txout -> (getCompactAddr txout, getValue txout)
+pairFromTxOut =
+    \txout -> (Read.getCompactAddr txout, Read.getValue txout)
 
 -- |
 -- Compute how much 'Value' a 'UTxO' set contains at each address.

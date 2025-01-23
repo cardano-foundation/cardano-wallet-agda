@@ -16,6 +16,10 @@ import Cardano.Wallet.Read as Read
 {-# LANGUAGE StrictData #-}
 #-}
 
+{-# FOREIGN AGDA2HS
+import Cardano.Wallet.Read (Value)
+#-}
+
 {-----------------------------------------------------------------------------
     ValueTransfer
 ------------------------------------------------------------------------------}

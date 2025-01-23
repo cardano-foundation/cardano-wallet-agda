@@ -41,12 +41,7 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (union)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     ( UTxOHistory (boot, created, history, spent, window)
     )
-import Cardano.Wallet.Read.Block (SlotNo)
-import Cardano.Wallet.Read.Chain (Slot, WithOrigin (At, Origin))
-import Cardano.Wallet.Read.Tx (TxIn)
-import Data.Set (Set)
-import Haskell.Data.Map.Def (Map)
-import qualified Haskell.Data.Maps.Timeline as Timeline
+import qualified Data.Maps.Timeline as Timeline
     ( Timeline
     , deleteAfter
     , difference
@@ -57,13 +52,23 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , insertMany
     , items
     )
-import qualified Haskell.Data.Set.Def as Set (difference, intersection)
+import Data.Set (Set)
 import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     ( UTxOHistory (..)
     )
+import Cardano.Wallet.Read
+    ( Slot
+    , SlotNo
+    , TxIn
+    , WithOrigin (..)
+    )
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 -- |
 -- A 'UTxOHistory' whose tip is at 'Origin'

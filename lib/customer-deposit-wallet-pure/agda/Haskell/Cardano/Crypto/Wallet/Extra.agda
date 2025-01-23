@@ -1,7 +1,6 @@
 {-# OPTIONS --erasure #-}
 
--- Synchronized manually with the corresponding Haskell module.
-module Haskell.Cardano.Crypto.Wallet where
+module Haskell.Cardano.Crypto.Wallet.Extra where
 
 open import Haskell.Prelude hiding (fromJust)
 

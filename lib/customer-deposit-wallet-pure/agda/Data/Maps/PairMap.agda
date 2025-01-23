@@ -1,6 +1,6 @@
 -- | A map from pairs of keys to values,
 -- with efficient lookups for single keys.
-module Haskell.Data.Maps.PairMap where
+module Data.Maps.PairMap where
 
 open import Haskell.Prelude hiding (fromMaybe)
 open import Haskell.Reasoning
@@ -22,6 +22,14 @@ import Haskell.Data.Map as Map
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
+#-}
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Data.List (foldl')
+import Data.Maybe (fromMaybe)
+import Data.Map (Map)
+import qualified Data.Map as Map
 #-}
 
 variable

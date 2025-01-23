@@ -106,6 +106,18 @@ import Haskell.Data.Map as Map
 {-# LANGUAGE StrictData #-}
 #-}
 
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+  ( NetworkId (..)
+  )
+import Data.Maybe
+  ( isJust
+  )
+import Data.Map (Map)
+import qualified Data.Map as Map
+#-}
+
 {-----------------------------------------------------------------------------
     Customer
 ------------------------------------------------------------------------------}
@@ -597,6 +609,7 @@ createAddress c s0 = ( addr , s1 )
     net = getNetworkTag s0
     addr = deriveCustomerAddress net xpub c
 
+    addresses1 : Map.Map Address Customer
     addresses1 = Map.insert addr c (addresses s0)
 
     @0 lem

@@ -34,14 +34,8 @@ open import Cardano.Wallet.Read using
     ; IsValid
       ; IsValidC
     ; Tx
-      ; utxoFromEraTx
-      ; getInputs
-      ; getCollateralInputs
-      ; getScriptValidity
     ; TxIn
     ; TxOut
-      ; getCompactAddr
-      ; getValue
     )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
@@ -52,6 +46,20 @@ import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
+#-}
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( IsEra
+    , IsValid (..)
+    , Tx
+    , TxIn
+    , TxOut
+    )
+import qualified Cardano.Wallet.Read as Read
+import qualified Data.Map as Map
+import qualified Data.Set as Set
 #-}
 
 {-----------------------------------------------------------------------------
@@ -65,14 +73,14 @@ spendTxD tx u =
   where
     inputsToExclude : Set.ℙ TxIn
     inputsToExclude =
-        case (getScriptValidity tx) of λ
-          { (IsValidC True) → getInputs tx
-          ; (IsValidC False) → getCollateralInputs tx
+        case (Read.getScriptValidity tx) of λ
+          { (IsValidC True) → Read.getInputs tx
+          ; (IsValidC False) → Read.getCollateralInputs tx
           }
 
 -- | Convert the transaction outputs into a 'UTxO'.
 utxoFromTxOutputs : ∀{era} → {{IsEra era}} → Read.Tx era → UTxO
-utxoFromTxOutputs = utxoFromEraTx
+utxoFromTxOutputs = Read.utxoFromEraTx
 
 {-# COMPILE AGDA2HS spendTxD #-}
 {-# COMPILE AGDA2HS utxoFromTxOutputs #-}
@@ -142,7 +150,7 @@ resolveInputs utxo tx =
     ; resolvedInputs =
         UTxO.restrictedBy
             utxo
-            (getInputs tx)
+            (Read.getInputs tx)
     }
 
 {-# COMPILE AGDA2HS ResolvedTx #-}
@@ -156,7 +164,7 @@ resolveInputs utxo tx =
 -- (Internal, exported for technical reasons.)
 pairFromTxOut : Read.TxOut → (Read.CompactAddr × Read.Value)
 pairFromTxOut =
-    λ txout → (getCompactAddr txout , getValue txout)
+    λ txout → (Read.getCompactAddr txout , Read.getValue txout)
 
 -- | Compute how much 'Value' a 'UTxO' set contains at each address.
 groupByAddress : UTxO → Map.Map Read.CompactAddr Read.Value
