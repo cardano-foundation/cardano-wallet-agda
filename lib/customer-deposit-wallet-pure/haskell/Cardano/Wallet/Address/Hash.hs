@@ -16,6 +16,12 @@ import Data.Proxy
     ( Proxy (..)
     )
 
+blake2b'224 :: ByteString -> ByteString
+blake2b'224 = error "postulate: ByteString -> ByteString"
+
+blake2b'256 :: ByteString -> ByteString
+blake2b'256 = error "postulate: ByteString -> ByteString"
+
 -- | Compute the
 -- [BLAKE2b](https://en.wikipedia.org/wiki/BLAKE_%28hash_function%29%23BLAKE2b_algorithm)
 -- hash of the input bytes

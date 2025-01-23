@@ -21,7 +21,7 @@ import Specification.Cardano.Value
 import Specification.Wallet.Payment
 import Implementation
 
-import Haskell.Cardano.Crypto.Wallet
+import Haskell.Cardano.Crypto.Wallet.Extra
 
 import Cardano.Wallet.Read
 

@@ -45,8 +45,16 @@ open import Haskell.Data.Word.Odd using
   ( Word31
   )
 
-import Haskell.Cardano.Crypto.Wallet as CC
+import Haskell.Cardano.Crypto.Wallet.Extra as CC
 import Haskell.Data.ByteString as BS
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Data.Maybe (fromJust)
+import qualified Cardano.Crypto.Wallet.Extra as CC
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+#-}
 
 {-----------------------------------------------------------------------------
     Extended private and public keys
