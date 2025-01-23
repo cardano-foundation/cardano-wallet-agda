@@ -1,8 +1,13 @@
 module Cardano.Wallet.Deposit.Read.Temp where
 
-import Cardano.Wallet.Read.Address (CompactAddr)
-import Cardano.Wallet.Read.Tx (TxIn, TxOut)
 import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( CompactAddr
+    , TxIn
+    , TxOut
+    )
 
 -- |
 -- Default type for addresses on the Cardano ledger.

@@ -3,10 +3,16 @@
 module Cardano.Wallet.Deposit.Pure.TxSummary where
 
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
-import Cardano.Wallet.Read.Chain (ChainPoint (GenesisPoint))
-import Cardano.Wallet.Read.Eras (IsEra)
-import Cardano.Wallet.Read.Tx (Tx, TxId, getTxId)
 import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( ChainPoint (..)
+    , IsEra
+    , Tx
+    , TxId
+    , getTxId
+    )
 
 -- |
 -- A 'TxSummary' summarizes a transaction.

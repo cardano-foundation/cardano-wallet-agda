@@ -10,29 +10,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
 import Cardano.Wallet.Deposit.Read.Temp (Address)
-import qualified Cardano.Wallet.Read.Address (CompactAddr)
-import Cardano.Wallet.Read.Block (SlotNo)
-import Cardano.Wallet.Read.Chain
-    ( ChainPoint
-    , Slot
-    , WithOrigin (Origin)
-    , slotFromChainPoint
-    )
-import Cardano.Wallet.Read.Eras (IsEra)
-import Cardano.Wallet.Read.Tx (TxId)
-import Data.Set (Set)
-import Haskell.Data.List (foldl')
-import Haskell.Data.Map.Def (Map)
-import qualified Haskell.Data.Map.Def as Map
-    ( empty
-    , fromListWith
-    , lookup
-    , mapMaybeWithKey
-    , toAscList
-    , unionWith
-    , withoutKeys
-    )
-import qualified Haskell.Data.Maps.PairMap as PairMap
+import qualified Data.Maps.PairMap as PairMap
     ( PairMap
     , empty
     , insert
@@ -40,7 +18,7 @@ import qualified Haskell.Data.Maps.PairMap as PairMap
     , lookupB
     , withoutKeysA
     )
-import qualified Haskell.Data.Maps.Timeline as Timeline
+import qualified Data.Maps.Timeline as Timeline
     ( Timeline
     , deleteAfter
     , empty
@@ -50,16 +28,33 @@ import qualified Haskell.Data.Maps.Timeline as Timeline
     , restrictRange
     , toAscList
     )
-import qualified Haskell.Data.Set.Def as Set (fromList)
+import Data.Set (Set)
 import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.TxHistory.Type
     ( TxHistory (..)
     )
+import Cardano.Wallet.Read
+    ( ChainPoint (..)
+    , IsEra
+    , Slot
+    , SlotNo
+    , TxId
+    , WithOrigin (..)
+    , slotFromChainPoint
+    )
+import qualified Cardano.Wallet.Read as Read
 import Data.Foldable
     ( toList
     )
+import Data.List
+    ( foldl'
+    )
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 -- |
 -- The empty transaction history.
@@ -155,7 +150,7 @@ rollForward newTip txs history =
     insertValueTransfer m0 (txid, tx) =
         foldl' (uncurry . fun) m0 (Map.toAscList mv)
       where
-        mv :: Map Cardano.Wallet.Read.Address.CompactAddr ValueTransfer
+        mv :: Map Address ValueTransfer
         mv = valueTransferFromResolvedTx tx
         fun
             :: PairMap.PairMap TxId Address ValueTransfer

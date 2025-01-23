@@ -32,17 +32,16 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
     , null
     , union
     )
-import Cardano.Wallet.Read.Tx (TxIn)
 import Data.Set (Set)
-import qualified Haskell.Data.Map.Def as Map (empty)
-import qualified Haskell.Data.Set.Def as Set
-    ( empty
-    , intersection
-    , isSubsetOf
-    , null
-    , union
-    )
 import Prelude hiding (null, subtract)
+
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( TxIn
+    )
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 -- |
 -- Representation of a change (delta) to a 'UTxO'.
