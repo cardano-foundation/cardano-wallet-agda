@@ -15,10 +15,6 @@ import Data.Maps.Maybe as Maybe
 import Haskell.Prelude as List using (map)
 import Haskell.Data.Set as Set
 
-{-# FOREIGN AGDA2HS
-type DummyDataMapLaw = ()
-#-}
-
 {-----------------------------------------------------------------------------
     Proofs
     involving 1 value type

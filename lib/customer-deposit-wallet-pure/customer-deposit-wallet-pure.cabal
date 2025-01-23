@@ -87,19 +87,6 @@ library
     Data.Maps.InverseMap
     Data.Maps.PairMap
     Data.Maps.Timeline
-    Data.Map.Law
   other-modules:
     Cardano.Crypto.Wallet.Extra
     Data.Maps.Maybe
-    Haskell.Data.ByteString
-    Haskell.Data.ByteString.Short
-    Haskell.Data.List
-    Haskell.Data.Map
-    Haskell.Data.Map.Def
-    Haskell.Data.Map.Law
-    Haskell.Data.Maybe
-    Haskell.Data.Set
-    Haskell.Data.Set.Def
-    Haskell.Data.Set.Law
-    Haskell.Data.Word
-    Haskell.Data.Word.Odd

@@ -8,10 +8,6 @@ open import Haskell.Prelude hiding (lookup; null; map; filter)
 
 open import Haskell.Data.Set.Def
 
-{-# FOREIGN AGDA2HS
-type DummyDataSetLaw = ()
-#-}
-
 {-----------------------------------------------------------------------------
     Properties
     Basic
