@@ -14,11 +14,11 @@ open import Cardano.Wallet.Deposit.Pure.RollbackWindow using
 open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
     ( UTxO
     )
+open import Data.Maps.Timeline using
+    ( Timeline
+    )
 open import Haskell.Data.Map using
     ( Map
-    )
-open import Haskell.Data.Maps.Timeline using
-    ( Timeline
     )
 open import Haskell.Data.Set using
     ( ℙ

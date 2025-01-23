@@ -41,9 +41,9 @@ open import Haskell.Data.Set using
     ( ℙ
     )
 
+import Data.Maps.PairMap as PairMap
+import Data.Maps.Timeline as Timeline
 import Haskell.Data.Map as Map
-import Haskell.Data.Maps.PairMap as PairMap
-import Haskell.Data.Maps.Timeline as Timeline
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS

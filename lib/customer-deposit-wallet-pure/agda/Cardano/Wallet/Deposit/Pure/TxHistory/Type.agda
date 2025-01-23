@@ -15,14 +15,14 @@ open import Cardano.Wallet.Read using
     ; Slot
     ; TxId
     )
-open import Haskell.Data.Map using
-    ( Map
-    )
-open import Haskell.Data.Maps.PairMap using
+open import Data.Maps.PairMap using
     ( PairMap
     )
-open import Haskell.Data.Maps.Timeline using
+open import Data.Maps.Timeline using
     ( Timeline
+    )
+open import Haskell.Data.Map using
+    ( Map
     )
 
 {-# FOREIGN AGDA2HS

@@ -89,6 +89,7 @@ library
     Data.Maps.Timeline
     Data.Map.Law
   other-modules:
+    Data.Maps.Maybe
     Haskell.Cardano.Crypto.Wallet
     Haskell.Data.ByteString
     Haskell.Data.ByteString.Short
@@ -96,10 +97,6 @@ library
     Haskell.Data.Map
     Haskell.Data.Map.Def
     Haskell.Data.Map.Law
-    Haskell.Data.Maps.Maybe
-    Haskell.Data.Maps.InverseMap
-    Haskell.Data.Maps.PairMap
-    Haskell.Data.Maps.Timeline
     Haskell.Data.Maybe
     Haskell.Data.Set
     Haskell.Data.Set.Def

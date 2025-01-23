@@ -1,6 +1,6 @@
 {-# OPTIONS --erasure #-}
 
-module Haskell.Data.Maps.Timeline
+module Data.Maps.Timeline
     {-|
       -- * Type
     ; Timeline
@@ -53,12 +53,22 @@ open import Haskell.Data.Set using
     ( ℙ
     )
 
-import Haskell.Data.Maps.InverseMap as InverseMap
+import Data.Maps.InverseMap as InverseMap
 import Haskell.Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
+#-}
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Data.List (foldl')
+import Data.Maybe (fromMaybe)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 #-}
 
 variable
