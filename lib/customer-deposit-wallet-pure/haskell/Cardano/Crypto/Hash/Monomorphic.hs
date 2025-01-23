@@ -1,8 +1,13 @@
-{-# LANGUAGE UnicodeSyntax #-}
-
-module Cardano.Wallet.Address.Hash where
-
-import Prelude hiding (null, subtract)
+-- |
+-- Copyright: © 2025 Cardano Foundation
+-- License: Apache-2.0
+--
+-- Cryptographic hash functions with monomorphic types.
+module Cardano.Crypto.Hash.Monomorphic
+    ( blake2b'224
+    , blake2b'256
+    )
+where
 
 import Cardano.Crypto.Hash
     ( Blake2b_224
@@ -15,12 +20,6 @@ import Data.ByteString
 import Data.Proxy
     ( Proxy (..)
     )
-
-blake2b'224 :: ByteString -> ByteString
-blake2b'224 = error "postulate: ByteString -> ByteString"
-
-blake2b'256 :: ByteString -> ByteString
-blake2b'256 = error "postulate: ByteString -> ByteString"
 
 -- | Compute the
 -- [BLAKE2b](https://en.wikipedia.org/wiki/BLAKE_%28hash_function%29%23BLAKE2b_algorithm)

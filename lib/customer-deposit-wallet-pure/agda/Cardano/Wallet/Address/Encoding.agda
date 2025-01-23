@@ -29,7 +29,7 @@ open import Cardano.Wallet.Address.BIP32_Ed25519 using
   ; rawPublicKeyFromXPub
   ; prop-rawPublicKeyFromXPub-injective
   )
-open import Cardano.Wallet.Address.Hash using
+open import Haskell.Cardano.Crypto.Hash.Monomorphic using
   ( blake2b'224
   ; prop-blake2b'224-injective
   )
@@ -57,6 +57,26 @@ open import Haskell.Data.Maybe using
 open import Haskell.Data.Word using
   ( Word8
   )
+
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Crypto.Hash.Monomorphic
+  ( blake2b'224
+  )
+import Cardano.Wallet.Read
+  ( CompactAddr
+  , NetworkId (..)
+  , fromShortByteString
+  )
+import Data.ByteString.Short
+  ( ShortByteString
+  , singleton
+  , toShort
+  )
+import Data.Maybe
+  ( fromJust
+  )
+#-}
 
 {-----------------------------------------------------------------------------
     Algebraic data type for Enterprise addresses

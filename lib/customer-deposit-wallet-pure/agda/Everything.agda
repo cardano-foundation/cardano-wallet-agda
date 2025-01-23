@@ -3,7 +3,6 @@ module Everything where
 import Cardano.Wallet.Address.BIP32
 import Cardano.Wallet.Address.BIP32_Ed25519
 import Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
-import Cardano.Wallet.Address.Hash
 
 import Cardano.Wallet.Deposit.Pure.TxHistory
 import Cardano.Wallet.Deposit.Pure.TxSummary
@@ -21,6 +20,7 @@ import Specification.Cardano.Value
 import Specification.Wallet.Payment
 import Implementation
 
+import Haskell.Cardano.Crypto.Hash.Monomorphic
 import Haskell.Cardano.Crypto.Wallet.Extra
 
 import Cardano.Wallet.Read
