@@ -15,6 +15,17 @@ open import Cardano.Wallet.Read using
 
 import Cardano.Wallet.Read as Read
 
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( IsEra
+    , Tx
+    , TxId
+    , ChainPoint (..)
+    , getTxId
+    )
+#-}
+
 {-----------------------------------------------------------------------------
     TxSummary
 ------------------------------------------------------------------------------}

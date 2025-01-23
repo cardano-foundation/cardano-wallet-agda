@@ -1,7 +1,7 @@
 {-# OPTIONS --erasure #-}
 
 -- Synchronized manually with the corresponding Haskell module.
-module Cardano.Wallet.Read.Address
+module Haskell.Cardano.Wallet.Read.Address
     {-
     ; CompactAddr
       ; toShortByteString

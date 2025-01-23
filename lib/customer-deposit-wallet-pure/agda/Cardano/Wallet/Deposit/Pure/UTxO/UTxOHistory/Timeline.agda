@@ -59,6 +59,20 @@ import Haskell.Data.Set as Set
 {-# LANGUAGE StrictData #-}
 #-}
 
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( Slot
+    , SlotNo
+    , TxIn
+    , WithOrigin (..)
+    )
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
+#-}
+
 {-----------------------------------------------------------------------------
     Type
 ------------------------------------------------------------------------------}

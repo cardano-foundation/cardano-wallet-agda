@@ -29,7 +29,7 @@ open import Cardano.Wallet.Read using
     ; TxOut
     ; Value
     )
-open import Cardano.Wallet.Read.Eras using
+open import Cardano.Wallet.Read using
     ( Conway
       ; iIsEraConway
     )

@@ -1,7 +1,7 @@
 {-# OPTIONS --erasure #-}
 
 -- Synchronized manually with the corresponding Haskell module.
-module Cardano.Wallet.Read.Tx where
+module Haskell.Cardano.Wallet.Read.Tx where
 
 open import Haskell.Reasoning
 open import Haskell.Prelude
@@ -15,13 +15,13 @@ open import Haskell.Data.Set using
 open import Haskell.Data.Word using
     ( Word16
     )
-open import Cardano.Wallet.Read.Address using
+open import Haskell.Cardano.Wallet.Read.Address using
     ( CompactAddr
     )
-open import Cardano.Wallet.Read.Eras using
+open import Haskell.Cardano.Wallet.Read.Eras using
     ( IsEra
     )
-open import Cardano.Wallet.Read.Value using
+open import Haskell.Cardano.Wallet.Read.Value using
     ( Value
     )
 

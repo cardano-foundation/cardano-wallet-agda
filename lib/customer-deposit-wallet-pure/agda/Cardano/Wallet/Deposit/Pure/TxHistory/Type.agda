@@ -29,6 +29,16 @@ open import Haskell.Data.Map using
 {-# LANGUAGE StrictData #-}
 #-}
 
+{-# FOREIGN AGDA2HS
+-- Working around a limitation in agda2hs.
+import Cardano.Wallet.Read
+    ( ChainPoint (..)
+    , Slot
+    , TxId
+    )
+import Data.Map (Map)
+#-}
+
 {-----------------------------------------------------------------------------
     Data type
 ------------------------------------------------------------------------------}

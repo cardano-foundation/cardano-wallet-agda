@@ -79,7 +79,18 @@ import Haskell.Data.Set as Set
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type
     ( UTxOHistory (..)
     )
+import Cardano.Wallet.Read
+    ( Slot
+    , SlotNo
+    , TxIn
+    , WithOrigin (..)
+    )
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 #-}
+
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
 #-}
