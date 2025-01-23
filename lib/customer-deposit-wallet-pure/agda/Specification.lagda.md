@@ -428,22 +428,3 @@ In other words, we have
           → ¬ (address ∈ map getAddress (outputs tx))
 ```
 
-## Derived Properties
-
-TODO
-From the properties above, one can prove various other properties.
-However, this requires and induction principle on `WalletState`,
-where we can be certain that other operations do not interfere
-with the given ones.
-
-```agda
-{-
-prop-getAddressHistory-unknown : Set
-prop-getAddressHistory-unknown
-  = ∀ (s : WalletState)
-      (addr : Address)
-  → knownAddress addr s ≡ False
-  → getAddressHistory addr s ≡ []
--}
-```
-
