@@ -27,18 +27,29 @@ module Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
     )
 where
 
+import qualified Cardano.Crypto.Wallet.Extra as CC
+    ( DerivationScheme (DerivationScheme2)
+    , XPub
+    , deriveXPrv
+    , sign
+    , toXPub
+    , unXPrv
+    , unXSignature
+    , word32fromWord31High
+    , word32fromWord31Low
+    , xPrvChangePass
+    , xprv
+    , xsignature
+    )
 import Cardano.Wallet.Address.BIP32
     ( BIP32Path (Root, Segment)
     , DerivationType (Hardened, Soft)
     )
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPrv, XPub, XSignature, verify)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS (empty)
 import Data.Word.Odd (Word31)
 import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
-import qualified Cardano.Crypto.Wallet.Extra as CC
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
 
 -- |
 -- A passphrase for encrypting a private key.

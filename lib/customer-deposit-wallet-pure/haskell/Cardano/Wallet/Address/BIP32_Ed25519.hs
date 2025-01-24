@@ -21,19 +21,32 @@ module Cardano.Wallet.Address.BIP32_Ed25519
     )
 where
 
+import qualified Cardano.Crypto.Wallet.Extra as CC
+    ( DerivationScheme (DerivationScheme2)
+    , XPrv
+    , XPub
+    , XSignature
+    , deriveXPrv
+    , deriveXPub
+    , sign
+    , toXPub
+    , unXPrv
+    , unXPub
+    , unXSignature
+    , verify
+    , word32fromWord31High
+    , word32fromWord31Low
+    , xpubPublicKey
+    )
 import Cardano.Wallet.Address.BIP32
     ( BIP32Path (Root, Segment)
     , DerivationType (Hardened, Soft)
     )
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS (empty)
+import qualified Data.Maybe.Extra (fromJust)
 import Data.Word.Odd (Word31)
 import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
-
-import qualified Cardano.Crypto.Wallet.Extra as CC
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
-import Data.Maybe (fromJust)
 
 -- |
 -- Extended public key,
@@ -99,7 +112,7 @@ rawPublicKeyFromXPub = CC.xpubPublicKey
 -- [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf) standard.
 deriveXPubSoft :: XPub -> Word31 -> XPub
 deriveXPubSoft xpub ix =
-    fromJust
+    Data.Maybe.Extra.fromJust
         ( CC.deriveXPub
             CC.DerivationScheme2
             xpub

@@ -3,14 +3,20 @@
 
 module Data.Maps.PairMap where
 
-import Data.Set (Set)
-import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
 import Data.List (foldl')
 import Data.Map (Map)
 import qualified Data.Map as Map
+    ( delete
+    , empty
+    , insert
+    , keys
+    , lookup
+    , null
+    , update
+    )
 import Data.Maybe (fromMaybe)
+import Data.Set (Set)
+import Prelude hiding (null, subtract)
 
 explicitEmpty :: Ord a => Map a v -> Maybe (Map a v)
 explicitEmpty m = if Map.null m then Nothing else Just m

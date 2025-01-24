@@ -36,20 +36,23 @@ import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer
     , fromReceived
     , fromSpent
     )
+import Cardano.Wallet.Read.Address ()
+import qualified Cardano.Wallet.Read.Address as Read (CompactAddr)
+import Cardano.Wallet.Read.Eras (IsEra)
+import Cardano.Wallet.Read.Tx (IsValid (IsValidC), Tx, TxIn, TxOut)
+import qualified Cardano.Wallet.Read.Tx as Read
+    ( getCollateralInputs
+    , getCompactAddr
+    , getInputs
+    , getScriptValidity
+    , getValue
+    , utxoFromEraTx
+    )
+import Cardano.Wallet.Read.Value ()
+import qualified Cardano.Wallet.Read.Value as Read (Value)
+import qualified Data.Map as Map (Map, elems, fromListWith, map, unionWith)
 import Data.Set (Set)
 import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( IsEra
-    , IsValid (..)
-    , Tx
-    , TxIn
-    , TxOut
-    )
-import qualified Cardano.Wallet.Read as Read
-import qualified Data.Map as Map
-import qualified Data.Set as Set
 
 -- |
 -- Remove unspent outputs that are consumed by the given transaction.

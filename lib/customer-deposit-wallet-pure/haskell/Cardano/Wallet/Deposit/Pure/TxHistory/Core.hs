@@ -10,6 +10,27 @@ import Cardano.Wallet.Deposit.Pure.UTxO.Tx
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer (ValueTransfer)
 import Cardano.Wallet.Deposit.Read.Temp (Address)
+import Cardano.Wallet.Read.Address ()
+import Cardano.Wallet.Read.Block (SlotNo)
+import Cardano.Wallet.Read.Chain
+    ( ChainPoint
+    , Slot
+    , WithOrigin (Origin)
+    , slotFromChainPoint
+    )
+import Cardano.Wallet.Read.Eras (IsEra)
+import Cardano.Wallet.Read.Tx (TxId)
+import Data.List (foldl')
+import Data.Map (Map)
+import qualified Data.Map as Map
+    ( empty
+    , fromListWith
+    , lookup
+    , mapMaybeWithKey
+    , toAscList
+    , unionWith
+    , withoutKeys
+    )
 import qualified Data.Maps.PairMap as PairMap
     ( PairMap
     , empty
@@ -29,32 +50,19 @@ import qualified Data.Maps.Timeline as Timeline
     , toAscList
     )
 import Data.Set (Set)
+import qualified Data.Set as Set (fromList)
 import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs.
 import Cardano.Wallet.Deposit.Pure.TxHistory.Type
     ( TxHistory (..)
     )
-import Cardano.Wallet.Read
-    ( ChainPoint (..)
-    , IsEra
-    , Slot
-    , SlotNo
-    , TxId
-    , WithOrigin (..)
-    , slotFromChainPoint
-    )
-import qualified Cardano.Wallet.Read as Read
 import Data.Foldable
     ( toList
     )
 import Data.List
     ( foldl'
     )
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Set (Set)
-import qualified Data.Set as Set
 
 -- |
 -- The empty transaction history.

@@ -5,17 +5,11 @@ module Cardano.Wallet.Deposit.Pure.UTxO.UTxOHistory.Type where
 
 import Cardano.Wallet.Deposit.Pure.RollbackWindow (RollbackWindow)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
+import Cardano.Wallet.Read.Block (SlotNo)
+import Cardano.Wallet.Read.Chain (Slot)
+import Cardano.Wallet.Read.Tx (TxIn)
 import Data.Maps.Timeline (Timeline)
 import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( Slot
-    , SlotNo
-    , TxIn
-    )
-import Data.Map (Map)
-import Data.Set (Set)
 
 -- |
 -- 'UTxOHistory' represents a history of a UTxO set that can be

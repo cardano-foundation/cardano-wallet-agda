@@ -16,14 +16,22 @@ import qualified Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO (applyTx)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (balance)
 import Cardano.Wallet.Deposit.Read.Temp (Address, TxBody)
+import Cardano.Wallet.Read.Address ()
+import Cardano.Wallet.Read.Block (Block, getEraTransactions)
+import Cardano.Wallet.Read.Chain (ChainPoint, getChainPoint)
+import Cardano.Wallet.Read.Eras (IsEra)
+import Cardano.Wallet.Read.Tx (Tx, TxOut, mkBasicTxOut)
+import Cardano.Wallet.Read.Value (Value)
 import Cardano.Write.Tx.Balance
     ( ChangeAddressGen
     , PartialTx (PartialTxC)
     , balanceTransaction
     )
+import qualified Data.Map as Map (Map, lookup)
+import Data.Word.Odd ()
 import Prelude hiding (null, subtract)
 
--- Working around a limitation in agda2hs.
+-- Working around a limitation in agda2hs regarding re-exports
 import Cardano.Wallet.Deposit.Pure.Address
     ( AddressState
     , Customer
@@ -37,31 +45,6 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxO
     ( UTxO
     )
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
-
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( Block
-    , ChainPoint (..)
-    , IsEra
-    , NetworkId
-    , Slot
-    , Tx
-    , TxId
-    , TxIn
-    , TxOut
-    , Value
-    , getChainPoint
-    , getCompactAddr
-    , getEraTransactions
-    , getValue
-    , largerOrEqual
-    , mkBasicTxOut
-    )
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Maybe
-    ( isJust
-    )
 
 data WalletState = WalletState
     { addresses :: AddressState
