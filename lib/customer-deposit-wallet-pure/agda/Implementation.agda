@@ -13,6 +13,12 @@ open import Haskell.Reasoning
 
 open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
 
+open import Cardano.Wallet.Address.Encoding using
+    ( NetworkTag
+    )
+open import Cardano.Wallet.Address.BIP32_Ed25519 using
+    ( XPub
+    )
 open import Cardano.Wallet.Deposit.Pure.Experimental using
     ( TxSummary
     ; ValueTransfer
@@ -35,6 +41,7 @@ open import Cardano.Wallet.Read using
     )
 
 import Cardano.Wallet.Deposit.Pure.Experimental as Wallet
+import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Cardano.Wallet.Read as Read
 import Data.Map as Map
 
@@ -85,6 +92,15 @@ SigCardano = record
   ; SigTx = SigTx
   }
 
+import Specification.Wallet.UTxO
+
+SigWallet : Specification.Wallet.UTxO.Signature SigCardano
+SigWallet = record
+  { UTxO = UTxO.UTxO
+  ; balance = UTxO.balance
+  ; applyTxToUTxO = {!   !}
+  }
+
 {-----------------------------------------------------------------------------
     Module
     DepositWallet
@@ -95,7 +111,9 @@ import Specification
 module DepositWallet =
     Specification.DepositWallet
         WalletState
+        XPub
         SigCardano
+        SigWallet
 
 {-----------------------------------------------------------------------------
     Operations
@@ -116,10 +134,15 @@ fromTxSummary x =
 
 operations : DepositWallet.Operations
 operations = record
-  { listCustomers = Wallet.listCustomers
-  ; createAddress = Wallet.createAddress
-  ; availableBalance = Wallet.availableBalance
+  { deriveCustomerAddress = λ xpub addr →
+      Wallet.deriveCustomerAddress NetworkTag.MainnetTag xpub addr
+  ; fromXPubAndMax = {!   !}
+  ; listCustomers = Wallet.listCustomers
+
+  ; totalUTxO = {!   !}
   ; applyTx = Wallet.applyTx {{iIsEraConway}}
+  ; isOurs = {!   !}
+
   ; getCustomerHistory = λ customer →
     map fromTxSummary ∘ Wallet.getCustomerHistory customer
   ; createPayment = λ destinations tt s →
@@ -132,10 +155,13 @@ operations = record
 
 @0 properties : DepositWallet.Properties operations
 properties = record
-    { prop-create-known = Wallet.prop-create-known
-    ; deriveAddress = λ s →
-        Wallet.deriveCustomerAddress (Wallet.getNetworkTag s) (Wallet.getXPub s)
-    ; prop-create-derive = Wallet.prop-create-derive
+    { prop-listCustomers-isBijection = {!   !}
+    ; prop-listCustomers-fromXPubAndMax-max = {!   !}
+    ; prop-listCustomers-fromXPubAndMax-xpub = {!   !}
+
+    ; prop-knownCustomerAddress-isOurs = {!   !}
+    ; prop-totalUTxO-applyTx = {!   !}
+    ; prop-listCustomers-applyTx = {!   !}
 
     ; summarize = {!  !}
     ; prop-getAddressHistory-summary = {!  !}
