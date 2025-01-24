@@ -78,7 +78,7 @@ and also
 In addition, we also need to import concepts that are specific to Cardano:
 
 * [Specification.Cardano](Specification/Cardano.lagda.md)
-  * [Specification.Cardano.Tx](Specification/Cardano/Value.lagda.md)
+  * [Specification.Cardano.Tx](Specification/Cardano/Tx.lagda.md)
   — Transaction type `Tx`.
   * [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
   — Monetary `Value`. Includes both native coins (ADA) and
@@ -111,9 +111,9 @@ We define a `module` `DepositWallet` which is parametrized by
 
 * the abstract data type `WalletState` that we wish to specify,
 * an implementation `SigCardano` of concepts that are related to Cardano,
-and which we need to express the specification.
+and which we need to express the specification, and
 * a specification `SigWallet` of wallet-related concepts that are
-  not the focus of this document, and
+  not the focus of this document.
 
 ```agda
 module
@@ -407,7 +407,8 @@ The behavior of this function is best specified in terms of a function
       map snd ∘ filter (λ x → fst x == address)
 ```
 
-which summarizes a single transaction. Specifically, the result of `getCustomerHistory` an aggregate of all previous transaction summaries.
+which summarizes a single transaction.
+Specifically, the result of `getCustomerHistory` is an aggregate of all previous transaction summaries.
 
 ```agda
     field
@@ -422,7 +423,7 @@ which summarizes a single transaction. Specifically, the result of `getCustomerH
               ++ getCustomerHistory s c
 ```
 
-Importantly, we only track an address if and only if it is a `knownCustomerAddress`.
+Importantly, track an address if and only if it is a `knownCustomerAddress`.
 
 ```agda
       prop-tx-known-address
@@ -469,7 +470,7 @@ Second, the transaction sends funds as indicated
 Third, and most importantly, the operation `createPayment` never creates a transaction
 whose `received` summary for any tracked index/address pair is non-zero.
 In other words, `createPayment` uses change addresses that are distinct
-from any address obtained via `createAddress`.
+from any address listed in `listCustomers`.
 
 That said, `createPayment` is free to contribute to the `spent` summary of any address
 — the deposit wallet spends funds from any address as it sees fit.

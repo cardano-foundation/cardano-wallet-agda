@@ -53,13 +53,13 @@ and functions
     applyTxToUTxO : (Address → Bool) → Tx → UTxO → UTxO
 ```
 
-The function `balance` computes the total value contain in the
+The function `balance` computes the total value contained in the
 unspent outputs.
 
 The function `applyTxToUTxO isOurs tx utxo` applies the given
-transaction `tx` to the unspect transction outputs in `utxo`.
+transaction `tx` to the unspent transction outputs in `utxo`.
 The predicate `isOurs` indicates whether the address of an output
-belongs to the wallet, i.e. because the wallet owner knows
+belongs to the wallet, typically because the wallet owner knows
 the corresponding signing key.
 Only those outputs that satisfy `isOurs` are included in the
 updated `UTxO`.
