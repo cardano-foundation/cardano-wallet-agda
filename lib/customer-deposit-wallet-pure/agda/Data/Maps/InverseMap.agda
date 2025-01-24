@@ -12,12 +12,12 @@ open import Haskell.Data.Maybe using
 open import Data.Map using
     ( Map
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
 import Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 -- Working around a limitation in agda2hs.

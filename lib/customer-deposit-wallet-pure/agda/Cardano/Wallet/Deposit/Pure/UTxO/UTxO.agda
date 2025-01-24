@@ -59,7 +59,7 @@ open import Haskell.Data.Maybe using
     )
 
 import Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 -- Working around a limitation in agda2hs.

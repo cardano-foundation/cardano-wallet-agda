@@ -40,12 +40,12 @@ open import Data.Maybe.Extra using
 open import Haskell.Data.Maybe using
     ( isJust
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
 import Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}

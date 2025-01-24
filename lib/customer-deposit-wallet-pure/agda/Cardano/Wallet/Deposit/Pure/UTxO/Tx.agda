@@ -42,7 +42,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Cardano.Wallet.Read as Read
 import Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}

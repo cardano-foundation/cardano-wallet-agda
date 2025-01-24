@@ -49,13 +49,13 @@ open import Haskell.Data.Maybe using
     ( fromMaybe
     ; isJust
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
 import Data.Maps.InverseMap as InverseMap
 import Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}

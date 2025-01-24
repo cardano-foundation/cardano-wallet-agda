@@ -20,7 +20,7 @@ open import Data.Maps.Timeline using
 open import Data.Map using
     ( Map
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 

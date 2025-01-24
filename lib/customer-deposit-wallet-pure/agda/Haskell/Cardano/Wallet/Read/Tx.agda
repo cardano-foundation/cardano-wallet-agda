@@ -9,7 +9,7 @@ open import Haskell.Prelude
 open import Data.Map using
     ( Map
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 open import Haskell.Data.Word using

@@ -44,7 +44,7 @@ open import Data.Maps.Timeline using
 open import Data.Map using
     ( Map
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
@@ -53,7 +53,7 @@ import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Data.Maps.Timeline as Timeline
 import Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}

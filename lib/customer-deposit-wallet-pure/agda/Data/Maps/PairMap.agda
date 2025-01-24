@@ -14,7 +14,7 @@ open import Data.Map using
 open import Haskell.Data.Maybe using
     ( fromMaybe
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
