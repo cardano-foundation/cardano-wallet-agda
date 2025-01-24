@@ -81,7 +81,8 @@ In addition, we also need to import concepts that are specific to Cardano:
   * [Specification.Cardano.Tx](Specification/Cardano/Value.lagda.md)
   — Transaction type `Tx`.
   * [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
-  — Monetary `Value`.
+  — Monetary `Value`. Includes both native coins (ADA) and
+user-defined assets, such as stablecoins or NFTs.
 
 <!--
 ```agda
@@ -91,6 +92,7 @@ open import Specification.Common using
   (_⇔_; _∈_; isSubsetOf; isJust; nub)
 
 import Specification.Cardano
+import Specification.Wallet.UTxO
 ```
 -->
 
@@ -107,28 +109,24 @@ on this abstract data type and the logical properties that relate them.
 
 We define a `module` `DepositWallet` which is parametrized by
 
-* the abstract data type `WalletState` that we wish to specify, and
-* an implementation `CardanoSig` of concepts that are related to Cardano,
+* the abstract data type `WalletState` that we wish to specify,
+* an implementation `SigCardano` of concepts that are related to Cardano,
 and which we need to express the specification.
+* a specification `SigWallet` of wallet-related concepts that are
+  not the focus of this document, and
 
 ```agda
 module
   DepositWallet
     (WalletState : Set)
     (XPub : Set)
-    (CardanoSig : Specification.Cardano.Signature)
+    (SigCardano : Specification.Cardano.Signature)
+    (SigWallet  : Specification.Wallet.UTxO.Signature SigCardano)
   where
 
-  open Specification.Cardano.Signature CardanoSig
+  open Specification.Cardano.Signature SigCardano
+  open Specification.Wallet.UTxO.Signature SigWallet
 ```
-
-For improved readability, we use the synonym
-
-```agda
-  Address = CompactAddr
-```
-
-to refer to addresses on Cardano.
 
 ## Operations
 
@@ -163,8 +161,9 @@ Operations:
       fromXPubAndMax        : XPub → Word31 → WalletState
       listCustomers         : WalletState → List (Customer × Address)
 
-      availableBalance : WalletState → Value
-      applyTx : Tx → WalletState → WalletState
+      totalUTxO : WalletState → UTxO
+      applyTx   : Tx → WalletState → WalletState
+      isOurs    : WalletState → Address → Bool
 
       getCustomerHistory : WalletState → Customer → List TxSummary
 
@@ -294,14 +293,78 @@ Here, `1857` is a new “purpose” identifier; we cannot reuse the [CIP-1852][]
 This method of deriving addresses is also the reason why we choose
 a concrete representation of `Customer` as `Word31`.
 
-### Applying transactions
+### Wallet balance and transactions
 
-TODO: Specification of total wallet funds.
-Amounts to rewrite of the original wallet specification
-by Edsko and Duncan in Agda. To be specified in a separate document.
+The primary purpose of a wallet is to keep track of funds
+that are available for spending.
 
-    availableBalance : WalletState → Value
-    applyTx : Tx → WalletState → WalletState
+On the Cardano blockchain,
+this means keeping track of unspent transaction outputs (UTxO).
+This topic is discussed in more detail in
+
+* [Specification.Wallet.UTxO](Specification/Wallet/UTxO.lagda.md)
+
+Here, we only introduce basic concepts of UTxO management,
+as we want to focus on the relation between customer addresses
+and funds in the wallet.
+
+The basics of `UTxO` managed are as follows:
+The total UTxO of the wallet that can be spent is provided by the function
+
+    totalUTxO : WalletState → UTxO
+
+A transaction of type `Tx` may spend some outputs
+and create new ones.
+The function
+
+    applyTxToUTxO : (Address → Bool) → Tx → UTxO → UTxO
+
+applies the transaction to the `UTxO`.
+Here, the first argument is a predicate that specifies which output
+addresses of a transactions belong to the wallet.
+For the Deposit Wallet, we derive this from the wallet state as
+
+    isOurs : WalletState → Address → Bool
+
+
+Now, we discuss the entire `WalletState`.
+First, we consider the predicate `isOurs`.
+We require that all known customer addresses belong to the wallet
+
+```agda
+      prop-knownCustomerAddress-isOurs
+        : ∀ (addr : Address) (s : WalletState)
+        → knownCustomerAddress addr s ≡ True
+        → isOurs s addr ≡ True
+```
+
+However, there may be additional addresses belonging to the wallet,
+in particular change addresses.
+
+In order to apply a `Tx` to the entire `WalletState`,
+we use the function
+
+    applyTx : WalletState → Tx → UTxO → UTxO
+
+We require that this function
+is equivalent to `applyTxToUTxO` on the `totalUTxO`:
+
+```agda
+      prop-totalUTxO-applyTx
+        : ∀ (s : WalletState) (tx : Tx)
+        → totalUTxO (applyTx tx s)
+          ≡ applyTxToUTxO (isOurs s) tx (totalUTxO s)
+```
+
+Also, as discussed previously,
+we require that the mapping between customers and addresses
+remain unchanged:
+
+```agda
+      prop-listCustomers-applyTx
+        : ∀ (s : WalletState) (tx : Tx)
+        → listCustomers (applyTx tx s) ≡ listCustomers s
+```
 
 ### Tracking incoming funds
 
@@ -330,6 +393,8 @@ can only be spent from transaction outputs.
 
 The function `getCustomerHistory` allows users to detect incoming
 transfers by observing the `received` value.
+
+TODO: Expand on `summarize`.
 
 The behavior of this function is best specified in terms of a function
 
@@ -374,7 +439,7 @@ Finally, we expose an operation
 
     createPayment
       : List (Address × Value)
-      → PParams → WalletState → Maybe Tx
+      → PParams → WalletState → Maybe TxBody
 
 which constructs a transaction that sends given values to given addresses.
 Here, `PParams` are protocol parameters needed for computation the fee to

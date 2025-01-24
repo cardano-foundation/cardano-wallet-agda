@@ -50,3 +50,11 @@ and re-export the existing ones from `Specification.Cardano.*`
   open ModValue.Signature SigValue public
   open ModTx.Signature SigTx public
 ```
+
+For improved readability, we use the synonym
+
+```agda
+  Address = CompactAddr
+```
+
+to refer to addresses on Cardano.
