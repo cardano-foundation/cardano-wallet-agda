@@ -77,12 +77,14 @@ open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
     ; isChange
     )
+open import Data.Maybe.Extra using
+  ( prop-Just-injective
+  )
 open import Haskell.Data.List.Prop using
     ( _∈_ )
 open import Haskell.Data.Maybe using
     ( isJust
     ; catMaybes
-    ; prop-Just-injective
     )
 open import Haskell.Data.Word using
     ( Word8
@@ -100,22 +102,10 @@ open import Haskell.Data.Word.Odd public using
     )
 
 import Haskell.Data.ByteString as BS
-import Haskell.Data.Map as Map
+import Data.Map as Map
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
-#-}
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-  ( NetworkId (..)
-  )
-import Data.Maybe
-  ( isJust
-  )
-import Data.Map (Map)
-import qualified Data.Map as Map
 #-}
 
 {-----------------------------------------------------------------------------

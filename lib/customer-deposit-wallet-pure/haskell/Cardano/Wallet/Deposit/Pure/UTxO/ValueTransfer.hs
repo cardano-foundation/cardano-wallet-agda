@@ -3,9 +3,8 @@
 
 module Cardano.Wallet.Deposit.Pure.UTxO.ValueTransfer where
 
+import Cardano.Wallet.Read.Value (Value)
 import Prelude hiding (null, subtract)
-
-import Cardano.Wallet.Read (Value)
 
 -- |
 -- Records a transfer of 'Value'

@@ -1,14 +1,17 @@
 module Data.Maps.InverseMap where
 
-import Data.Set (Set)
-import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
 import Data.List (foldl')
 import Data.Map (Map)
 import qualified Data.Map as Map
+    ( empty
+    , fromListWith
+    , insertWith
+    , toAscList
+    , update
+    )
 import Data.Set (Set)
-import qualified Data.Set as Set
+import qualified Data.Set as Set (delete, null, singleton, union)
+import Prelude hiding (null, subtract)
 
 type InverseMap key v = Map v (Set key)
 

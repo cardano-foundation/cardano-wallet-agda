@@ -6,7 +6,7 @@ module Haskell.Data.Set.Law where
 open import Haskell.Reasoning
 open import Haskell.Prelude hiding (lookup; null; map; filter)
 
-open import Haskell.Data.Set.Def
+open import Haskell.Data.Set
 
 {-----------------------------------------------------------------------------
     Properties

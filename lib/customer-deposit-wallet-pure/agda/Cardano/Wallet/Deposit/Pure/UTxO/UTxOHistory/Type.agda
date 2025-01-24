@@ -17,27 +17,15 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
 open import Data.Maps.Timeline using
     ( Timeline
     )
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
-#-}
-
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( Slot
-    , SlotNo
-    , TxIn
-    )
-import Data.Map (Map)
-import Data.Set (Set)
 #-}
 
 {-----------------------------------------------------------------------------

@@ -87,6 +87,7 @@ library
     Data.Maps.InverseMap
     Data.Maps.PairMap
     Data.Maps.Timeline
+    Data.Maybe.Extra
   other-modules:
     Cardano.Crypto.Wallet.Extra
     Data.Maps.Maybe

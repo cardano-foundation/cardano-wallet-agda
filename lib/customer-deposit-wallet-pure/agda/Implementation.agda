@@ -36,7 +36,7 @@ open import Cardano.Wallet.Read using
 
 import Cardano.Wallet.Deposit.Pure.Experimental as Wallet
 import Cardano.Wallet.Read as Read
-import Haskell.Data.Map as Map
+import Data.Map as Map
 
 {-----------------------------------------------------------------------------
     Specification.Cardano

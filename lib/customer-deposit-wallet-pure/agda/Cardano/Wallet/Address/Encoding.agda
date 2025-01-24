@@ -21,8 +21,8 @@ module Cardano.Wallet.Address.Encoding
   -}
   where
 
+open import Haskell.Prelude
 open import Haskell.Reasoning
-open import Haskell.Prelude hiding (fromJust)
 
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
   ( XPub
@@ -41,6 +41,11 @@ open import Cardano.Wallet.Read using
     ; Mainnet
     ; Testnet
   )
+open import Data.Maybe.Extra using
+  ( fromJust
+  ; prop-Just-injective
+  ; prop-fromJust-injective
+  )
 open import Haskell.Data.ByteString.Short using
   ( ShortByteString
     ; singleton
@@ -49,34 +54,11 @@ open import Haskell.Data.ByteString.Short using
     ; prop-singleton-<>-injective
   )
 open import Haskell.Data.Maybe using
-  ( fromJust
-  ; isJust
-  ; prop-Just-injective
-  ; prop-fromJust-injective
+  ( isJust
   )
 open import Haskell.Data.Word using
   ( Word8
   )
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Crypto.Hash.Monomorphic
-  ( blake2b'224
-  )
-import Cardano.Wallet.Read
-  ( CompactAddr
-  , NetworkId (..)
-  , fromShortByteString
-  )
-import Data.ByteString.Short
-  ( ShortByteString
-  , singleton
-  , toShort
-  )
-import Data.Maybe
-  ( fromJust
-  )
-#-}
 
 {-----------------------------------------------------------------------------
     Algebraic data type for Enterprise addresses

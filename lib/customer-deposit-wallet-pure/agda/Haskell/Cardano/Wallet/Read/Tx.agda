@@ -6,10 +6,10 @@ module Haskell.Cardano.Wallet.Read.Tx where
 open import Haskell.Reasoning
 open import Haskell.Prelude
 
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 open import Haskell.Data.Word using

@@ -35,22 +35,28 @@ module Data.Maps.Timeline
     )
 where
 
+import Data.List (foldl')
+import Data.Map (Map)
+import qualified Data.Map as Map
+    ( empty
+    , insert
+    , keysSet
+    , lookup
+    , restrictKeys
+    , spanAntitone
+    , toAscList
+    , withoutKeys
+    )
 import qualified Data.Maps.InverseMap as InverseMap
     ( InverseMap
     , difference
     , insert
     , insertManyKeys
     )
-import Data.Set (Set)
-import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
-import Data.List (foldl')
-import Data.Map (Map)
-import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Data.Set (Set)
-import qualified Data.Set as Set
+import qualified Data.Set as Set (empty, toAscList)
+import Prelude hiding (null, subtract)
 
 -- |
 -- Insert a set of keys into a 'Map' that all have the same value.

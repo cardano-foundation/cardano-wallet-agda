@@ -22,6 +22,10 @@ import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO
     )
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO, dom, excluding)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (union)
+import Cardano.Wallet.Read.Block (SlotNo)
+import Cardano.Wallet.Read.Chain (Slot, WithOrigin (At, Origin))
+import Cardano.Wallet.Read.Tx (TxIn)
+import Data.Map (Map)
 import Data.Maps.Timeline (Timeline)
 import qualified Data.Maps.Timeline
     ( deleteAfter
@@ -34,19 +38,8 @@ import qualified Data.Maps.Timeline
     , items
     )
 import Data.Set (Set)
+import qualified Data.Set as Set (difference, intersection)
 import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( Slot
-    , SlotNo
-    , TxIn
-    , WithOrigin (..)
-    )
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Set (Set)
-import qualified Data.Set as Set
 
 -- |
 -- 'TimelineUTxO' represents a timeline of changes to an initial 'UTxO' set.

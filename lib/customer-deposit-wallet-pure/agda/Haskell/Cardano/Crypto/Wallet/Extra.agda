@@ -2,7 +2,7 @@
 
 module Haskell.Cardano.Crypto.Wallet.Extra where
 
-open import Haskell.Prelude hiding (fromJust)
+open import Haskell.Prelude
 
 open import Haskell.Data.Word using
   ( Word32

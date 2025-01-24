@@ -38,23 +38,13 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
 open import Cardano.Wallet.Read using
     ( TxIn
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
-import Haskell.Data.Map as Map
-import Haskell.Data.Set as Set
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( TxIn
-    )
-import qualified Data.Map as Map
-import qualified Data.Set as Set
-import Data.Set (Set)
-#-}
+import Data.Map as Map
+import Data.Set as Set
 
 {-----------------------------------------------------------------------------
     Type and Functions

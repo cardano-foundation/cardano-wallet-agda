@@ -41,25 +41,11 @@ open import Cardano.Wallet.Read using
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Cardano.Wallet.Read as Read
-import Haskell.Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Map as Map
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
-#-}
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( IsEra
-    , IsValid (..)
-    , Tx
-    , TxIn
-    , TxOut
-    )
-import qualified Cardano.Wallet.Read as Read
-import qualified Data.Map as Map
-import qualified Data.Set as Set
 #-}
 
 {-----------------------------------------------------------------------------

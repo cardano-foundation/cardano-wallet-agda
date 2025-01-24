@@ -34,16 +34,18 @@ open import Haskell.Prelude hiding
     )
 open import Haskell.Reasoning
 
+open import Data.Maybe.Extra using
+    ( prop-Just-injective
+    )
 open import Haskell.Data.Maybe using
     ( isJust
-    ; prop-Just-injective
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
-import Haskell.Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Map as Map
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}

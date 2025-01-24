@@ -29,7 +29,7 @@ module Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
   ; deriveEncryptedXPrvBIP32Path
   -} where
 
-open import Haskell.Prelude hiding (fromJust)
+open import Haskell.Prelude
 open import Haskell.Reasoning
 
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
@@ -61,12 +61,6 @@ import Cardano.Wallet.Address.BIP32_Ed25519 as BIP32_Ed25519
 import Haskell.Cardano.Crypto.Wallet.Extra as CC
 import Haskell.Data.ByteString as BS
 
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import qualified Cardano.Crypto.Wallet.Extra as CC
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
-#-}
 {-----------------------------------------------------------------------------
     Types
 ------------------------------------------------------------------------------}

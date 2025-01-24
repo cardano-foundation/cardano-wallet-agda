@@ -51,19 +51,13 @@ import Cardano.Wallet.Address.Encoding
     , fromNetworkId
     )
 import Cardano.Wallet.Deposit.Read.Temp (Address)
+import Cardano.Wallet.Read.Address ()
+import Cardano.Wallet.Read.Chain (NetworkId)
 import Cardano.Write.Tx.Balance (ChangeAddressGen)
+import qualified Data.Map as Map (Map, empty, insert, lookup, toAscList)
+import Data.Maybe (isJust)
 import Data.Word.Odd (Word31)
 import Prelude hiding (null, subtract)
-
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( NetworkId (..)
-    )
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Maybe
-    ( isJust
-    )
 
 -- |
 -- A 'Customer' is represented as a numerical ID.

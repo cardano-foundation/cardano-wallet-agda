@@ -58,21 +58,8 @@ open import Haskell.Data.Maybe using
     ( isJust
     )
 
-import Haskell.Data.Map as Map
-import Haskell.Data.Set as Set
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( TxIn
-    , TxOut
-    , Value
-    , getCompactAddr
-    , getValue
-    )
-import qualified Data.Map as Map
-import qualified Data.Set as Set
-#-}
+import Data.Map as Map
+import Data.Set as Set
 
 {-----------------------------------------------------------------------------
     UTxO

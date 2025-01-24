@@ -36,39 +36,29 @@ module Data.Maps.Timeline
     -}
     where
 
-open import Haskell.Prelude hiding (fromMaybe)
+open import Haskell.Prelude
 open import Haskell.Reasoning
 
 open import Haskell.Data.List using
     ( foldl'
     )
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
 open import Haskell.Data.Maybe using
     ( fromMaybe
     ; isJust
     )
-open import Haskell.Data.Set using
+open import Data.Set using
     ( ℙ
     )
 
 import Data.Maps.InverseMap as InverseMap
-import Haskell.Data.Map as Map
-import Haskell.Data.Set as Set
+import Data.Map as Map
+import Data.Set as Set
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
-#-}
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Data.List (foldl')
-import Data.Maybe (fromMaybe)
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Set (Set)
-import qualified Data.Set as Set
 #-}
 
 variable
