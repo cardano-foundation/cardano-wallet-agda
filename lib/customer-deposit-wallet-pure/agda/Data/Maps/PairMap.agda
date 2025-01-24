@@ -24,17 +24,8 @@ import Data.Map as Map
 {-# LANGUAGE StrictData #-}
 #-}
 
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Data.List (foldl')
-import Data.Maybe (fromMaybe)
-import Data.Map (Map)
-import qualified Data.Map as Map
-#-}
-
 variable
   v : Set
-
 
 {-----------------------------------------------------------------------------
     Helper properties

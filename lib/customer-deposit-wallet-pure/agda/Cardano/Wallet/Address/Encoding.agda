@@ -60,26 +60,6 @@ open import Haskell.Data.Word using
   ( Word8
   )
 
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Crypto.Hash.Monomorphic
-  ( blake2b'224
-  )
-import Cardano.Wallet.Read
-  ( CompactAddr
-  , NetworkId (..)
-  , fromShortByteString
-  )
-import Data.ByteString.Short
-  ( ShortByteString
-  , singleton
-  , toShort
-  )
-import Data.Maybe
-  ( fromJust
-  )
-#-}
-
 {-----------------------------------------------------------------------------
     Algebraic data type for Enterprise addresses
 ------------------------------------------------------------------------------}

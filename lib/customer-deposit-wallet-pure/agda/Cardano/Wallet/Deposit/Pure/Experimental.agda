@@ -30,7 +30,7 @@ open import Haskell.Prelude
 open import Haskell.Reasoning
 
 {-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
+-- Working around a limitation in agda2hs regarding re-exports
 import Cardano.Wallet.Deposit.Pure.Address
     ( Customer
     , AddressState
@@ -118,33 +118,6 @@ import Cardano.Wallet.Deposit.Pure.Address as Addr
 import Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Data.Map as Map
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-  ( Block
-  , getEraTransactions
-  , ChainPoint (..)
-  , getChainPoint
-  , IsEra
-  , NetworkId
-  , Slot
-  , Tx
-  , TxId
-  , TxIn
-  , TxOut
-  , getCompactAddr
-  , getValue
-  , mkBasicTxOut
-  , Value
-  , largerOrEqual
-  )
-import Data.Maybe
-  ( isJust
-  )
-import Data.Map (Map)
-import qualified Data.Map as Map
-#-}
 
 {-----------------------------------------------------------------------------
     Type definition

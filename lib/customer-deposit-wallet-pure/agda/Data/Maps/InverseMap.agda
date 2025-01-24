@@ -19,15 +19,6 @@ open import Data.Set using
 import Data.Map as Map
 import Data.Set as Set
 
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Data.List (foldl')
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Set (Set)
-import qualified Data.Set as Set
-#-}
-
 {-----------------------------------------------------------------------------
     Inverse Map
 ------------------------------------------------------------------------------}

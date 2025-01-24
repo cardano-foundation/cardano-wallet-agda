@@ -28,18 +28,6 @@ open import Data.Set using
 {-# LANGUAGE StrictData #-}
 #-}
 
-
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( Slot
-    , SlotNo
-    , TxIn
-    )
-import Data.Map (Map)
-import Data.Set (Set)
-#-}
-
 {-----------------------------------------------------------------------------
     Types
 ------------------------------------------------------------------------------}

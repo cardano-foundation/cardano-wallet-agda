@@ -57,20 +57,6 @@ import Data.List
 import Data.Foldable
     ( toList
     )
-import Cardano.Wallet.Read
-    ( ChainPoint (..)
-    , Slot
-    , SlotNo
-    , TxId
-    , WithOrigin (..)
-    , IsEra
-    , slotFromChainPoint
-    )
-import qualified Cardano.Wallet.Read as Read
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Set (Set)
-import qualified Data.Set as Set
 #-}
 
 {-----------------------------------------------------------------------------

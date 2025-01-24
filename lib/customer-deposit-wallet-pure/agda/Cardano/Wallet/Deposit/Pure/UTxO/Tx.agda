@@ -48,20 +48,6 @@ import Data.Set as Set
 {-# LANGUAGE StrictData #-}
 #-}
 
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( IsEra
-    , IsValid (..)
-    , Tx
-    , TxIn
-    , TxOut
-    )
-import qualified Cardano.Wallet.Read as Read
-import qualified Data.Map as Map
-import qualified Data.Set as Set
-#-}
-
 {-----------------------------------------------------------------------------
     UTxO utilities
 ------------------------------------------------------------------------------}

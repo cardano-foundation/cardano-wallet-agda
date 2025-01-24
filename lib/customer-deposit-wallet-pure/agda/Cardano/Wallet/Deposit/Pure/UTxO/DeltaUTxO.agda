@@ -46,16 +46,6 @@ import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Data.Map as Map
 import Data.Set as Set
 
-{-# FOREIGN AGDA2HS
--- Working around a limitation in agda2hs.
-import Cardano.Wallet.Read
-    ( TxIn
-    )
-import qualified Data.Map as Map
-import qualified Data.Set as Set
-import Data.Set (Set)
-#-}
-
 {-----------------------------------------------------------------------------
     Type and Functions
 ------------------------------------------------------------------------------}
