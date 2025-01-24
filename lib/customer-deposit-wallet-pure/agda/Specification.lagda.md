@@ -443,7 +443,7 @@ Finally, we expose an operation
 
 which constructs a transaction that sends given values to given addresses.
 Here, `PParams` are protocol parameters needed for computation the fee to
-include in the `Tx`.
+include in the transaction.
 
 First, as the main purpose of a wallet is to be able to send funds,
 it would be most desirable to require that this function always **succeeds**
@@ -493,3 +493,8 @@ In other words, we have
           → ¬ (address ∈ map getAddress (outputs tx))
 ```
 
+This property is not guarantee for other wallets,
+such as [cardano-wallet][].
+Unfortunately, this led to a very expensive bug.
+
+  [cardano-wallet]: https://github.com/cardano-foundation/cardano-wallet
