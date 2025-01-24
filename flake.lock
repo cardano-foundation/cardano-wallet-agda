@@ -39,16 +39,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1737537033,
-        "narHash": "sha256-0fDfWb4ML+KXo0onkJVW2D7L15ahXyE8Qn0p526B940=",
+        "lastModified": 1737724889,
+        "narHash": "sha256-iJVr/98O9vpDx3dxh/Bn6QjqSxzxdHerp7zwAgy+HWE=",
         "owner": "agda",
         "repo": "agda2hs",
-        "rev": "6ad6c81ba649c27ede531995e8e51e6bffaf680b",
+        "rev": "7e24278eeee63fbe3775fabb204ea382c3d688bb",
         "type": "github"
       },
       "original": {
         "owner": "agda",
-        "ref": "6ad6c81ba649c27ede531995e8e51e6bffaf680b",
+        "ref": "7e24278eeee63fbe3775fabb204ea382c3d688bb",
         "repo": "agda2hs",
         "type": "github"
       }
