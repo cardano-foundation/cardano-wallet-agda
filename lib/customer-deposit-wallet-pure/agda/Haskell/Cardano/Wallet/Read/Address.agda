@@ -13,12 +13,14 @@ module Haskell.Cardano.Wallet.Read.Address
 open import Haskell.Reasoning
 open import Haskell.Prelude
 
+open import Data.Maybe.Extra using
+    ( prop-Just-injective
+    )
 open import Haskell.Data.ByteString.Short using
     ( ShortByteString
     )
 open import Haskell.Data.Maybe using
     ( isJust
-    ; prop-Just-injective
     )
 
 {-----------------------------------------------------------------------------

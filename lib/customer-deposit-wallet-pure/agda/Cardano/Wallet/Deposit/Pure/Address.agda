@@ -77,12 +77,14 @@ open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
     ; isChange
     )
+open import Data.Maybe.Extra using
+  ( prop-Just-injective
+  )
 open import Haskell.Data.List.Prop using
     ( _∈_ )
 open import Haskell.Data.Maybe using
     ( isJust
     ; catMaybes
-    ; prop-Just-injective
     )
 open import Haskell.Data.Word using
     ( Word8

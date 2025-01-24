@@ -29,7 +29,7 @@ module Cardano.Wallet.Address.BIP32_Ed25519.Encrypted
   ; deriveEncryptedXPrvBIP32Path
   -} where
 
-open import Haskell.Prelude hiding (fromJust)
+open import Haskell.Prelude
 open import Haskell.Reasoning
 
 open import Cardano.Wallet.Address.BIP32_Ed25519 using

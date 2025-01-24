@@ -2,7 +2,7 @@
 -- with efficient lookups for single keys.
 module Data.Maps.PairMap where
 
-open import Haskell.Prelude hiding (fromMaybe)
+open import Haskell.Prelude
 open import Haskell.Reasoning
 
 open import Haskell.Data.List using

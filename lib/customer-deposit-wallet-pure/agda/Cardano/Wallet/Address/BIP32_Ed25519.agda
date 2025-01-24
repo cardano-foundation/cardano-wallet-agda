@@ -23,7 +23,7 @@ module Cardano.Wallet.Address.BIP32_Ed25519
   ; deriveXPrvBIP32Path
   -} where
 
-open import Haskell.Prelude hiding (fromJust)
+open import Haskell.Prelude
 open import Haskell.Reasoning
 
 open import Cardano.Wallet.Address.BIP32 using
@@ -35,8 +35,7 @@ open import Haskell.Data.ByteString using
   ( ByteString
   )
 open import Haskell.Data.Maybe using
-  ( fromJust
-  ; isJust
+  ( isJust
   )
 open import Haskell.Data.Word using
   ( Word32
@@ -45,6 +44,7 @@ open import Haskell.Data.Word.Odd using
   ( Word31
   )
 
+import Data.Maybe.Extra as Maybe
 import Haskell.Cardano.Crypto.Wallet.Extra as CC
 import Haskell.Data.ByteString as BS
 
@@ -168,7 +168,7 @@ postulate
 -- [BIP-32_Ed25519](https://input-output-hk.github.io/adrestia/static/Ed25519_BIP.pdf) standard.
 deriveXPubSoft : XPub → Word31 → XPub
 deriveXPubSoft xpub ix =
-  fromJust 
+  Maybe.fromJust 
     (CC.deriveXPub
       CC.DerivationScheme2
       xpub

@@ -36,7 +36,7 @@ module Data.Maps.Timeline
     -}
     where
 
-open import Haskell.Prelude hiding (fromMaybe)
+open import Haskell.Prelude
 open import Haskell.Reasoning
 
 open import Haskell.Data.List using

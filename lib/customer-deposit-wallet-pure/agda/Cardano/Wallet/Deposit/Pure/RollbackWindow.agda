@@ -34,9 +34,11 @@ open import Haskell.Prelude hiding
     )
 open import Haskell.Reasoning
 
+open import Data.Maybe.Extra using
+    ( prop-Just-injective
+    )
 open import Haskell.Data.Maybe using
     ( isJust
-    ; prop-Just-injective
     )
 open import Haskell.Data.Set using
     ( ℙ
