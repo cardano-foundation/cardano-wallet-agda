@@ -102,7 +102,7 @@ open import Haskell.Data.Word.Odd public using
     )
 
 import Haskell.Data.ByteString as BS
-import Haskell.Data.Map as Map
+import Data.Map as Map
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}

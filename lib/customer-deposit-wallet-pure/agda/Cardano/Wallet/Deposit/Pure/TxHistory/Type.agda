@@ -21,7 +21,7 @@ open import Data.Maps.PairMap using
 open import Data.Maps.Timeline using
     ( Timeline
     )
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
 

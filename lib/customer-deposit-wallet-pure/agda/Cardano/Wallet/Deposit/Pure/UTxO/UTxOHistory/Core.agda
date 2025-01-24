@@ -57,7 +57,7 @@ open import Cardano.Wallet.Read using
 open import Haskell.Data.List using
     ( foldl'
     )
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
 open import Haskell.Data.Maybe using
@@ -71,7 +71,7 @@ import Cardano.Wallet.Deposit.Pure.RollbackWindow as RollbackWindow
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Data.Maps.Timeline as Timeline
-import Haskell.Data.Map as Map
+import Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS

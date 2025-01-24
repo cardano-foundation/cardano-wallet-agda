@@ -41,7 +41,7 @@ open import Cardano.Wallet.Read using
 import Cardano.Wallet.Deposit.Pure.UTxO.DeltaUTxO as DeltaUTxO
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Cardano.Wallet.Read as Read
-import Haskell.Data.Map as Map
+import Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS

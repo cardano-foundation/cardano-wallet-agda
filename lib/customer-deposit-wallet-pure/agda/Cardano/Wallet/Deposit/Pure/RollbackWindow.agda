@@ -44,7 +44,7 @@ open import Haskell.Data.Set using
     ( ℙ
     )
 
-import Haskell.Data.Map as Map
+import Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS

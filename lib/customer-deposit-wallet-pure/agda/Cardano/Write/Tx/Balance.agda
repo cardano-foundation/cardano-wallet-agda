@@ -42,7 +42,7 @@ open import Haskell.Data.Maybe using ( isJust )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO
 import Haskell.Data.ByteString as BS
-import Haskell.Data.Map as Map
+import Data.Map as Map
 
 {-# FOREIGN AGDA2HS
 -- Working around a limitation in agda2hs.

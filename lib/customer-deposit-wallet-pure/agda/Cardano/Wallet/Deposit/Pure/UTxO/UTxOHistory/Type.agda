@@ -17,7 +17,7 @@ open import Cardano.Wallet.Deposit.Pure.UTxO.UTxO using
 open import Data.Maps.Timeline using
     ( Timeline
     )
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
 open import Haskell.Data.Set using

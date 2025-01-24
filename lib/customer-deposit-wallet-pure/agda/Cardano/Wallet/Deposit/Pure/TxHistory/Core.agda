@@ -34,7 +34,7 @@ open import Haskell.Data.List using
     ( foldl'
     ; sortOn
     )
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
 open import Haskell.Data.Set using
@@ -43,7 +43,7 @@ open import Haskell.Data.Set using
 
 import Data.Maps.PairMap as PairMap
 import Data.Maps.Timeline as Timeline
-import Haskell.Data.Map as Map
+import Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS

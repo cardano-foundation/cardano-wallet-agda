@@ -8,7 +8,7 @@ open import Haskell.Reasoning
 open import Haskell.Data.List using
     ( foldl'
     )
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
 open import Haskell.Data.Maybe using
@@ -18,7 +18,7 @@ open import Haskell.Data.Set using
     ( ℙ
     )
 
-import Haskell.Data.Map as Map
+import Data.Map as Map
 
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}

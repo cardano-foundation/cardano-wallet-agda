@@ -9,14 +9,14 @@ open import Haskell.Data.List using
 open import Haskell.Data.Maybe using
     ( fromMaybe
     )
-open import Haskell.Data.Map using
+open import Data.Map using
     ( Map
     )
 open import Haskell.Data.Set using
     ( ℙ
     )
 
-import Haskell.Data.Map as Map
+import Data.Map as Map
 import Haskell.Data.Set as Set
 
 {-# FOREIGN AGDA2HS

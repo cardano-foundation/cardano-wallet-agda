@@ -6,7 +6,7 @@ module Haskell.Data.Map.Law where
 open import Haskell.Reasoning
 open import Haskell.Prelude hiding (lookup; null; map; filter)
 
-open import Haskell.Data.Map.Def
+open import Haskell.Data.Map
 open import Haskell.Data.Maybe using
     ( isJust
     )
