@@ -165,7 +165,8 @@ Operations:
       applyTx   : Tx → WalletState → WalletState
       isOurs    : WalletState → Address → Bool
 
-      getCustomerHistory : WalletState → Customer → List TxSummary
+      getCustomerHistory
+        : WalletState → Customer → List TxSummary
 
       createPayment
         : List (Address × Value)
@@ -200,7 +201,7 @@ the following operations:
     fromXPubAndMax        : XPub → Word31 → WalletState
     listCustomers         : WalletState → List (Customer × Address)
 
-Here
+Here,
 
 * `deriveCustomerAddress` deterministically creates an address
   for a given customer index.
@@ -250,8 +251,7 @@ We require that the mapping is a bijection
 
 The relation between `listCustomers` and `fromXPubAndMax`
 is specified as follows:
-
-First, the mapping precisely contains customers indices `0` to `count - 1`:
+First, the mapping precisely contains customers indices `0` to `cmax`:
 
 ```agda
       prop-listCustomers-fromXPubAndMax-max
@@ -265,7 +265,10 @@ the public key and the customer index.
 
 ```agda
       prop-listCustomers-fromXPubAndMax-xpub
-        : ∀ (c : Customer) (xpub : XPub) (cmax : Word31) (addr : Address)
+        : ∀ (c : Customer)
+            (xpub : XPub)
+            (cmax : Word31)
+            (addr : Address)
         → customerAddress c (fromXPubAndMax xpub cmax)
           ≡ Just addr
         → deriveCustomerAddress xpub c
@@ -308,21 +311,22 @@ Here, we only introduce basic concepts of UTxO management,
 as we want to focus on the relation between customer addresses
 and funds in the wallet.
 
-The basics of `UTxO` managed are as follows:
-The total UTxO of the wallet that can be spent is provided by the function
+The basics of `UTxO` management are as follows:
+The total UTxO of the wallet that can be spent is given by the function
 
     totalUTxO : WalletState → UTxO
 
 A transaction of type `Tx` may spend some outputs
 and create new ones.
-The function
+We assume that a function
 
     applyTxToUTxO : (Address → Bool) → Tx → UTxO → UTxO
 
 applies the transaction to the `UTxO`.
 Here, the first argument is a predicate that specifies which output
 addresses of a transactions belong to the wallet.
-For the Deposit Wallet, we derive this from the wallet state as
+For the Deposit Wallet,
+the addresses belonging to the wallet are given by a function
 
     isOurs : WalletState → Address → Bool
 
@@ -342,7 +346,7 @@ However, there may be additional addresses belonging to the wallet,
 in particular change addresses.
 
 In order to apply a `Tx` to the entire `WalletState`,
-we use the function
+we require a function
 
     applyTx : WalletState → Tx → UTxO → UTxO
 
@@ -368,14 +372,22 @@ remain unchanged:
 
 ### Tracking incoming funds
 
+TODO: Add `Slot` parameter to `applyTx`. 🤔
+
 The wallet tracks all addresses in `listCustomers`
 whenever new blocks are incorporated into the wallet state.
 
-For this purpose of tracking, we introduce an operation
+The result of tracking is given by the operation
 
     getCustomerHistory : WalletState → Customer → List TxSummary
 
-which returns a list of transaction summaries. For a given transaction, such a summary reports the total `Value` spend or received at a specific address.
+For a given customer,
+this operation returns a list of transaction summaries.
+A transaction summary (`TxSummary`)
+reports the total `Value` spent or received
+by the customer within a specific transaction.
+The summary also includes the transaction id (`TxId`)
+and the `Slot` at which the transaction was included in the blockchain.
 
     record ValueTransfer : Set where
       field
@@ -387,52 +399,96 @@ which returns a list of transaction summaries. For a given transaction, such a s
     TxSummary : Set
     TxSummary = Slot × TxId × ValueTransfer
 
-Note that the customer deposit wallet does not support
-delegation and reward accounts, and the `spent` value
-can only be spent from transaction outputs.
+Note that the deposit wallet does not support
+delegation and reward accounts
+— the `spent` field only records value spent from transaction
+outputs.
 
-The function `getCustomerHistory` allows users to detect incoming
-transfers by observing the `received` value.
+The main purpose of the function `getCustomerHistory` is to
+track the origin of incoming funds.
+When a transactions makes a payment to an `address`
+that belongs to a known customer `c`,
+`customerAddress c ≡ Just address`,
+a transaction summary with the corresponding transaction id
+will show up in the result of `getCustomerHistory`
+for the customer `c`.
+This summary will record the total value that this customer
+`received` in this transaction.
 
-TODO: Expand on `summarize`.
+Note that the `spent` field in the `TxSummary` is for information only
+— the deposit wallet does not distinguish customers when spending,
+funds are taken out from customer addresses at random.
+See the discussion of `createPayment` in a later section.
 
-The behavior of this function is best specified in terms of a function
+In order to specify the behavior of `getCustomerHistory`
+more precisely,
+we assume two functions
+
+    spentTx    : Address → Tx → UTxO → Value
+    receivedTx : Address → Tx → Value
+
+which total the value spend, respectively received,
+at a given address when a transaction is applied to a `UTxO`.
+These functions are from
+[Specification.Wallet.UTxO](./Specification/Wallet/UTxO.lagda.md).
+We group them in a function
 
 ```agda
-      summarize : WalletState → Tx → List (Address × TxSummary)
-
-    getAddressSummary
-      : Address → List (Address × TxSummary) → List TxSummary
-    getAddressSummary address =
-      map snd ∘ filter (λ x → fst x == address)
+    summarizeTx : Address → Tx → UTxO → ValueTransfer
+    summarizeTx addr tx u = record
+      { spent    = spentTx addr tx u
+      ; received = receivedTx addr tx
+      }
 ```
 
-which summarizes a single transaction.
-Specifically, the result of `getCustomerHistory` is an aggregate of all previous transaction summaries.
+Now, we require that applying a transaction to the
+wallet state will add the summary of this transaction to
+`getCustomerHistory`:
 
 ```agda
     field
-      prop-getAddressHistory-summary
-        : ∀ (s : WalletState)
+      prop-getCustomerHistory-applyTx
+        : ∀ (w : WalletState)
             (c : Customer)
             (address : Address)
             (tx : Tx)
-        → (c , address) ∈ listCustomers s
-        → getCustomerHistory (applyTx tx s) c
-          ≡ (getAddressSummary address (summarize s tx))
-              ++ getCustomerHistory s c
+            (slot : Slot)
+        → (c , address) ∈ listCustomers w
+        → getCustomerHistory (applyTx tx w) c
+          ≡ (slot , getTxId tx , summarizeTx address tx (totalUTxO w))
+              ∷ getCustomerHistory w c
 ```
 
-Importantly, track an address if and only if it is a `knownCustomerAddress`.
+On the other hand,
+customers that are not known will not be tracked:
 
 ```agda
-      prop-tx-known-address
-        : ∀ (address : Address)
-            (s : WalletState)
-            (tx : Tx)
-        → (knownCustomerAddress address s ≡ True)
-        ⇔ (address ∈ map fst (summarize s tx))
+      prop-getCustomerHistory-knownCustomer
+        : ∀ (w : WalletState)
+            (c : Customer)
+        → knownCustomer c w ≡ False
+        → getCustomerHistory w c ≡ []
 ```
+
+Finally, a wallet that was just initialized does
+not contain a history of transactions, yet:
+
+```agda
+      prop-getCustomerHistory-fromXPubAndMax
+        : ∀ (xpub : XPub) (cmax : Customer) (c : Customer)
+        → getCustomerHistory (fromXPubAndMax xpub cmax) c ≡ []
+```
+
+The above properties provide a specification of
+tracking incoming funds via `getCustomerHistory`.
+For larger transaction histories,
+this function may not offer the best performance
+— for example, it does not limit the list of transactions,
+and we cannot query recent transactions by customers.
+However, we only specify one function here,
+because these other queries can be specified
+in terms of the result of `getCustomerHistory` alone,
+without further reference to the `WalletState`.
 
 ### Creating transactions
 
@@ -453,6 +509,7 @@ Unfortunately, however, we do not yet have an implementation
 where we can prove this property. This topic is discussed in
 
 * [Specification.Wallet.Payment](Specification/Wallet/Payment.lagda.md)
+TODO: Call this "Balance"
 
 Second, the transaction sends funds as indicated
 

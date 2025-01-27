@@ -51,6 +51,9 @@ and functions
     balance : UTxO → Value
 
     applyTxToUTxO : (Address → Bool) → Tx → UTxO → UTxO
+
+    spentTx    : Address → Tx → UTxO → Value
+    receivedTx : Address → Tx → Value
 ```
 
 The function `balance` computes the total value contained in the
@@ -63,6 +66,14 @@ belongs to the wallet, typically because the wallet owner knows
 the corresponding signing key.
 Only those outputs that satisfy `isOurs` are included in the
 updated `UTxO`.
+
+The function `spentTx` computes the `Value`
+spent by the transaction on the given address
+— without accounting for received value.
+
+In turn, the function `receivedTx` computes the `Value`
+received by the transaction on the given address
+— without accounting for spent value.
 
 At this level of detail, we cannot formulate any properties
 — we would need a definition of `Tx` for that purpose.

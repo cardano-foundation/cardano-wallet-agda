@@ -78,6 +78,7 @@ SigTx = record
   ; Tx = Read.Tx Conway
   ; TxId = Read.TxId
   ; outputs = map pairFromTxOut ∘ TxBody.outputs
+  ; getTxId = Read.getTxId
   }
 
 import Specification.Cardano
@@ -99,6 +100,8 @@ SigWallet = record
   { UTxO = UTxO.UTxO
   ; balance = UTxO.balance
   ; applyTxToUTxO = {!   !}
+  ; spentTx = {!   !}
+  ; receivedTx = {!   !}
   }
 
 {-----------------------------------------------------------------------------
@@ -163,9 +166,9 @@ properties = record
     ; prop-totalUTxO-applyTx = {!   !}
     ; prop-listCustomers-applyTx = {!   !}
 
-    ; summarize = {!  !}
-    ; prop-getAddressHistory-summary = {!  !}
-    ; prop-tx-known-address = {!   !}
+    ; prop-getCustomerHistory-applyTx = {!   !}
+    ; prop-getCustomerHistory-knownCustomer = {!   !}
+    ; prop-getCustomerHistory-fromXPubAndMax = {!   !}
 
     ; prop-createPayment-pays = {!   !}
     ; prop-createPayment-not-known =
