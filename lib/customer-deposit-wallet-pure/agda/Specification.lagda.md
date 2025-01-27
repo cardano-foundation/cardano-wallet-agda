@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-🚧 DRAFT 2025-01-20
+🚧 DRAFT 2025-01-27
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
@@ -110,8 +110,8 @@ on this abstract data type and the logical properties that relate them.
 We define a `module` `DepositWallet` which is parametrized by
 
 * the abstract data type `WalletState` that we wish to specify,
-* an implementation `SigCardano` of concepts that are related to Cardano,
-and which we need to express the specification, and
+* a specification `SigCardano` of Cardano-related concepts
+that we need to formulate this specification, and
 * a specification `SigWallet` of wallet-related concepts that are
   not the focus of this document.
 
@@ -188,7 +188,7 @@ The following record collects the properties:
 
 The type `Customer` denotes a unique identifier for a customer.
 For reasons explained later, we choose to represent this type
-as numerical indices:
+as a numerical index:
 
     Customer = Word31
 
