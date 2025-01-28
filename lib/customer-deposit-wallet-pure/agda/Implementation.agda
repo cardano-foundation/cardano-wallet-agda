@@ -29,7 +29,8 @@ open import Cardano.Wallet.Deposit.Read.Temp using
     ; TxBody
     )
 open import Cardano.Wallet.Read using
-    ( Slot
+    ( WithOrigin
+    ; Slot
     ; Tx
     ; TxId
     ; TxOut
@@ -48,6 +49,18 @@ import Data.Map as Map
 {-----------------------------------------------------------------------------
     Specification.Cardano
 ------------------------------------------------------------------------------}
+
+import Specification.Cardano.Chain
+
+SigChain : Specification.Cardano.Chain.Signature
+SigChain = record
+  { Slot = Read.Slot
+  ; iEqSlot = Read.iEqWithOrigin
+  ; iOrdSlot = Read.iOrdWithOrigin
+  ; iIsLawfulOrdSlot = Read.iIsLawfulOrdWithOrigin
+  ; genesis = WithOrigin.Origin
+  ; prop-genesis-<= = λ x → {!   !}
+  }
 
 import Specification.Cardano.Value
 
@@ -88,7 +101,7 @@ SigCardano = record
   { CompactAddr = Address
   ; iEqCompactAddr = Read.iEqCompactAddr
   ; PParams = ⊤
-  ; Slot = Slot
+  ; SigChain = SigChain
   ; SigValue = SigValue
   ; SigTx = SigTx
   }
@@ -142,8 +155,10 @@ operations = record
   ; fromXPubAndMax = {!   !}
   ; listCustomers = Wallet.listCustomers
 
+  ; getWalletSlot = {!   !}
+  ; applyTx = λ slot → Wallet.applyTx {{iIsEraConway}}
+
   ; totalUTxO = {!   !}
-  ; applyTx = Wallet.applyTx {{iIsEraConway}}
   ; isOurs = {!   !}
 
   ; getCustomerHistory = λ customer →
@@ -162,9 +177,13 @@ properties = record
     ; prop-listCustomers-fromXPubAndMax-max = {!   !}
     ; prop-listCustomers-fromXPubAndMax-xpub = {!   !}
 
+    ; prop-getWalletSlot-fromXPubAndMax = {!   !}
+    ; prop-getWalletSlot-applyTx = {!   !}
+    ; prop-getWalletSlot-applyTx-past = {!   !}
+    ; prop-listCustomers-applyTx = {!   !}
+
     ; prop-knownCustomerAddress-isOurs = {!   !}
     ; prop-totalUTxO-applyTx = {!   !}
-    ; prop-listCustomers-applyTx = {!   !}
 
     ; prop-getCustomerHistory-applyTx = {!   !}
     ; prop-getCustomerHistory-knownCustomer = {!   !}

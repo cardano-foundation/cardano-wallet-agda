@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-🚧 DRAFT 2025-01-27
+🚧 DRAFT 2025-01-29
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
@@ -161,9 +161,10 @@ Operations:
       fromXPubAndMax        : XPub → Word31 → WalletState
       listCustomers         : WalletState → List (Customer × Address)
 
-      totalUTxO : WalletState → UTxO
-      applyTx   : Tx → WalletState → WalletState
-      isOurs    : WalletState → Address → Bool
+      totalUTxO     : WalletState → UTxO
+      getWalletSlot : WalletState → Slot
+      applyTx       : Slot → Tx → WalletState → WalletState
+      isOurs        : WalletState → Address → Bool
 
       getCustomerHistory
         : WalletState → Customer → List TxSummary
@@ -245,8 +246,8 @@ We require that the mapping is a bijection
 
     field
       prop-listCustomers-isBijection
-        : ∀ (s : WalletState)
-        → isBijection (listCustomers s) ≡ True
+        : ∀ (w : WalletState)
+        → isBijection (listCustomers w) ≡ True
 ```
 
 The relation between `listCustomers` and `fromXPubAndMax`
@@ -296,6 +297,78 @@ Here, `1857` is a new “purpose” identifier; we cannot reuse the [CIP-1852][]
 This method of deriving addresses is also the reason why we choose
 a concrete representation of `Customer` as `Word31`.
 
+### Transactions and slots
+
+Transactions are used to spend from or send funds to a wallet.
+The type `Tx` represents a transaction.
+The `WalletState` may keep a history of transactions.
+In order to keep a history, we need a notion of time
+— we use the type `Slot` to keep track of time,
+as this type represents a time interval in which
+one block can be forged.
+
+In order to apply a `Tx` to the `WalletState`,
+we specify a function
+
+    applyTx : Slot → Tx → WalletState → WalletState
+
+The first argument of this function is the `Slot`
+of the block in which the transaction was included.
+
+Transactions have to be applied in increasing `Slot` order.
+For this reason, we also specify a function
+
+    getWalletSlot : WalletState → Slot
+
+that records the last `Slot` for which a transaction was
+applied; this property is express as:
+
+```agda
+      prop-getWalletSlot-applyTx
+        : ∀ (w    : WalletState)
+            (slot : Slot)
+            (tx   : Tx)
+        → (getWalletSlot w <= slot) ≡ True
+        → getWalletSlot (applyTx slot tx w)
+          ≡ slot
+```
+
+An initial `WalletState` created with `fromXPubAndMax`
+starts at genesis:
+
+```agda
+      prop-getWalletSlot-fromXPubAndMax
+        : ∀ (xpub : XPub)
+            (cmax : Customer)
+        → getWalletSlot (fromXPubAndMax xpub cmax)
+          ≡ genesis
+```
+
+For completeness, we decree that `applyTx` with a past `Slot`
+are a no-op on the `WalletState`:
+
+```agda
+      prop-getWalletSlot-applyTx-past
+        : ∀ (w    : WalletState)
+            (slot : Slot)
+            (tx   : Tx)
+        → (getWalletSlot w <= slot) ≡ False
+        → applyTx slot tx w
+          ≡ w
+```
+
+Finally, we specify that the mapping between customers
+and addresses is unchanged by transactions:
+
+```agda
+      prop-listCustomers-applyTx
+        : ∀ (w    : WalletState)
+            (slot : Slot)
+            (tx   : Tx)
+        → listCustomers (applyTx slot tx w)
+          ≡ listCustomers w
+```
+
 ### Wallet balance and transactions
 
 The primary purpose of a wallet is to keep track of funds
@@ -330,49 +403,36 @@ the addresses belonging to the wallet are given by a function
 
     isOurs : WalletState → Address → Bool
 
-
-Now, we discuss the entire `WalletState`.
+Now, we extend the discussion to the entire `WalletState`:
 First, we consider the predicate `isOurs`.
 We require that all known customer addresses belong to the wallet
 
 ```agda
       prop-knownCustomerAddress-isOurs
-        : ∀ (addr : Address) (s : WalletState)
-        → knownCustomerAddress addr s ≡ True
-        → isOurs s addr ≡ True
+        : ∀ (addr : Address)
+            (w    : WalletState)
+        → knownCustomerAddress addr w ≡ True
+        → isOurs w addr ≡ True
 ```
 
 However, there may be additional addresses belonging to the wallet,
 in particular change addresses.
 
-In order to apply a `Tx` to the entire `WalletState`,
-we require a function
-
-    applyTx : WalletState → Tx → UTxO → UTxO
-
-We require that this function
+Second, we consider the application of a transaction.
+We require that `applyTx`
 is equivalent to `applyTxToUTxO` on the `totalUTxO`:
 
 ```agda
       prop-totalUTxO-applyTx
-        : ∀ (s : WalletState) (tx : Tx)
-        → totalUTxO (applyTx tx s)
-          ≡ applyTxToUTxO (isOurs s) tx (totalUTxO s)
-```
-
-Also, as discussed previously,
-we require that the mapping between customers and addresses
-remain unchanged:
-
-```agda
-      prop-listCustomers-applyTx
-        : ∀ (s : WalletState) (tx : Tx)
-        → listCustomers (applyTx tx s) ≡ listCustomers s
+        : ∀ (slot : Slot)
+            (w    : WalletState)
+            (tx   : Tx)
+        → (getWalletSlot w <= slot) ≡ True
+        → totalUTxO (applyTx slot tx w)
+          ≡ applyTxToUTxO (isOurs w) tx (totalUTxO w)
 ```
 
 ### Tracking incoming funds
-
-TODO: Add `Slot` parameter to `applyTx`. 🤔
 
 The wallet tracks all addresses in `listCustomers`
 whenever new blocks are incorporated into the wallet state.
@@ -454,9 +514,10 @@ wallet state will add the summary of this transaction to
             (tx : Tx)
             (slot : Slot)
         → (c , address) ∈ listCustomers w
-        → getCustomerHistory (applyTx tx w) c
+        → (getWalletSlot w <= slot) ≡ True
+        → getCustomerHistory (applyTx slot tx w) c
           ≡ (slot , getTxId tx , summarizeTx address tx (totalUTxO w))
-              ∷ getCustomerHistory w c
+            ∷ getCustomerHistory w c
 ```
 
 On the other hand,
@@ -467,7 +528,8 @@ customers that are not known will not be tracked:
         : ∀ (w : WalletState)
             (c : Customer)
         → knownCustomer c w ≡ False
-        → getCustomerHistory w c ≡ []
+        → getCustomerHistory w c
+          ≡ []
 ```
 
 Finally, a wallet that was just initialized does
@@ -476,7 +538,8 @@ not contain a history of transactions, yet:
 ```agda
       prop-getCustomerHistory-fromXPubAndMax
         : ∀ (xpub : XPub) (cmax : Customer) (c : Customer)
-        → getCustomerHistory (fromXPubAndMax xpub cmax) c ≡ []
+        → getCustomerHistory (fromXPubAndMax xpub cmax) c
+          ≡ []
 ```
 
 The above properties provide a specification of
