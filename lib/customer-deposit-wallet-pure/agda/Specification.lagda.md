@@ -78,6 +78,8 @@ and also
 In addition, we also need to import concepts that are specific to Cardano:
 
 * [Specification.Cardano](Specification/Cardano.lagda.md)
+  * [Specification.Cardano.Chain](Specification/Cardano/Chain.lagda.md)
+  — Type `Slot`.
   * [Specification.Cardano.Tx](Specification/Cardano/Tx.lagda.md)
   — Transaction type `Tx`.
   * [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
