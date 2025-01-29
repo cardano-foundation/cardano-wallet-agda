@@ -40,4 +40,5 @@ that support the following operations:
 
 ```agda
     outputs : TxBody → List (Address × Value)
+    getTxId : Tx → TxId
 ```
