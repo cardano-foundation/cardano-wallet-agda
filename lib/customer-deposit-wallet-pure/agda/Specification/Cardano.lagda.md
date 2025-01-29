@@ -13,6 +13,7 @@ module Specification.Cardano where
 ```agda
 open import Haskell.Prelude
 
+import Specification.Cardano.Chain as ModChain
 import Specification.Cardano.Value as ModValue
 import Specification.Cardano.Tx as ModTx
 ```
@@ -33,7 +34,6 @@ We introduce new types
     CompactAddr : Set
     {{iEqCompactAddr}} : Eq CompactAddr
 
-    Slot     : Set
     PParams  : Set
 ```
 
@@ -41,12 +41,16 @@ and re-export the existing ones from `Specification.Cardano.*`
 
 ```agda
   field
+    SigChain : ModChain.Signature
+
+  field
     SigValue : ModValue.Signature
   open ModValue.Signature SigValue using (Value)
 
   field
     SigTx    : ModTx.Signature CompactAddr Value
 
+  open ModChain.Signature SigChain public
   open ModValue.Signature SigValue public
   open ModTx.Signature SigTx public
 ```
