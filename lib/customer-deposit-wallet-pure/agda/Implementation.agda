@@ -11,7 +11,7 @@ module Implementation where
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
-open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
+open import Specification.Common using (_⇔_; _∈_; isSubsequenceOf)
 
 open import Cardano.Wallet.Address.Encoding using
     ( NetworkTag
@@ -189,7 +189,8 @@ properties = record
     ; prop-getCustomerHistory-knownCustomer = {!   !}
     ; prop-getCustomerHistory-fromXPubAndMax = {!   !}
 
-    ; prop-createPayment-pays = {!   !}
+    ; prop-createPayment-destinations = {!   !}
+    ; prop-createPayment-isOurs = {!   !}
     ; prop-createPayment-not-known =
         λ _ s destinations tx eq1 address eq2 neq3 rel4 →
             Wallet.prop-createPayment-not-known

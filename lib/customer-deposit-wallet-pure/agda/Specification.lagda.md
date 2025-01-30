@@ -22,6 +22,22 @@ Technically, each customer is represented by a numerical index starting at `0`.
 The deposit wallet manages a mapping between indices and addresses,
 and tracks incoming funds for each known address.
 
+When spending funds from the deposit wallet,
+the corresponding transaction includes change outputs
+that return surplus funds to the wallet.
+It is important that these **change outputs** do **not**
+correspond to any **known customer addresses**
+— otherwise they would be treated as originating from a customer!
+Unfortunately, this property is not guaranteed for other wallet software,
+such as [cardano-wallet][] — and this led to a very expensive bug,
+where customers were credited with funds that they had never deposited.
+The main motivation for this specification is to
+explicitly state that this property should hold,
+to formulate it with precision,
+and to do so in a way that is amenable to compiler-checked proof.
+
+  [cardano-wallet]: https://github.com/cardano-foundation/cardano-wallet
+
 # Setup
 
 This document is a [literate Agda][lagda] file: It contains prose that
@@ -78,6 +94,8 @@ and also
 In addition, we also need to import concepts that are specific to Cardano:
 
 * [Specification.Cardano](Specification/Cardano.lagda.md)
+  * [Specification.Cardano.Chain](Specification/Cardano/Chain.lagda.md)
+  — Type `Slot`.
   * [Specification.Cardano.Tx](Specification/Cardano/Tx.lagda.md)
   — Transaction type `Tx`.
   * [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
@@ -89,7 +107,7 @@ user-defined assets, such as stablecoins or NFTs.
 open import Haskell.Data.Word.Odd using (Word31)
 
 open import Specification.Common using
-  (_⇔_; _∈_; isSubsetOf; isJust; nub)
+  (_⇔_; _∈_; isSubsequenceOf; _\\_; isJust; nub)
 
 import Specification.Cardano
 import Specification.Wallet.UTxO
@@ -187,6 +205,10 @@ The following record collects the properties:
 ```
 
 ### Mapping between Customers and Address
+
+The defining feature of the deposit wallet
+is that it keeps track of a mapping between customers and addresses.
+We begin by specifying this mapping.
 
 The type `Customer` denotes a unique identifier for a customer.
 For reasons explained later, we choose to represent this type
@@ -555,67 +577,141 @@ without further reference to the `WalletState`.
 
 ### Creating transactions
 
-Finally, we expose an operation
+The main purpose of a wallet is to keep track of funds available
+for spending — and to provide a method for spending them when desired.
+For the latter task, we specify an operation
 
     createPayment
       : List (Address × Value)
       → PParams → WalletState → Maybe TxBody
 
-which constructs a transaction that sends given values to given addresses.
-Here, `PParams` are protocol parameters needed for computation the fee to
-include in the transaction.
+which maybe constructs a transaction that sends given `Value`s
+to given destination `Address`es.
+Here, `PParams` are protocol parameters such as maximum transaction size
+or fee size that are needed to construct a valid transaction.
 
-First, as the main purpose of a wallet is to be able to send funds,
-it would be most desirable to require that this function always **succeeds**
-in creating a transaction provided that the wallet has **sufficient funds**.
-Unfortunately, however, we do not yet have an implementation
-where we can prove this property. This topic is discussed in
+We want this function to satisfy multiple requirements:
 
-* [Specification.Wallet.Payment](Specification/Wallet/Payment.lagda.md)
-TODO: Call this "Balance"
+1. The creation of a transaction **succeeds** if
+   the wallet has **sufficients funds**
+   to cover the payments and a small amount of fees.
+2. The transaction will be **accepted** by the Cardano **ledger**.
+3. The transaction **reflects** the **intention**,
+   i.e. only the desired payments are made,
+   and all other transaction outputs belong to the wallet.
 
-Second, the transaction sends funds as indicated
+For the deposit wallet,
+we additionally require that the transaction
+does not interfere with the tracking of addresses and customers.
+Specifically,
+
+4. The transaction does **not send funds** to a **known customer**
+   unless that customer is specifically mentioned
+   as payment destination.
+
+This can be seen as a strengthening of the third property,
+where the other transaction outputs are additionally required
+to not be known customer addresses.
+
+However, there are also requirements that we do not impose.
+Specifically, we do **not require** that `createPayment`
+picks any particular **transaction inputs**
+— all funds within the wallet are treated as interchangeable,
+and can be spent as desired.
+In other words, we do not distinguish funds in the wallet by customer anymore
+— we only track the customer when funds move into the wallet.
+This is in contrast to alternative wallet styles that track a per-customer balance.
+
+Formalizing these requirements is laborious.
+The first requirement is difficult to implement,
+we defer its discussion to
+[Specification.Wallet.Payment](Specification/Wallet/Payment.lagda.md)
+TODO: Call this balance.
+The second requirement would need a more detailed
+formalization of the Cardano ledger UTXO and UTXOW rules,
+which is out of scope here.
+
+Fortunately, not meeting the first two requirements
+only makes the software less useable,
+as this would only mean that we cannot create
+some desired transactions
+— but we never create transactions that go against our intentions.
+Hence, we only formalize the third and fourth requirement here.
+
+We formalize the third requirement in two properties:
+
+* Each payment destination has to appear at least once
+  in the transaction outputs.
+* Conversely, each transaction output has to be
+  a payment output or has to belong to the wallet.
+
+We formalize the first property as follows:
+Assuming that `createPayment` applied to the payment `destinations`
+succeeds, we require that the `destinations` are a subsequence
+of the transactions outputs:
 
 ```agda
     field
-      prop-createPayment-pays
-        : ∀ (s : WalletState)
+      prop-createPayment-destinations
+        : ∀ (w  : WalletState)
             (pp : PParams)
             (destinations : List (Address × Value))
             (tx : TxBody)
-          → createPayment destinations pp s ≡ Just tx
-          → isSubsetOf (outputs tx) destinations ≡ True
+          → createPayment destinations pp w ≡ Just tx
+          → isSubsequenceOf destinations (outputs tx)
+            ≡ True
 ```
 
-Third, and most importantly, the operation `createPayment` never creates a transaction
-whose `received` summary for any tracked index/address pair is non-zero.
-In other words, `createPayment` uses change addresses that are distinct
-from any address listed in `listCustomers`.
+Above, we have to be mindful of
+the possibility that payments destinations can be duplicated,
+that is why we use `isSubsequenceOf` to make sure that
+every one of them is included.
+Strictly speaking, this is unnecessarily restrictive
+on the order of the transaction outputs,
+but the order can always be arranged.
 
-That said, `createPayment` is free to contribute to the `spent` summary of any address
-— the deposit wallet spends funds from any address as it sees fit.
-
-In other words, we have
+We formalize the converse property as follows:
 
 ```agda
-    getAddress : (Address × Value) → Address
-    getAddress = fst
-
-    field
-      prop-createPayment-not-known
-        : ∀ (pp : PParams)
-            (s  : WalletState)
+      prop-createPayment-isOurs
+        : ∀ (w  : WalletState)
+            (pp : PParams)
             (destinations : List (Address × Value))
             (tx : TxBody)
-        → createPayment destinations pp s ≡ Just tx
-        → ∀ (address : Address)
-          → knownCustomerAddress address s ≡ True
-          → ¬ (address ∈ map fst destinations)
-          → ¬ (address ∈ map getAddress (outputs tx))
+          → createPayment destinations pp w ≡ Just tx
+          → all (isOurs w ∘ fst) (outputs tx \\ destinations)
+            ≡ True
 ```
 
-This property is not guarantee for other wallets,
-such as [cardano-wallet][].
-Unfortunately, this led to a very expensive bug.
+This property above states that if `createPayment destinations`
+succeeds in creating a transaction `tx`,
+then after removing the `destinations` from the transaction outputs
+(using the operation `(\\)` from `Data.List`),
+all output addresses belong to the wallet.
+Again, we have to be mindful of the possibility that
+the transaction outputs may contain duplicate `destinations`;
+using the `(\\)` operation is the most systematic way
+to handle that possibility.
 
-  [cardano-wallet]: https://github.com/cardano-foundation/cardano-wallet
+Finally, we formalize the fourth requirement
+that is specific to the deposit wallet:
+
+```agda
+      prop-createPayment-not-known
+        : ∀ (pp : PParams)
+            (w  : WalletState)
+            (destinations : List (Address × Value))
+            (tx : TxBody)
+        → createPayment destinations pp w ≡ Just tx
+        → ∀ (address : Address)
+          → knownCustomerAddress address w ≡ True
+          → ¬ (address ∈ map fst destinations)
+          → ¬ (address ∈ map fst (outputs tx))
+```
+
+This property above states that if `createPayment destinations`
+succeeds in creating a transaction `tx`,
+then for all `address`es,
+if that address belongs to a known customer,
+but does not appear in the `destinations`,
+then it shall not appear in the transaction outputs either.

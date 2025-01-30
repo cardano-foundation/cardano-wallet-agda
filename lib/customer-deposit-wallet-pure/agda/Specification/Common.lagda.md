@@ -35,12 +35,18 @@ _∈_ : ∀ {a : Set} {{_ : Eq a}} → a → List a → Set
 x ∈ xs = elem x xs ≡ True
 ```
 
-The predicate `isSubsetOf` records whether all elements of
-one list are also contained in the other list.
+The predicate `isSubsequenceOf` records whether
+the elements of one list are contained in the other list,
+in sequence.
 
 ```agda
-isSubsetOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
-isSubsetOf xs ys = all (λ x → elem x ys) xs
+isSubsequenceOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
+isSubsequenceOf [] _ = True
+isSubsequenceOf _ [] = False
+isSubsequenceOf (x ∷ xs) (y ∷ ys) =
+    if x == y
+    then isSubsequenceOf xs ys
+    else isSubsequenceOf (x ∷ xs) ys
 ```
 
 The function `nub` is missing from `agda2hs`:
@@ -49,4 +55,23 @@ The function `nub` is missing from `agda2hs`:
 nub : {{Eq a}} → List a → List a
 nub [] = []
 nub (x ∷ xs) = x ∷ filter (x /=_) (nub xs)
+```
+
+The function `delete` deletes the first occurence
+of the item from the list.
+
+```agda
+delete : ⦃ Eq a ⦄ → a → List a → List a
+delete _ []       = []
+delete x (y ∷ ys) = if x == y then ys else y ∷ delete x ys
+```
+
+The operator `_\\_` is list difference.
+In the result `xs \\ ys`,
+the first occurrence of each element of `ys`
+in turn (if any) has been removed from `@xs`.
+
+```agda
+_\\_ : ⦃ Eq a ⦄ → List a → List a → List a
+_\\_ = foldl (flip delete)
 ```

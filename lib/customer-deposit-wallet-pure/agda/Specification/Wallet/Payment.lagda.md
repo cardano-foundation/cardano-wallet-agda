@@ -1,6 +1,6 @@
-# Specification: Creating Payments
+# Specification: Creating Payments Success
 
-This document describes desired properties of a function
+This document discusses the success conditions of a function
 `createPayment` that creates a payment by
 selecting transaction outputs from a `UTxO`.
 
@@ -106,3 +106,8 @@ there are other reasons for failure:
   * Too many UTxO with small ADA amount
     that we need to cover a large `Value` payment.
     Example: "Have 1 million x 1 ADA coins, want to send 1 x 1'000'000 ADA coin."
+
+We currently do not know a formal property
+that guarantees success of `createPayment`,
+but also admits an implementation,
+as this requires handling the above potential failure cases.
