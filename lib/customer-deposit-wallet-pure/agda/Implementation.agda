@@ -11,7 +11,7 @@ module Implementation where
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
-open import Specification.Common using (_⇔_; _∈_; isSubsetOf)
+open import Specification.Common using (_⇔_; _∈_; isSubsequenceOf)
 
 open import Cardano.Wallet.Address.Encoding using
     ( NetworkTag

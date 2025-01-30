@@ -91,7 +91,7 @@ user-defined assets, such as stablecoins or NFTs.
 open import Haskell.Data.Word.Odd using (Word31)
 
 open import Specification.Common using
-  (_⇔_; _∈_; isSubsetOf; isJust; nub)
+  (_⇔_; _∈_; isSubsequenceOf; _\\_; isJust; nub)
 
 import Specification.Cardano
 import Specification.Wallet.UTxO

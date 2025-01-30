@@ -35,12 +35,18 @@ _∈_ : ∀ {a : Set} {{_ : Eq a}} → a → List a → Set
 x ∈ xs = elem x xs ≡ True
 ```
 
-The predicate `isSubsetOf` records whether all elements of
-one list are also contained in the other list.
+The predicate `isSubsequenceOf` records whether
+the elements of one list are contained in the other list,
+in sequence.
 
 ```agda
-isSubsetOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
-isSubsetOf xs ys = all (λ x → elem x ys) xs
+isSubsequenceOf : ∀ {a : Set} {{_ : Eq a}} → List a → List a → Bool
+isSubsequenceOf [] _ = True
+isSubsequenceOf _ [] = False
+isSubsequenceOf (x ∷ xs) (y ∷ ys) =
+    if x == y
+    then isSubsequenceOf xs ys
+    else isSubsequenceOf (x ∷ xs) ys
 ```
 
 The function `nub` is missing from `agda2hs`:
