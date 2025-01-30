@@ -56,3 +56,22 @@ nub : {{Eq a}} → List a → List a
 nub [] = []
 nub (x ∷ xs) = x ∷ filter (x /=_) (nub xs)
 ```
+
+The function `delete` deletes the first occurence
+of the item from the list.
+
+```agda
+delete : ⦃ Eq a ⦄ → a → List a → List a
+delete _ []       = []
+delete x (y ∷ ys) = if x == y then ys else y ∷ delete x ys
+```
+
+The operator `_\\_` is list difference.
+In the result `xs \\ ys`,
+the first occurrence of each element of `ys`
+in turn (if any) has been removed from `@xs`.
+
+```agda
+_\\_ : ⦃ Eq a ⦄ → List a → List a → List a
+_\\_ = foldl (flip delete)
+```
