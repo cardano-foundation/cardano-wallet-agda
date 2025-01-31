@@ -13,7 +13,7 @@ module Cardano.Wallet.Deposit.Pure.Address
     , getNetworkTag
     , getXPub
     , emptyFromXPub
-    , fromXPubAndCount
+    , fromXPubAndMax
 
       -- ** Address observation
     , isCustomerAddress
@@ -251,18 +251,15 @@ emptyFromXPub net xpub =
 
 -- |
 -- Create an 'AddressState' for a given 'NetworkId' from a public key and
--- a count of known customers.
-fromXPubAndCount :: NetworkId -> XPub -> Word31 -> AddressState
-fromXPubAndCount net xpub knownCustomerCount =
+-- a maximum customer index.
+fromXPubAndMax :: NetworkId -> XPub -> Word31 -> AddressState
+fromXPubAndMax net xpub cmax =
     foldl (\s c -> snd (createAddress c s)) s0 customers
   where
     s0 :: AddressState
     s0 = emptyFromXPub net xpub
     customers :: [Customer]
-    customers =
-        if fromEnum knownCustomerCount == 0
-            then []
-            else [0 .. pred knownCustomerCount]
+    customers = [0 .. cmax]
 
 -- |
 -- Change address generator employed by 'AddressState'.
