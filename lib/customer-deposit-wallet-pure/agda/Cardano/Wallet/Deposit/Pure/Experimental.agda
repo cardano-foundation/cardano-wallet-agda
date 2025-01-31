@@ -220,17 +220,17 @@ getWalletSlot = slotFromChainPoint ∘ localTip
 -- Specification
 applyTx
   : ∀{era} → {{IsEra era}}
-  → Slot → Tx era → WalletState → WalletState
-applyTx slot tx s0 = s1
+  → ChainPoint → Tx era → WalletState → WalletState
+applyTx point tx s0 = s1
   where
     s1 : WalletState
     s1 = record
       { addresses = addresses s0
       ; utxo = snd (UTxO.applyTx (isOurs s0) tx (utxo s0))
       ; txSummaries = txSummaries s0
-      ; localTip = localTip s0
-      -- FIXME! `applyTx` needs a chainpoint as argument.
+      ; localTip = point
       }
+    -- FIXME: Precondition that localTip must be before point
 
 {-# COMPILE AGDA2HS getWalletSlot #-}
 {-# COMPILE AGDA2HS applyTx #-}
@@ -239,10 +239,10 @@ applyTx slot tx s0 = s1
 rollForwardOne
   : ∀ {era} → {{IsEra era}} → Block era → WalletState → WalletState
 rollForwardOne block s0 =
-    record s1 { localTip = getChainPoint block }
+    record s1 { localTip = point }
   where
-    slot = slotFromChainPoint (getChainPoint block)
-    s1 = foldl (λ s tx → applyTx slot tx s) s0 (getEraTransactions block)
+    point = getChainPoint block
+    s1 = foldl (λ s tx → applyTx point tx s) s0 (getEraTransactions block)
 
 {-# COMPILE AGDA2HS rollForwardOne #-}
 

@@ -95,8 +95,8 @@ getWalletSlot :: WalletState -> Slot
 getWalletSlot = slotFromChainPoint . \r -> localTip r
 
 applyTx
-    :: IsEra era => Slot -> Tx era -> WalletState -> WalletState
-applyTx slot tx s0 = s1
+    :: IsEra era => ChainPoint -> Tx era -> WalletState -> WalletState
+applyTx point tx s0 = s1
   where
     s1 :: WalletState
     s1 =
@@ -104,24 +104,23 @@ applyTx slot tx s0 = s1
             (addresses s0)
             (snd (UTxO.applyTx (isOurs s0) tx (utxo s0)))
             (txSummaries s0)
-            (localTip s0)
+            point
 
 -- |
 -- Roll the 'WalletState' forward by one block.
 rollForwardOne
     :: IsEra era => Block era -> WalletState -> WalletState
 rollForwardOne block s0 =
-    WalletState
-        (addresses s1)
-        (utxo s1)
-        (txSummaries s1)
-        (getChainPoint block)
+    WalletState (addresses s1) (utxo s1) (txSummaries s1) point
   where
-    slot :: Slot
-    slot = slotFromChainPoint (getChainPoint block)
+    point :: ChainPoint
+    point = getChainPoint block
     s1 :: WalletState
     s1 =
-        foldl (\s tx -> applyTx slot tx s) s0 (getEraTransactions block)
+        foldl
+            (\s tx -> applyTx point tx s)
+            s0
+            (getEraTransactions block)
 
 getCustomerHistory :: WalletState -> Customer -> [TxSummary]
 getCustomerHistory s c = concat (Map.lookup c (txSummaries s))

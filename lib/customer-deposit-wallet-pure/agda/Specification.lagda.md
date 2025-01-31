@@ -1,8 +1,8 @@
 # Specification: Customer Deposit Wallet
 
-## Synopsis
+Revision 2025-01-31
 
-🚧 DRAFT 2025-01-31
+## Synopsis
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
@@ -95,7 +95,7 @@ In addition, we also need to import concepts that are specific to Cardano:
 
 * [Specification.Cardano](Specification/Cardano.lagda.md)
   * [Specification.Cardano.Chain](Specification/Cardano/Chain.lagda.md)
-  — Type `Slot`.
+  — Types `ChainPoint`, `Slot`.
   * [Specification.Cardano.Tx](Specification/Cardano/Tx.lagda.md)
   — Transaction type `Tx`.
   * [Specification.Cardano.Value](Specification/Cardano/Value.lagda.md)
@@ -179,7 +179,7 @@ Operations:
       fromXPubAndMax        : XPub → Word31 → WalletState
       listCustomers         : WalletState → List (Customer × Address)
 
-      applyTx       : Slot → Tx → WalletState → WalletState
+      applyTx       : ChainPoint → Tx → WalletState → WalletState
       getWalletSlot : WalletState → Slot
       totalUTxO     : WalletState → UTxO
       isOurs        : WalletState → Address → Bool
@@ -332,10 +332,12 @@ one block can be forged.
 In order to apply a `Tx` to the `WalletState`,
 we specify a function
 
-    applyTx : Slot → Tx → WalletState → WalletState
+    applyTx : ChainPoint → Tx → WalletState → WalletState
 
-The first argument of this function is the `Slot`
-of the block in which the transaction was included.
+The first argument of this function is the `ChainPoint`
+that references the block in which the transaction was included.
+To get the `Slot` of this block,
+use the function `slotFromChainPoint`.
 
 Transactions have to be applied in increasing `Slot` order.
 For this reason, we also specify a function
@@ -343,16 +345,17 @@ For this reason, we also specify a function
     getWalletSlot : WalletState → Slot
 
 that records the last `Slot` for which a transaction was
-applied; this property is express as:
+applied; we express this property as:
 
 ```agda
       prop-getWalletSlot-applyTx
-        : ∀ (w    : WalletState)
-            (slot : Slot)
-            (tx   : Tx)
-        → (getWalletSlot w <= slot) ≡ True
-        → getWalletSlot (applyTx slot tx w)
-          ≡ slot
+        : ∀ (w     : WalletState)
+            (point : ChainPoint)
+            (tx    : Tx)
+        → let slot = slotFromChainPoint point
+          in  (getWalletSlot w <= slot) ≡ True
+              → getWalletSlot (applyTx point tx w)
+                ≡ slot
 ```
 
 An initial `WalletState` created with `fromXPubAndMax`
@@ -371,11 +374,11 @@ are a no-op on the `WalletState`:
 
 ```agda
       prop-getWalletSlot-applyTx-past
-        : ∀ (w    : WalletState)
-            (slot : Slot)
-            (tx   : Tx)
-        → (getWalletSlot w <= slot) ≡ False
-        → applyTx slot tx w
+        : ∀ (w     : WalletState)
+            (point : ChainPoint)
+            (tx    : Tx)
+        → (getWalletSlot w <= slotFromChainPoint point) ≡ False
+        → applyTx point tx w
           ≡ w
 ```
 
@@ -384,11 +387,11 @@ and addresses is unchanged by transactions:
 
 ```agda
       prop-listCustomers-applyTx
-        : ∀ (w    : WalletState)
-            (slot : Slot)
-            (tx   : Tx)
-        → listCustomers (applyTx slot tx w)
-          ≡ listCustomers w
+        : ∀ (w     : WalletState)
+            (point : ChainPoint)
+            (tx    : Tx)
+        → listCustomers (applyTx point tx w)
+            ≡ listCustomers w
 ```
 
 ### Wallet balance and transactions
@@ -446,12 +449,12 @@ is equivalent to `applyTxToUTxO` on the `totalUTxO`:
 
 ```agda
       prop-totalUTxO-applyTx
-        : ∀ (slot : Slot)
-            (w    : WalletState)
-            (tx   : Tx)
-        → (getWalletSlot w <= slot) ≡ True
-        → totalUTxO (applyTx slot tx w)
-          ≡ applyTxToUTxO (isOurs w) tx (totalUTxO w)
+        : ∀ (point : ChainPoint)
+            (tx    : Tx)
+            (w     : WalletState)
+        → (getWalletSlot w <= slotFromChainPoint point) ≡ True
+        → totalUTxO (applyTx point tx w)
+            ≡ applyTxToUTxO (isOurs w) tx (totalUTxO w)
 ```
 
 ### Tracking incoming funds
@@ -530,16 +533,17 @@ wallet state will add the summary of this transaction to
 ```agda
     field
       prop-getCustomerHistory-applyTx
-        : ∀ (w : WalletState)
-            (c : Customer)
+        : ∀ (c       : Customer)
             (address : Address)
-            (tx : Tx)
-            (slot : Slot)
+            (point   : ChainPoint)
+            (tx      : Tx)
+            (w       : WalletState)
         → (c , address) ∈ listCustomers w
-        → (getWalletSlot w <= slot) ≡ True
-        → getCustomerHistory (applyTx slot tx w) c
-          ≡ (slot , getTxId tx , summarizeTx address tx (totalUTxO w))
-            ∷ getCustomerHistory w c
+        → let slot = slotFromChainPoint point
+          in  (getWalletSlot w <= slot) ≡ True
+            → getCustomerHistory (applyTx point tx w) c
+              ≡ (slot , getTxId tx , summarizeTx address tx (totalUTxO w))
+                ∷ getCustomerHistory w c
 ```
 
 On the other hand,

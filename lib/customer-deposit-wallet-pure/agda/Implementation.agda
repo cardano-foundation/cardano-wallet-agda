@@ -55,11 +55,13 @@ import Specification.Cardano.Chain
 SigChain : Specification.Cardano.Chain.Signature
 SigChain = record
   { Slot = Read.Slot
+  ; ChainPoint = Read.ChainPoint
   ; iEqSlot = Read.iEqWithOrigin
   ; iOrdSlot = Read.iOrdWithOrigin
   ; iIsLawfulOrdSlot = Read.iIsLawfulOrdWithOrigin
   ; genesis = WithOrigin.Origin
   ; prop-genesis-<= = λ x → {!   !}
+  ; slotFromChainPoint = Read.slotFromChainPoint
   }
 
 import Specification.Cardano.Value
