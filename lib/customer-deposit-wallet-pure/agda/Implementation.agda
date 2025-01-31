@@ -150,16 +150,15 @@ fromTxSummary x =
 
 operations : DepositWallet.Operations
 operations = record
-  { deriveCustomerAddress = λ xpub addr →
-      Wallet.deriveCustomerAddress NetworkTag.MainnetTag xpub addr
-  ; fromXPubAndMax = {!   !}
+  { deriveCustomerAddress = Wallet.deriveCustomerAddress
+  ; fromXPubAndMax = Wallet.fromXPubAndMax
   ; listCustomers = Wallet.listCustomers
 
-  ; getWalletSlot = {!   !}
-  ; applyTx = λ slot → Wallet.applyTx {{iIsEraConway}}
+  ; getWalletSlot = Wallet.getWalletSlot
+  ; applyTx = Wallet.applyTx {{iIsEraConway}}
 
-  ; totalUTxO = {!   !}
-  ; isOurs = {!   !}
+  ; totalUTxO = Wallet.totalUTxO
+  ; isOurs = Wallet.isOurs
 
   ; getCustomerHistory = λ customer →
     map fromTxSummary ∘ Wallet.getCustomerHistory customer

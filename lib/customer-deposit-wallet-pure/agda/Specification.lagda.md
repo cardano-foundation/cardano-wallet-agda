@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-🚧 DRAFT 2025-01-29
+🚧 DRAFT 2025-01-31
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
@@ -179,9 +179,9 @@ Operations:
       fromXPubAndMax        : XPub → Word31 → WalletState
       listCustomers         : WalletState → List (Customer × Address)
 
-      totalUTxO     : WalletState → UTxO
-      getWalletSlot : WalletState → Slot
       applyTx       : Slot → Tx → WalletState → WalletState
+      getWalletSlot : WalletState → Slot
+      totalUTxO     : WalletState → UTxO
       isOurs        : WalletState → Address → Bool
 
       getCustomerHistory
@@ -204,7 +204,7 @@ The following record collects the properties:
     open Operations O
 ```
 
-### Mapping between Customers and Address
+### Mapping between Customers and Addresses
 
 The defining feature of the deposit wallet
 is that it keeps track of a mapping between customers and addresses.
