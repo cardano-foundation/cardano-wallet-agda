@@ -51,9 +51,7 @@ open import Cardano.Wallet.Address.BIP32_Ed25519 using
     )
 open import Cardano.Wallet.Address.Encoding using
     ( NetworkTag
-    )
-open import Cardano.Wallet.Deposit.Pure.Address public using
-    ( deriveCustomerAddress
+      ; fromNetworkId
     )
 open import Cardano.Wallet.Deposit.Pure.Address using
     ( Customer
@@ -84,6 +82,7 @@ open import Cardano.Wallet.Read using
       ; getEraTransactions
     ; ChainPoint
       ; getChainPoint
+      ; slotFromChainPoint
     ; IsEra
     ; NetworkId
     ; Slot
@@ -113,6 +112,9 @@ open import Haskell.Data.Maybe using
     ( isJust
     ; catMaybes
     )
+open import Haskell.Data.Word.Odd using
+    ( Word31
+    )
 
 import Cardano.Wallet.Deposit.Pure.Address as Addr
 import Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO
@@ -141,16 +143,34 @@ open WalletState public
 getXPub : WalletState → XPub
 getXPub = Addr.getXPub ∘ addresses
 
+defaultNetworkId : NetworkId
+defaultNetworkId = NetworkId.Mainnet
+
 getNetworkTag : WalletState → NetworkTag
 getNetworkTag s = Addr.getNetworkTag (addresses s)
 
 {-# COMPILE AGDA2HS getXPub #-}
+{-# COMPILE AGDA2HS defaultNetworkId #-}
 {-# COMPILE AGDA2HS getNetworkTag #-}
 
 {-----------------------------------------------------------------------------
-    Mapping between Customers and Address
+    Mapping between Customers and Addresses
 ------------------------------------------------------------------------------}
 -- Operations
+
+-- Specification
+deriveCustomerAddress : XPub → Customer → Address
+deriveCustomerAddress =
+    Addr.deriveCustomerAddress (fromNetworkId defaultNetworkId)
+
+-- Specification
+fromXPubAndMax : XPub → Word31 → WalletState
+fromXPubAndMax xpub cmax = record
+    { addresses = Addr.fromXPubAndMax defaultNetworkId xpub cmax 
+    ; utxo = UTxO.empty
+    ; txSummaries = Map.empty
+    ; localTip = ChainPoint.GenesisPoint
+    }
 
 -- Specification
 listCustomers : WalletState → List (Customer × Address)
@@ -174,63 +194,57 @@ createAddress c s0 = ( addr , s1 )
       ; localTip = localTip s0
       }
 
+-- Specification
+knownCustomerAddress : Address → WalletState → Bool
+knownCustomerAddress a =
+    elem a ∘ map snd ∘ listCustomers
+
+-- Specification
 isOurs : WalletState → Address → Bool
 isOurs s = Addr.isOurs (addresses s)
 
--- Properties
-
--- Specification
-knownCustomerAddress : Address → WalletState → Bool
-knownCustomerAddress address =
-    elem address ∘ map snd ∘ listCustomers
-
---
-@0 prop-create-known
-  : ∀ (c  : Customer)
-      (s0 : WalletState)
-  → let (address , s1) = createAddress c s0
-    in  knownCustomerAddress address s1 ≡ True
---
-prop-create-known c s0 =
-  Addr.prop-create-known c (addresses s0)
-
+{-# COMPILE AGDA2HS deriveCustomerAddress #-}
+{-# COMPILE AGDA2HS fromXPubAndMax #-}
 {-# COMPILE AGDA2HS listCustomers #-}
-{-# COMPILE AGDA2HS createAddress #-}
 {-# COMPILE AGDA2HS isOurs #-}
 {-# COMPILE AGDA2HS knownCustomerAddress #-}
 
 {-----------------------------------------------------------------------------
-    Address derivation
+    Transactions and slots
 ------------------------------------------------------------------------------}
 
 -- Specification
---
-prop-create-derive
-  : ∀ (c : Customer)
-      (s0 : WalletState)
-  → let (address , _) = createAddress c s0
-    in  deriveCustomerAddress (getNetworkTag s0) (getXPub s0) c ≡ address
---
-prop-create-derive c s0 = Addr.prop-create-derive c (addresses s0)
- 
-{-----------------------------------------------------------------------------
-    Change address generation
-------------------------------------------------------------------------------}
+getWalletSlot : WalletState → Slot
+getWalletSlot = slotFromChainPoint ∘ localTip
 
-newChangeAddress : WalletState → ChangeAddressGen ⊤
-newChangeAddress = Addr.newChangeAddress ∘ addresses
+-- Specification
+applyTx
+  : ∀{era} → {{IsEra era}}
+  → ChainPoint → Tx era → WalletState → WalletState
+applyTx point tx s0 = s1
+  where
+    s1 : WalletState
+    s1 = record
+      { addresses = addresses s0
+      ; utxo = snd (UTxO.applyTx (isOurs s0) tx (utxo s0))
+      ; txSummaries = txSummaries s0
+      ; localTip = point
+      }
+    -- FIXME: Precondition that localTip must be before point
 
---
-@0 prop-changeAddress-not-Customer
-  : ∀ (s : WalletState)
-      (addr : Address)
-  → knownCustomerAddress addr s ≡ True
-  → ¬(isChange (newChangeAddress s) addr)
---
-prop-changeAddress-not-Customer s addr =
-  Addr.prop-changeAddress-not-Customer (addresses s) addr
+{-# COMPILE AGDA2HS getWalletSlot #-}
+{-# COMPILE AGDA2HS applyTx #-}
 
-{-# COMPILE AGDA2HS newChangeAddress #-}
+-- | Roll the 'WalletState' forward by one block.
+rollForwardOne
+  : ∀ {era} → {{IsEra era}} → Block era → WalletState → WalletState
+rollForwardOne block s0 =
+    record s1 { localTip = point }
+  where
+    point = getChainPoint block
+    s1 = foldl (λ s tx → applyTx point tx s) s0 (getEraTransactions block)
+
+{-# COMPILE AGDA2HS rollForwardOne #-}
 
 {-----------------------------------------------------------------------------
     Tracking incoming funds
@@ -255,65 +269,35 @@ getCustomerHistory s c = concat (Map.lookup c (txSummaries s))
 
 {-# COMPILE AGDA2HS getCustomerHistory #-}
 
-{-
---
-prop-track-only-isOurs
-  : ∀ (address : Address)
-      (s : WalletState)
-      (tx : Tx)
-  → Map.member address (summarizeTx s tx) ≡ True
-  → isOurs s address ≡ True
---
-prop-track-only-isOurs address s tx eq = {!   !}
--}
-
-{-
-prop_getAddressHistory-summary
-  : ∀ (s : WalletState)
-      (c : Customer)
-      (address : Address)
-      (tx : Tx)
-  → (c , address) ∈ listCustomers s
-  → getCustomerHistory (applyTx tx s) c
-    ≡ (getAddressSummary address (summarize s tx))
-        ++ getCustomerHistory s c
-
--}
-
-
 {-----------------------------------------------------------------------------
-    Applying transactions
+    Wallet balance and transactions
 ------------------------------------------------------------------------------}
 
 -- Specification
-availableBalance : WalletState → Value
-availableBalance = UTxO.balance ∘ utxo
+totalUTxO : WalletState → UTxO
+totalUTxO = utxo
 
-{-# COMPILE AGDA2HS availableBalance #-}
+{-# COMPILE AGDA2HS totalUTxO #-}
 
--- Specification
-applyTx : ∀{era} → {{IsEra era}} → Tx era → WalletState → WalletState
-applyTx tx s0 = s1
-  where
-    s1 : WalletState
-    s1 = record
-      { addresses = addresses s0
-      ; utxo = snd (UTxO.applyTx (isOurs s0) tx (utxo s0))
-      ; txSummaries = txSummaries s0
-      ; localTip = localTip s0
-      }
+{-----------------------------------------------------------------------------
+    Creating transactions
+    Change address generation
+------------------------------------------------------------------------------}
 
-{-# COMPILE AGDA2HS applyTx #-}
+newChangeAddress : WalletState → ChangeAddressGen ⊤
+newChangeAddress = Addr.newChangeAddress ∘ addresses
 
--- | Roll the 'WalletState' forward by one block.
-rollForwardOne
-  : ∀ {era} → {{IsEra era}} → Block era → WalletState → WalletState
-rollForwardOne block s0 =
-    record s1 { localTip = getChainPoint block }
-  where
-    s1 = foldl (λ s tx → applyTx tx s) s0 (getEraTransactions block)
+--
+@0 prop-changeAddress-not-Customer
+  : ∀ (s : WalletState)
+      (addr : Address)
+  → knownCustomerAddress addr s ≡ True
+  → ¬(isChange (newChangeAddress s) addr)
+--
+prop-changeAddress-not-Customer s addr =
+  Addr.prop-changeAddress-not-Customer (addresses s) addr
 
-{-# COMPILE AGDA2HS rollForwardOne #-}
+{-# COMPILE AGDA2HS newChangeAddress #-}
 
 {-----------------------------------------------------------------------------
     Creating transactions
@@ -342,23 +326,6 @@ maxFee = mempty
 
 {-# COMPILE AGDA2HS txOutFromPair #-}
 {-# COMPILE AGDA2HS createPayment #-}
-
-{-----------------------------------------------------------------------------
-    Creating transactions
-    Property: Successfully creating a transaction
-------------------------------------------------------------------------------}
-
-totalValue : List (Address × Value) → Value
-totalValue = mconcat ∘ map snd
-
-{-
-prop-createPayment-success
-    : ∀ (s : WalletState)
-        (destinations : List (Address × Value))
-    → largerOrEqual (availableBalance s) (totalValue destinations <> maxFee) ≡ True
-    → isJust (createPayment destinations s) ≡ True
-prop-createPayment-success = λ s destinations x → {!   !}
--}
 
 {-----------------------------------------------------------------------------
     Creating transactions
@@ -411,5 +378,3 @@ prop-createPayment-not-known s destinations tx created addr known ¬dest =
     changeOrPartial =
       prop-balanceTransaction-addresses
         (utxo s) partialTx (newChangeAddress s) tt tx created addr
-
- 

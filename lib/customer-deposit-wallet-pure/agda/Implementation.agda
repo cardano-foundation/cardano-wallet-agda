@@ -55,11 +55,13 @@ import Specification.Cardano.Chain
 SigChain : Specification.Cardano.Chain.Signature
 SigChain = record
   { Slot = Read.Slot
+  ; ChainPoint = Read.ChainPoint
   ; iEqSlot = Read.iEqWithOrigin
   ; iOrdSlot = Read.iOrdWithOrigin
   ; iIsLawfulOrdSlot = Read.iIsLawfulOrdWithOrigin
   ; genesis = WithOrigin.Origin
   ; prop-genesis-<= = λ x → {!   !}
+  ; slotFromChainPoint = Read.slotFromChainPoint
   }
 
 import Specification.Cardano.Value
@@ -150,16 +152,15 @@ fromTxSummary x =
 
 operations : DepositWallet.Operations
 operations = record
-  { deriveCustomerAddress = λ xpub addr →
-      Wallet.deriveCustomerAddress NetworkTag.MainnetTag xpub addr
-  ; fromXPubAndMax = {!   !}
+  { deriveCustomerAddress = Wallet.deriveCustomerAddress
+  ; fromXPubAndMax = Wallet.fromXPubAndMax
   ; listCustomers = Wallet.listCustomers
 
-  ; getWalletSlot = {!   !}
-  ; applyTx = λ slot → Wallet.applyTx {{iIsEraConway}}
+  ; getWalletSlot = Wallet.getWalletSlot
+  ; applyTx = Wallet.applyTx {{iIsEraConway}}
 
-  ; totalUTxO = {!   !}
-  ; isOurs = {!   !}
+  ; totalUTxO = Wallet.totalUTxO
+  ; isOurs = Wallet.isOurs
 
   ; getCustomerHistory = λ customer →
     map fromTxSummary ∘ Wallet.getCustomerHistory customer

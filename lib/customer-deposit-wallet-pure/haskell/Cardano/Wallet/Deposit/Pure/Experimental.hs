@@ -1,10 +1,11 @@
 module Cardano.Wallet.Deposit.Pure.Experimental where
 
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub)
-import Cardano.Wallet.Address.Encoding (NetworkTag)
+import Cardano.Wallet.Address.Encoding (NetworkTag, fromNetworkId)
 import Cardano.Wallet.Deposit.Pure.Address (AddressState, Customer)
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
-    ( createAddress
+    ( deriveCustomerAddress
+    , fromXPubAndMax
     , getNetworkTag
     , getXPub
     , isOurs
@@ -14,11 +15,17 @@ import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
 import Cardano.Wallet.Deposit.Pure.TxSummary (TxSummary)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO (applyTx)
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO (UTxO)
-import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (balance)
+import qualified Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO (empty)
 import Cardano.Wallet.Deposit.Read.Temp (Address, TxBody)
 import Cardano.Wallet.Read.Address ()
 import Cardano.Wallet.Read.Block (Block, getEraTransactions)
-import Cardano.Wallet.Read.Chain (ChainPoint, getChainPoint)
+import Cardano.Wallet.Read.Chain
+    ( ChainPoint (GenesisPoint)
+    , NetworkId (Mainnet)
+    , Slot
+    , getChainPoint
+    , slotFromChainPoint
+    )
 import Cardano.Wallet.Read.Eras (IsEra)
 import Cardano.Wallet.Read.Tx (Tx, TxOut, mkBasicTxOut)
 import Cardano.Wallet.Read.Value (Value)
@@ -27,8 +34,8 @@ import Cardano.Write.Tx.Balance
     , PartialTx (PartialTxC)
     , balanceTransaction
     )
-import qualified Data.Map as Map (Map, lookup)
-import Data.Word.Odd ()
+import qualified Data.Map as Map (Map, empty, lookup)
+import Data.Word.Odd (Word31)
 import Prelude hiding (null, subtract)
 
 -- Working around a limitation in agda2hs regarding re-exports
@@ -56,42 +63,40 @@ data WalletState = WalletState
 getXPub :: WalletState -> XPub
 getXPub = Addr.getXPub . \r -> addresses r
 
+defaultNetworkId :: NetworkId
+defaultNetworkId = Mainnet
+
 getNetworkTag :: WalletState -> NetworkTag
 getNetworkTag s = Addr.getNetworkTag (addresses s)
+
+deriveCustomerAddress :: XPub -> Customer -> Address
+deriveCustomerAddress =
+    Addr.deriveCustomerAddress (fromNetworkId defaultNetworkId)
+
+fromXPubAndMax :: XPub -> Word31 -> WalletState
+fromXPubAndMax xpub cmax =
+    WalletState
+        (Addr.fromXPubAndMax defaultNetworkId xpub cmax)
+        UTxO.empty
+        Map.empty
+        GenesisPoint
 
 listCustomers :: WalletState -> [(Customer, Address)]
 listCustomers = Addr.listCustomers . \r -> addresses r
 
-createAddress :: Customer -> WalletState -> (Address, WalletState)
-createAddress c s0 = (addr, s1)
-  where
-    pair :: (Address, AddressState)
-    pair = Addr.createAddress c (addresses s0)
-    a1 :: AddressState
-    a1 = snd pair
-    addr :: Address
-    addr = fst pair
-    s1 :: WalletState
-    s1 = WalletState a1 (utxo s0) (txSummaries s0) (localTip s0)
+knownCustomerAddress :: Address -> WalletState -> Bool
+knownCustomerAddress a =
+    elem a . map (\r -> snd r) . listCustomers
 
 isOurs :: WalletState -> Address -> Bool
 isOurs s = Addr.isOurs (addresses s)
 
-knownCustomerAddress :: Address -> WalletState -> Bool
-knownCustomerAddress address =
-    elem address . map (\r -> snd r) . listCustomers
+getWalletSlot :: WalletState -> Slot
+getWalletSlot = slotFromChainPoint . \r -> localTip r
 
-newChangeAddress :: WalletState -> ChangeAddressGen ()
-newChangeAddress = Addr.newChangeAddress . \r -> addresses r
-
-getCustomerHistory :: WalletState -> Customer -> [TxSummary]
-getCustomerHistory s c = concat (Map.lookup c (txSummaries s))
-
-availableBalance :: WalletState -> Value
-availableBalance = UTxO.balance . \r -> utxo r
-
-applyTx :: IsEra era => Tx era -> WalletState -> WalletState
-applyTx tx s0 = s1
+applyTx
+    :: IsEra era => ChainPoint -> Tx era -> WalletState -> WalletState
+applyTx point tx s0 = s1
   where
     s1 :: WalletState
     s1 =
@@ -99,19 +104,32 @@ applyTx tx s0 = s1
             (addresses s0)
             (snd (UTxO.applyTx (isOurs s0) tx (utxo s0)))
             (txSummaries s0)
-            (localTip s0)
+            point
 
+-- |
+-- Roll the 'WalletState' forward by one block.
 rollForwardOne
     :: IsEra era => Block era -> WalletState -> WalletState
 rollForwardOne block s0 =
-    WalletState
-        (addresses s1)
-        (utxo s1)
-        (txSummaries s1)
-        (getChainPoint block)
+    WalletState (addresses s1) (utxo s1) (txSummaries s1) point
   where
+    point :: ChainPoint
+    point = getChainPoint block
     s1 :: WalletState
-    s1 = foldl (\s tx -> applyTx tx s) s0 (getEraTransactions block)
+    s1 =
+        foldl
+            (\s tx -> applyTx point tx s)
+            s0
+            (getEraTransactions block)
+
+getCustomerHistory :: WalletState -> Customer -> [TxSummary]
+getCustomerHistory s c = concat (Map.lookup c (txSummaries s))
+
+totalUTxO :: WalletState -> UTxO
+totalUTxO = \r -> utxo r
+
+newChangeAddress :: WalletState -> ChangeAddressGen ()
+newChangeAddress = Addr.newChangeAddress . \r -> addresses r
 
 txOutFromPair :: (Address, Value) -> TxOut
 txOutFromPair (x, y) = mkBasicTxOut x y

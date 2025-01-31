@@ -25,7 +25,7 @@ record Signature : Set₁ where
   field
 ```
 
-We are concerned with a type
+The type
 
 ```agda
     Slot : Set
@@ -34,7 +34,16 @@ We are concerned with a type
 that represents time intervals in which one block
 can be forged.
 
-This type supports equality and comparison:
+The type
+
+```agda
+    ChainPoint : Set
+```
+
+represents a point on the blockchain, i.e. the unique hash
+and `Slot` of a block that has been forged.
+
+The `Slot` type supports equality and comparison:
 
 ```agda
     instance
@@ -42,7 +51,7 @@ This type supports equality and comparison:
       iOrdSlot : Ord Slot
 ```
 
-The comparison is a total order:
+This comparison is a total order:
 
 ```agda
       iIsLawfulOrdSlot : IsLawfulOrd Slot {{iOrdSlot}}
@@ -59,3 +68,12 @@ but represents the genesis parameters of the blockchain.
       : ∀ (x : Slot)
       → (_<=_ {{iOrdSlot}} genesis x) ≡ True
 ```
+
+The `ChainPoint` type supports an operation
+
+```agda
+    slotFromChainPoint : ChainPoint → Slot
+```
+
+that retrieves the `Slot` of the block that is referenced
+by the `ChainPoint`.
