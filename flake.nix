@@ -87,6 +87,7 @@
 
           shell.shellHook = ''
             export AGDA_DIR=${agda2hs.outPath}
+            export AGDA2HS_LIB=${inputs.agda2hs.packages.${system}.agda2hs-lib}/agda2hs.agda-lib
           '';
         }).flake (
           # we also want cross compilation to windows.

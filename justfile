@@ -4,7 +4,11 @@ default:
 clean:
     find . -name "*.agdai" -type f -delete
 
+agda2hs-libraries:
+    ./scripts/agda2hs-libraries.sh
+
 haskell:
+    just agda2hs-libraries
     cd lib/customer-deposit-wallet-pure/ && ./generate-haskell.sh
 
 build:

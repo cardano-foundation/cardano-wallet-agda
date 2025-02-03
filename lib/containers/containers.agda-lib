@@ -1,6 +1,5 @@
-name: customer-deposit-wallet-pure
+name: containers
 include: agda
 depend:
   agda2hs
-  containers
 flags: -W noUnsupportedIndexedMatch --erasure

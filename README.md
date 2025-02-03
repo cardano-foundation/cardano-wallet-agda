@@ -19,6 +19,8 @@ This repository is strucured as follows:
 * `lib/`
     * `customer-deposit-wallet-pure/` — Specification and implementation of a pure Deposit Wallet.
     * `cardano-wallet-read/` — Data types that correspond to the Cardano Ledger specification, implemented via the [cardano-ledger][] packages.
+    * `containers` — Axiomatization of (a subset of)
+    the [containers package](https://hackage.haskell.org/package/containers).
 
 Each of the packages in the `lib/` directory may contain the following subdirectories:
 

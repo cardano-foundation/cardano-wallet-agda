@@ -11,7 +11,7 @@ open import Haskell.Data.Maybe using
     ( isJust
     )
 
-import Data.Maps.Maybe as Maybe
+import Haskell.Data.Map.Maybe as Maybe
 import Haskell.Prelude as List using (map)
 import Data.Set as Set
 

@@ -1,6 +1,6 @@
 {-# OPTIONS --erasure #-}
 
-module Data.Maps.Maybe
+module Haskell.Data.Map.Maybe
     {-
     This module adds functions for the 'Maybe' type
     that are analogous to the functions in 'Data.Map'.
@@ -56,12 +56,6 @@ intersectionWith _ _ _ = Nothing
 
 disjoint : Maybe a → Maybe b → Bool
 disjoint m = null ∘ intersectionWith const m
-
-{-# COMPILE AGDA2HS update #-}
-{-# COMPILE AGDA2HS filter #-}
-{-# COMPILE AGDA2HS unionWith #-}
-{-# COMPILE AGDA2HS union #-}
-{-# COMPILE AGDA2HS intersectionWith #-}
 
 {-----------------------------------------------------------------------------
     Properties
