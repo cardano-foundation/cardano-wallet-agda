@@ -4,7 +4,6 @@
 module Haskell.Data.Set where
 
 open import Haskell.Prelude hiding (lookup; null; map; filter)
-open import Haskell.Reasoning
 
 {-----------------------------------------------------------------------------
     Data.Set

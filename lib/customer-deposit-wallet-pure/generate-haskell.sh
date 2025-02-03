@@ -3,6 +3,7 @@ ROOT=Everything.agda
 agda2hs \
     --local-interfaces \
     --no-default-libraries \
+    --library-file ../../agda2hs-libraries \
     --config agda2hs-rewrites.yaml \
     -o ./haskell/ \
     ./agda/${ROOT} \
