@@ -27,6 +27,7 @@ hie.yaml
 
 ## Agda
 *.agdai
+agda2hs-libraries
 
 ## Env
 .envrc
