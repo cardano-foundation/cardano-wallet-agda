@@ -55,6 +55,16 @@ steps:
     depends_on: linux-nix
     steps:
 
+    - label: "Check .agda"
+      key: check-agda
+      depends_on: []
+      command: |
+        ${nix} --command bash -c 'just ci-check-agda'
+      agents:
+        system: ${linux}
+      env:
+        TMPDIR: "/tmp"
+
     - label: "Build .agda"
       key: build-agda
       depends_on: []

@@ -23,6 +23,10 @@ doc:
 test:
     cabal test -v0 -O0 -j all
 
+ci-check-agda:
+    just agda2hs-libraries
+    ./scripts/check-agda.sh lib/containers
+
 ci-build-agda:
     just haskell && git diff --exit-code
 
