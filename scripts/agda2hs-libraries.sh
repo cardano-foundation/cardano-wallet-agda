@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
+# This script generates the `agda2hs-libraries` file
+# which brings both the current global libraries
+# and the local libraries in this repository into scope.
 
 # We should do: cat the known libraries file in the local one
 #AGDA2HS_LIB=/nix/store/xxxx-libraries
