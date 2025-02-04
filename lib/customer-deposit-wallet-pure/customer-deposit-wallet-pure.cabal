@@ -56,7 +56,7 @@ library
     , bytestring
     , cardano-crypto
     , cardano-crypto-class
-    , cardano-wallet-read == 0.2024.8.27
+    , cardano-wallet-read == 1.0.0.0
     , containers
     , deepseq
     , text
