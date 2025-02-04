@@ -9,8 +9,8 @@ Cardano.Wallet.Read.Chain *here*.
 -}
 module Haskell.Cardano.Wallet.Read.Chain where
 
-open import Haskell.Reasoning
 open import Haskell.Prelude
+open import Haskell.Law
 
 open import Haskell.Cardano.Wallet.Read.Eras using
     ( IsEra

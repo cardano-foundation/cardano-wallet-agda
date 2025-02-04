@@ -3,4 +3,5 @@ include: agda
 depend:
   agda2hs
   containers
+  cardano-wallet-read
 flags: -W noUnsupportedIndexedMatch --erasure

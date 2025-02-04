@@ -7,7 +7,7 @@ module Haskell.Data.ByteString.Short
     where
 
 open import Haskell.Prelude hiding (lookup; null; map)
-open import Haskell.Reasoning
+open import Haskell.Law
 
 open import Haskell.Data.Word using
     ( Word8
@@ -185,11 +185,12 @@ prop-<>-cancel-left x y z =
 prop-singleton-<>-injective
   : ∀ (x y : Word8) (xs ys : ShortByteString)
   → singleton x <> xs ≡ singleton y <> ys
-  → x ≡ y ⋀ xs ≡ ys
+  → (x ≡ y × xs ≡ ys)
 --
 prop-singleton-<>-injective x y xs ys eq =
-    ∷-injective-left lem2
-      `and` prop-unpack-injective _ _ (∷-injective-right lem2)
+    ( ∷-injective-left lem2
+    , prop-unpack-injective _ _ (∷-injective-right lem2)
+    )
   where
     lem1
       : ∀ (z : Word8) (zs : ShortByteString)

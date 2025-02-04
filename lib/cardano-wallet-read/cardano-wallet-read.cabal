@@ -2,7 +2,7 @@ cabal-version:   3.6
 name:            cardano-wallet-read
 version:         0.2024.8.27
 synopsis:
-  Primitive era-dependent operations to read the cardano blocks and transactions
+  Read Cardano block data, parametrized by era
 
 -- description:
 homepage:        https://github.com/cardano-foundation/cardano-wallet
@@ -13,7 +13,12 @@ maintainer:      hal@cardanofoundation.org
 copyright:       2023 Cardano Foundation
 category:        Cardano
 build-type:      Simple
-extra-doc-files: CHANGELOG.md
+
+extra-doc-files:
+  CHANGELOG.md
+extra-source-files:
+  cardano-wallet-read.agda-lib
+  agda/**/*.agda
 
 common language
   default-language:   Haskell2010

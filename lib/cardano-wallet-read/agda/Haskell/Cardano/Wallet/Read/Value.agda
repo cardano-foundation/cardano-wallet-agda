@@ -3,8 +3,8 @@
 -- Synchronized manually with the corresponding Haskell module.
 module Haskell.Cardano.Wallet.Read.Value where
 
+open import Haskell.Law
 open import Haskell.Prelude
-open import Haskell.Reasoning
 
 {-----------------------------------------------------------------------------
     Coin

@@ -214,11 +214,11 @@ prop-bytesFromEnterpriseAddr-injective
 prop-bytesFromEnterpriseAddr-injective
   (EnterpriseAddrC netx (KeyHashObj hashx))
   (EnterpriseAddrC nety (KeyHashObj hashy)) eq =
-    cong₂ EnterpriseAddrC eqNet (cong KeyHashObj (projr eqPair))
+    cong₂ EnterpriseAddrC eqNet (cong KeyHashObj (snd eqPair))
   where
     eqPair =
       prop-singleton-<>-injective (toEnterpriseTag netx) _ hashx hashy eq
-    eqNet = prop-toEnterpriseTag-injective _ _ (projl eqPair)
+    eqNet = prop-toEnterpriseTag-injective _ _ (fst eqPair)
 
 -- |
 -- Two 'EnterpriseAddr' with the same serialized 'CompactAddr' are equal

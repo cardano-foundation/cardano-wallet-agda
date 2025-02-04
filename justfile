@@ -26,6 +26,7 @@ test:
 ci-check-agda:
     just agda2hs-libraries
     ./scripts/check-agda.sh lib/containers
+    ./scripts/check-agda.sh lib/cardano-wallet-read
 
 ci-build-agda:
     just haskell && git diff --exit-code
