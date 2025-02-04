@@ -3,7 +3,7 @@
 -- | Postulates and definitions of the operations supported by 'Map'.
 module Haskell.Data.Map where
 
-open import Haskell.Reasoning
+open import Haskell.Law.Equality
 open import Haskell.Prelude hiding (lookup; null; map; filter)
 import Haskell.Prelude as L using (map)
 

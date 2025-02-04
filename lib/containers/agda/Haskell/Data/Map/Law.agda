@@ -3,7 +3,8 @@
 -- | Proofs on 'Map'.
 module Haskell.Data.Map.Law where
 
-open import Haskell.Reasoning
+open import Haskell.Law.Bool
+open import Haskell.Law.Equality
 open import Haskell.Prelude hiding (lookup; null; map; filter)
 
 open import Haskell.Data.Map
