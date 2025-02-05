@@ -6,7 +6,7 @@ The module hierarchy "Cardano.Read.Ledger" contains data types
 that are used for reading from the Cardano mainnet ledger.
 Specifically, these data types are represented as
 era-indexed unions of types from the Haskell ledger implementations
-that are used in `cardano-node`.
+that are used in [cardano-node](https://github.com/IntersectMBO/cardano-node).
 
 "Cardano.Read.Ledger" is meant to
 
