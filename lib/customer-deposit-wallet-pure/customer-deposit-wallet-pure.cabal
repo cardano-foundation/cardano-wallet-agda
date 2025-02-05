@@ -9,7 +9,7 @@ license:            Apache-2.0
 license-file:       LICENSE
 author:             HAL, Cardano Foundation
 maintainer:         hal@cardanofoundation.org
-copyright:          2023-24 Cardano Foundation
+copyright:          2023-25 Cardano Foundation
 category:           Web
 
 extra-doc-files:
@@ -52,15 +52,16 @@ library
   hs-source-dirs:
     haskell
   build-depends:
-    , base
-    , bytestring
-    , cardano-crypto
-    , cardano-crypto-class
-    , cardano-wallet-read == 0.2024.8.27
-    , containers
-    , deepseq
-    , text
-    , OddWord
+    , base >= 4.14 && < 5
+    , bytestring >= 0.10 && < 0.13
+    , cardano-crypto >= 1.1.2 && < 1.2
+    , cardano-crypto-class >= 2.1.5.0 && < 2.2
+    , cardano-wallet-read == 1.0.0.0
+    , containers >= 0.5 && < 0.8
+    , deepseq >= 1.4.8.1 && < 1.6
+    , text >= 1.2 && < 2.2
+    , OddWord == 1.0.1.1
+    -- newer version of OddWord has constrained base < 4.16
   exposed-modules:
     Cardano.Crypto.Hash.Monomorphic
     Cardano.Wallet.Address.BIP32

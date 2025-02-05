@@ -23,18 +23,6 @@ index-state:
   , hackage.haskell.org 2024-08-20T21:35:22Z
   , cardano-haskell-packages 2024-09-01T03:50:08Z
 
-constraints:
-    base >= 4.18.2.0 && < 5
-
-  , bech32 >= 1.1.7
-
-  -- Cardano Node dependencies:
-  , io-classes >= 1.4
-  , io-classes -asserts
-
-  , ouroboros-consensus-cardano ^>= 0.18
-  , ouroboros-network ^>= 0.16.1
-  , ouroboros-network-protocols ^>= 0.9
 --------------------------------------------------------------------------------
 -- Projects in the present repository
 --------------------------------------------------------------------------------
@@ -43,16 +31,6 @@ packages:
     lib/agda2hs-fixer/
     lib/cardano-wallet-read/
     lib/customer-deposit-wallet-pure/
-
---------------------------------------------------------------------------------
--- BEGIN Constraints tweaking section
-
-constraints:
-    base >= 4.18.2.0 && < 5
-  , haskell-src-exts ^>= 1.23.1
-
--- END Constraints tweaking section
---------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- Default settings for all packages
