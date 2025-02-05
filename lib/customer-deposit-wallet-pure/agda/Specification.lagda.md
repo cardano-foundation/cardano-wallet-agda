@@ -2,39 +2,63 @@
 
 Revision 2025-01-31
 
-## Synopsis
+## Introduction
 
 This document specifies the core functionality of a **customer deposit wallet**,
 or **deposit wallet** for short.
 
-A deposit wallet allows you to track the **origin of incoming funds**:
-Each customer is assigned a unique address belonging to the wallet;
-a deposit made at this address is treated as originating from the customer.
+A deposit wallet's main purpose is to track the **origin of incoming funds**:
 
-However, outgoing funds are not distinguished by customer
-— once funds have gone into the wallet,
-they are all part of a **single wallet balance**.
-
-A deposit wallet is useful for businesses such
-as centralized exchanges (CEX) or e-shops on Cardano.
+1. Each customer is assigned a unique address belonging to the wallet,
+   hence a deposit made at this address is treated as originating from
+   the customer.
+2. Outgoing funds are not distinguished by customer:
+   once funds have gone into the wallet, they are all part of a
+   **single wallet balance**.
 
 Technically, each customer is represented by a numerical index starting at `0`.
 The deposit wallet manages a mapping between indices and addresses,
 and tracks incoming funds for each known address.
 
+A deposit wallet is useful for businesses who need to track a large
+number of customers, such as centralized exchanges (CEX) or e-shops on
+Cardano.
+
+## Technical challenge
+
 When spending funds from the deposit wallet,
 the corresponding transaction includes change outputs
 that return surplus funds to the wallet.
-It is important that these **change outputs** do **not**
+It is critically important that these **change outputs** do **not**
 correspond to any **known customer addresses**
 — otherwise they would be treated as originating from a customer!
 Unfortunately, this property is not guaranteed for other wallet software,
 such as [cardano-wallet][] — and this led to a very expensive bug,
 where customers were credited with funds that they had never deposited.
-The main motivation for this specification is to
+
+The main motivation for this specification is therefore to
 explicitly state that this property should hold,
 to formulate it with precision,
 and to do so in a way that is amenable to compiler-checked proof.
+
+More precisely, we use [Agda][] to formally define data structures and
+functions that allow us ultimately to state and prove the
+aforementioned property. More precisely, we want to ensure that any
+_outgoing transaction_ created by the deposit wallet satisfies the
+following requirements:
+
+1. The creation of a transaction **succeeds** if
+   the wallet has **sufficients funds**
+   to cover the payments and a small amount of fees.
+2. The transaction will be **accepted** by the Cardano **ledger**.
+3. The transaction **reflects** the **intention**,
+   i.e. only the desired payments are made,
+   and all other transaction outputs belong to the wallet.
+4. Last but note least, the transaction does **not send funds** to a **known customer**
+   unless that customer is specifically mentioned
+   as payment destination.
+
+The rest of this document turns these high-level requirements into actual machine-checkable code!
 
   [cardano-wallet]: https://github.com/cardano-foundation/cardano-wallet
 
@@ -594,29 +618,7 @@ to given destination `Address`es.
 Here, `PParams` are protocol parameters such as maximum transaction size
 or fee size that are needed to construct a valid transaction.
 
-We want this function to satisfy multiple requirements:
-
-1. The creation of a transaction **succeeds** if
-   the wallet has **sufficients funds**
-   to cover the payments and a small amount of fees.
-2. The transaction will be **accepted** by the Cardano **ledger**.
-3. The transaction **reflects** the **intention**,
-   i.e. only the desired payments are made,
-   and all other transaction outputs belong to the wallet.
-
-For the deposit wallet,
-we additionally require that the transaction
-does not interfere with the tracking of addresses and customers.
-Specifically,
-
-4. The transaction does **not send funds** to a **known customer**
-   unless that customer is specifically mentioned
-   as payment destination.
-
-This can be seen as a strengthening of the third property,
-where the other transaction outputs are additionally required
-to not be known customer addresses.
-
+We already stated the key properties transactions created by the deposit wallet should respect.
 However, there are also requirements that we do not impose.
 Specifically, we do **not require** that `createPayment`
 picks any particular **transaction inputs**
