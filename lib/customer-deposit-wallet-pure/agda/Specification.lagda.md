@@ -1,6 +1,6 @@
 # Specification: Customer Deposit Wallet
 
-Revision 2025-01-31
+Revision 2025-02-06
 
 ## Introduction
 
@@ -9,31 +9,27 @@ or **deposit wallet** for short.
 
 A deposit wallet's main purpose is to track the **origin of incoming funds**:
 
-1. Each customer is assigned a unique address belonging to the wallet,
-   hence a deposit made at this address is treated as originating from
-   the customer.
+1. Each **customer** is assigned a **unique address** belonging to the wallet,
+   and a deposit made at this address is treated as originating from
+   that customer.
 2. Outgoing funds are not distinguished by customer:
    once funds have gone into the wallet, they are all part of a
    **single wallet balance**.
-
-Technically, each customer is represented by a numerical index starting at `0`.
-The deposit wallet manages a mapping between indices and addresses,
-and tracks incoming funds for each known address.
 
 A deposit wallet is useful for businesses who need to track a large
 number of customers, such as centralized exchanges (CEX) or e-shops on
 Cardano.
 
-## Technical challenge
+## Motivation
 
-When spending funds from the deposit wallet,
-the corresponding transaction includes change outputs
-that return surplus funds to the wallet.
-It is critically important that these **change outputs** do **not**
-correspond to any **known customer addresses**
+On Cardano, a transaction that spends money from a wallet typically has transaction outputs that return change to the wallet.
+For the Deposit Wallet,
+it is critically important that these **change outputs** are **not**
+assigned to any **known customer addresses**
 — otherwise they would be treated as originating from a customer!
-Unfortunately, this property is not guaranteed for other wallet software,
-such as [cardano-wallet][] — and this led to a very expensive bug,
+
+However, this property is not guaranteed for other wallet software,
+such as [cardano-wallet][] — and this led to a very **expensive bug**,
 where customers were credited with funds that they had never deposited.
 
 The main motivation for this specification is therefore to
@@ -43,22 +39,34 @@ and to do so in a way that is amenable to compiler-checked proof.
 
 More precisely, we use [Agda][] to formally define data structures and
 functions that allow us ultimately to state and prove the
-aforementioned property. More precisely, we want to ensure that any
-_outgoing transaction_ created by the deposit wallet satisfies the
-following requirements:
+aforementioned property.
 
-1. The creation of a transaction **succeeds** if
-   the wallet has **sufficients funds**
+## High-level Requirements
+
+We now outline high-level requirements
+for the Deposit Wallet — these include generic requirements on wallet software, but also the crucial property mentioned above.
+The rest of this document turns these high-level requirements into actual machine-checkable code!
+
+We require that the wallet has a notion of **known customers**, specifically
+
+* Each customer is represented by a numerical index starting at `0`.
+* The wallet maintains a one-to-one mapping between known customers and addresses.
+
+For **incoming transactions**,
+
+* We can query the wallet for a recent history of **deposits** made by each known customer.
+
+For **outgoing transactions**,
+
+1. The wallet can create a transaction **successfully** if it has **sufficients funds**
    to cover the payments and a small amount of fees.
 2. The transaction will be **accepted** by the Cardano **ledger**.
 3. The transaction **reflects** the **intention**,
    i.e. only the desired payments are made,
    and all other transaction outputs belong to the wallet.
-4. Last but note least, the transaction does **not send funds** to a **known customer**
+4. Last but not least, the transaction does **not send funds** to a **known customer**
    unless that customer is specifically mentioned
    as payment destination.
-
-The rest of this document turns these high-level requirements into actual machine-checkable code!
 
   [cardano-wallet]: https://github.com/cardano-foundation/cardano-wallet
 
@@ -618,7 +626,9 @@ to given destination `Address`es.
 Here, `PParams` are protocol parameters such as maximum transaction size
 or fee size that are needed to construct a valid transaction.
 
-We already stated the key properties transactions created by the deposit wallet should respect.
+In the beginning of this document,
+we have stated four high-level requirements
+that transactions created by the deposit wallet should respect.
 However, there are also requirements that we do not impose.
 Specifically, we do **not require** that `createPayment`
 picks any particular **transaction inputs**
@@ -628,11 +638,10 @@ In other words, we do not distinguish funds in the wallet by customer anymore
 — we only track the customer when funds move into the wallet.
 This is in contrast to alternative wallet styles that track a per-customer balance.
 
-Formalizing these requirements is laborious.
+Formalizing the high-level requirements for outgoing transactions is laborious.
 The first requirement is difficult to implement,
 we defer its discussion to
-[Specification.Wallet.Payment](Specification/Wallet/Payment.lagda.md)
-TODO: Call this balance.
+[Specification.Wallet.Payment](Specification/Wallet/Payment.lagda.md).
 The second requirement would need a more detailed
 formalization of the Cardano ledger UTXO and UTXOW rules,
 which is out of scope here.
