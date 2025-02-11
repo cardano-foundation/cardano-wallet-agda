@@ -33,6 +33,8 @@ maintainer:      hal@cardanofoundation.org
 copyright:       2023-2025 Cardano Foundation
 category:        Cardano
 build-type:      Simple
+tested-with:
+    GHC == 9.6.6
 
 extra-doc-files:
   CHANGELOG.md
@@ -143,7 +145,7 @@ library
 
   build-depends:
     , base >= 4.14 && < 5
-    , bytestring >= 0.10 && < 0.13
+    , bytestring >= 0.10.6 && < 0.13
     , cardano-crypto >= 1.1.2 && < 1.2
     , cardano-crypto-class >= 2.1.5.0 && < 2.2
     , cardano-crypto-praos
@@ -162,7 +164,7 @@ library
     , cardano-protocol-tpraos
     , cardano-strict-containers >= 0.1.3.0 && < 0.2
     , containers >= 0.5 && < 0.8
-    , deepseq >= 1.4.8.1 && < 1.6
+    , deepseq >= 1.4.4 && < 1.6
     , fmt >= 0.6.3.0 && < 0.7
     , generics-sop >= 0.5.1.4 && < 0.6
     , lens >= 5.2.3 && < 5.4
