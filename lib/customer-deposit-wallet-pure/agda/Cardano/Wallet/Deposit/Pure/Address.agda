@@ -25,7 +25,7 @@ module Cardano.Wallet.Deposit.Pure.Address
       ; getBIP32Path
       ; listCustomers
       ; knownCustomerAddress
-      ; getMaxCustomer
+      ; getKnownCustomerCount
 
     -- ** Address creation
       ; newChangeAddress
@@ -265,7 +265,7 @@ record AddressState : Set where
     stateXPub : XPub
     addresses : Map.Map Address Customer
 --    customers : Map.Map Customer Address
-    maxCustomer : Customer
+    customerCount : Word31
 
     change    : Address
 
@@ -556,11 +556,11 @@ lemma-isCustomerAddress-knownCustomerAddress s addr =
 {-----------------------------------------------------------------------------
     Observations
 ------------------------------------------------------------------------------}
--- | Maximum 'Customer' number that is being tracked.
-getMaxCustomer : AddressState → Customer
-getMaxCustomer = maxCustomer
+-- | Total number of known 'Customer's.
+getKnownCustomerCount : AddressState → Word31
+getKnownCustomerCount = customerCount
 
-{-# COMPILE AGDA2HS getMaxCustomer #-}
+{-# COMPILE AGDA2HS getKnownCustomerCount #-}
 
 {-----------------------------------------------------------------------------
     Operations
@@ -644,7 +644,7 @@ createAddress c s0 = ( addr , s1 )
       { networkId = networkId s0
       ; stateXPub = stateXPub s0
       ; addresses = addresses1
-      ; maxCustomer = max c (maxCustomer s0)
+      ; customerCount = 0 -- FIXME: Remove `createAddress`
       ; change = change s0
       ; invariant-change = invariant-change s0
       ; invariant-customer = lem
@@ -664,7 +664,7 @@ emptyFromXPub net xpub =
     { networkId = net
     ; stateXPub = xpub
     ; addresses = Map.empty
-    ; maxCustomer = 0
+    ; customerCount = 0
     ; change = deriveAddress (fromNetworkId net) xpub DerivationChange
     ; invariant-change = refl
     ; invariant-customer = λ addr c eq →
@@ -677,7 +677,7 @@ emptyFromXPub net xpub =
 -- a customer count.
 fromXPubAndCount : NetworkId → XPub → Word31 → AddressState
 fromXPubAndCount net xpub count =
-    foldl (λ s c → snd (createAddress c s)) s0 customers
+    record s1' { customerCount = count}
   where
     s0 = emptyFromXPub net xpub
 
@@ -689,6 +689,8 @@ fromXPubAndCount net xpub count =
         let @0 notMin : _
             notMin = subst IsFalse (sym neq) IsFalse.itsFalse
         in  enumFromTo 0 (pred count {{notMin}})
+
+    s1' = foldl (λ s c → snd (createAddress c s)) s0 customers
 
 {-# COMPILE AGDA2HS fromXPubAndCount #-}
 

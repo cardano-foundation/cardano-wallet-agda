@@ -25,7 +25,7 @@ module Cardano.Wallet.Deposit.Pure.Address
     , getBIP32Path
     , listCustomers
     , knownCustomerAddress
-    , getMaxCustomer
+    , getKnownCustomerCount
 
       -- ** Address creation
     , newChangeAddress
@@ -128,7 +128,7 @@ data AddressState = AddressStateC
     { networkId :: NetworkId
     , stateXPub :: XPub
     , addresses :: Map.Map Address Customer
-    , maxCustomer :: Customer
+    , customerCount :: Word31
     , change :: Address
     }
 
@@ -208,9 +208,9 @@ knownCustomerAddress address =
     elem address . map (\r -> snd r) . listCustomers
 
 -- |
--- Maximum 'Customer' number that is being tracked.
-getMaxCustomer :: AddressState -> Customer
-getMaxCustomer = \r -> maxCustomer r
+-- Total number of known 'Customer's.
+getKnownCustomerCount :: AddressState -> Word31
+getKnownCustomerCount = \r -> customerCount r
 
 -- |
 -- Create a new associated between 'Customer' and known 'Address'.
@@ -232,7 +232,7 @@ createAddress c s0 = (addr, s1)
             (networkId s0)
             (stateXPub s0)
             addresses1
-            (max c (maxCustomer s0))
+            0
             (change s0)
 
 -- |
@@ -251,12 +251,19 @@ emptyFromXPub net xpub =
 -- a customer count.
 fromXPubAndCount :: NetworkId -> XPub -> Word31 -> AddressState
 fromXPubAndCount net xpub count =
-    foldl (\s c -> snd (createAddress c s)) s0 customers
+    AddressStateC
+        (networkId s1')
+        (stateXPub s1')
+        (addresses s1')
+        count
+        (change s1')
   where
     s0 :: AddressState
     s0 = emptyFromXPub net xpub
     customers :: [Customer]
     customers = if fromEnum count == 0 then [] else [0 .. pred count]
+    s1' :: AddressState
+    s1' = foldl (\s c -> snd (createAddress c s)) s0 customers
 
 -- |
 -- Change address generator employed by 'AddressState'.
