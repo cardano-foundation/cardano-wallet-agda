@@ -164,9 +164,9 @@ deriveCustomerAddress =
     Addr.deriveCustomerAddress (fromNetworkId defaultNetworkId)
 
 -- Specification
-fromXPubAndMax : XPub → Word31 → WalletState
-fromXPubAndMax xpub cmax = record
-    { addresses = Addr.fromXPubAndMax defaultNetworkId xpub cmax 
+fromXPubAndCount : XPub → Word31 → WalletState
+fromXPubAndCount xpub count = record
+    { addresses = Addr.fromXPubAndCount defaultNetworkId xpub count 
     ; utxo = UTxO.empty
     ; txSummaries = Map.empty
     ; localTip = ChainPoint.GenesisPoint
@@ -204,7 +204,7 @@ isOurs : WalletState → Address → Bool
 isOurs s = Addr.isOurs (addresses s)
 
 {-# COMPILE AGDA2HS deriveCustomerAddress #-}
-{-# COMPILE AGDA2HS fromXPubAndMax #-}
+{-# COMPILE AGDA2HS fromXPubAndCount #-}
 {-# COMPILE AGDA2HS listCustomers #-}
 {-# COMPILE AGDA2HS isOurs #-}
 {-# COMPILE AGDA2HS knownCustomerAddress #-}
