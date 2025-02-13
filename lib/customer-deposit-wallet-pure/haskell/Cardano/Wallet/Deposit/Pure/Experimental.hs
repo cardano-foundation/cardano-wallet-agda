@@ -2,15 +2,18 @@ module Cardano.Wallet.Deposit.Pure.Experimental where
 
 import Cardano.Wallet.Address.BIP32_Ed25519 (XPub)
 import Cardano.Wallet.Address.Encoding (NetworkTag, fromNetworkId)
-import Cardano.Wallet.Deposit.Pure.Address (AddressState, Customer)
+import Cardano.Wallet.Deposit.Pure.Address (AddressState)
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
-    ( deriveCustomerAddress
-    , fromXPubAndCount
+    ( fromXPubAndCount
     , getNetworkTag
     , getXPub
     , isOurs
     , listCustomers
     , newChangeAddress
+    )
+import Cardano.Wallet.Deposit.Pure.Address.Customer (Customer)
+import qualified Cardano.Wallet.Deposit.Pure.Address.Customer as Addr
+    ( deriveCustomerAddress
     )
 import Cardano.Wallet.Deposit.Pure.TxSummary (TxSummary)
 import qualified Cardano.Wallet.Deposit.Pure.UTxO.Tx as UTxO (applyTx)
