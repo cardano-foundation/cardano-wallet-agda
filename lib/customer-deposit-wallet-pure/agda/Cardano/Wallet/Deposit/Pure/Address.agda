@@ -74,30 +74,21 @@ open import Cardano.Write.Tx.Balance using
     ; isChange
     )
 open import Data.Maybe.Extra using
-  ( prop-Just-injective
-  )
+    ( prop-Just-injective
+    )
 open import Haskell.Data.List.Prop using
     ( _∈_ )
 open import Haskell.Data.Maybe using
     ( isJust
-    ; catMaybes
-    )
-open import Haskell.Data.Word using
-    ( Word8
-    ; word8FromNat
     )
 open import Haskell.Data.Word.Odd using
     ( Word31
     ; word31FromNat
     )
-open import Haskell.Data.Word public using
-    ( iOrdWord8
-    )
 open import Haskell.Data.Word.Odd public using
     ( iOrdWord31
     )
 
-import Haskell.Data.ByteString as BS
 import Data.Map as Map
 
 {-# FOREIGN AGDA2HS
