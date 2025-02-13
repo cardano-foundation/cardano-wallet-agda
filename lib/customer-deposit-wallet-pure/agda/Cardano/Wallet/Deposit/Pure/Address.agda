@@ -40,29 +40,28 @@ open import Haskell.Reasoning
 
 open import Cardano.Wallet.Address.BIP32 using
     ( BIP32Path
-    ; DerivationType
-      ; Hardened
-      ; Soft
     )
 open import Cardano.Wallet.Address.BIP32_Ed25519 using
     ( XPub
-    ; deriveXPubSoft
-    ; rawSerialiseXPub
-    ; prop-deriveXPubSoft-injective
-    ; prop-deriveXPubSoft-not-identity
-    ; prop-rawSerialiseXPub-injective
     )
 open import Cardano.Wallet.Address.Encoding using
-    ( Credential
-      ; credentialFromXPub
-      ; prop-credentialFromXPub-injective
-    ; NetworkTag
+    ( NetworkTag
       ; fromNetworkId
-    ; EnterpriseAddr
-      ; EnterpriseAddrC
-      ; compactAddrFromEnterpriseAddr
-      ; prop-compactAddrFromEnterpriseAddr-injective
     )
+open import Cardano.Wallet.Deposit.Pure.Address.Customer public using
+    ( Customer
+      ; deriveCustomerAddress
+    )
+open import Cardano.Wallet.Deposit.Pure.Address.Customer using
+    ( DerivationPath
+      ; toBIP32Path
+      ; deriveAddress
+      ; prop-deriveAddress-injective
+      ; lemma-derive-notCustomer
+    ; deriveMockMaxLengthChangeAddress
+      ; prop-mock-not-deriveAddress
+    )
+open DerivationPath
 open import Cardano.Wallet.Deposit.Read.Temp using
     ( Address
     )
@@ -94,152 +93,6 @@ import Data.Map as Map
 {-# FOREIGN AGDA2HS
 {-# LANGUAGE StrictData #-}
 #-}
-
-{-----------------------------------------------------------------------------
-    Customer
-------------------------------------------------------------------------------}
--- | A 'Customer' is represented as a numerical ID.
---
--- The numerical ID ranges in 'Word31' because that is the range
--- for a step in address derivation, see 'BIP32Path'.
-Customer = Word31
-
-{-# COMPILE AGDA2HS Customer #-}
-
-{-----------------------------------------------------------------------------
-    Address derivation
-------------------------------------------------------------------------------}
--- | Description of the derivation path used for the Deposit Wallet:
--- Either a 'Customer' or a change address.
-data DerivationPath : Set where
-  DerivationCustomer : Customer → DerivationPath
-  DerivationChange   : DerivationPath
-
-{-# COMPILE AGDA2HS DerivationPath #-}
-
--- | Full 'BIP32Path' corresponding to a 'DerivationPath'.
-toBIP32Path : DerivationPath → BIP32Path
-toBIP32Path = addSuffix prefix
-  where
-    prefix =
-      (BIP32Path.Segment
-      (BIP32Path.Segment
-      (BIP32Path.Segment
-        BIP32Path.Root
-        Hardened 1857) -- Address derivation standard
-        Hardened 1815) -- ADA
-        Hardened 0)    -- account
-
-    addSuffix : BIP32Path → DerivationPath → BIP32Path
-    addSuffix path DerivationChange =
-        (BIP32Path.Segment
-        (BIP32Path.Segment
-          path
-          Soft 1)
-          Soft 0)
-    addSuffix path (DerivationCustomer c) =
-        (BIP32Path.Segment
-        (BIP32Path.Segment
-          path
-          Soft 0)
-          Soft c)
-
-{-# COMPILE AGDA2HS toBIP32Path #-}
-
--- | Perform two soft derivation steps.
-deriveXPubSoft2 : XPub → Word31 → Word31 → XPub
-deriveXPubSoft2 xpub ix iy =
-  (deriveXPubSoft
-  (deriveXPubSoft xpub
-    ix)
-    iy)
-
-{-# COMPILE AGDA2HS deriveXPubSoft2 #-}
-
--- | Perform soft derivation from a 'DerivationPath'. 
-xpubFromDerivationPath : XPub → DerivationPath → XPub
-xpubFromDerivationPath xpub DerivationChange =
-  deriveXPubSoft2 xpub 1 0
-xpubFromDerivationPath xpub (DerivationCustomer c) =
-  deriveXPubSoft2 xpub 0 c
-
-{-# COMPILE AGDA2HS xpubFromDerivationPath #-}
-
--- | Derive an address from the wallet public key.
---
--- (Internal, exported for technical reasons.)
-deriveAddress : NetworkTag → XPub → DerivationPath → Address
-deriveAddress net xpub =
-  compactAddrFromEnterpriseAddr
-  ∘ EnterpriseAddrC net
-  ∘ credentialFromXPub
-  ∘ xpubFromDerivationPath xpub
-
-{-# COMPILE AGDA2HS deriveAddress #-}
-
--- | Derive an address for a customer from the wallet public key.
-deriveCustomerAddress : NetworkTag → XPub → Customer → Address
-deriveCustomerAddress net xpub c =
-  deriveAddress net xpub (DerivationCustomer c)
-
-{-# COMPILE AGDA2HS deriveCustomerAddress #-}
-
---
-prop-deriveXPubSoft2-injective
-  : ∀ {xpub : XPub} {ix1 ix2 iy1 iy2 : Word31}
-  → deriveXPubSoft2 xpub ix1 iy1 ≡ deriveXPubSoft2 xpub ix2 iy2
-  → ix1 ≡ ix2 ⋀ iy1 ≡ iy2
---
-prop-deriveXPubSoft2-injective eq =
-  let (eqxpub `and` eqy) = prop-deriveXPubSoft-injective _ _ _ _ eq
-  in  (projr (prop-deriveXPubSoft-injective _ _ _ _ eqxpub)) `and` eqy
-
---
-prop-xpubFromDerivationPath-injective
-  : ∀ {xpub : XPub} {x y : DerivationPath}
-  → xpubFromDerivationPath xpub x ≡ xpubFromDerivationPath xpub y
-  → x ≡ y
---
-prop-xpubFromDerivationPath-injective {_} {DerivationCustomer x} {DerivationCustomer y} eq =
-  cong DerivationCustomer (projr (prop-deriveXPubSoft-injective _ _ _ _ eq))
-prop-xpubFromDerivationPath-injective {_} {DerivationCustomer x} {DerivationChange} eq =
-  case projr (prop-deriveXPubSoft-injective _ _ _ _ (projl (prop-deriveXPubSoft-injective _ _ _ _ eq))) of λ ()
-prop-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationCustomer y} eq =
-  case projr (prop-deriveXPubSoft-injective _ _ _ _ (projl (prop-deriveXPubSoft-injective _ _ _ _ eq))) of λ ()
-prop-xpubFromDerivationPath-injective {_} {DerivationChange} {DerivationChange} eq =
-  refl
-
---
-lemma-EnterpriseAddrC-injective
-  : ∀ {net : NetworkTag} (x1 y1 : Credential)
-  → EnterpriseAddrC net x1 ≡ EnterpriseAddrC net y1
-  → x1 ≡ y1
---
-lemma-EnterpriseAddrC-injective _ _ refl = refl
-
---
-@0 prop-deriveAddress-injective
-  : ∀ {net : NetworkTag} {xpub : XPub} {x y : DerivationPath}
-  → deriveAddress net xpub x ≡ deriveAddress net xpub y
-  → x ≡ y
---
-prop-deriveAddress-injective {net} =
-  prop-xpubFromDerivationPath-injective
-  ∘ prop-credentialFromXPub-injective _ _
-  ∘ lemma-EnterpriseAddrC-injective _ _
-  ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
-
---
-@0 lemma-derive-notCustomer
-  : ∀ {net : NetworkTag} (xpub : XPub) (c : Customer)
-  → ¬(deriveAddress net xpub DerivationChange
-      ≡ deriveCustomerAddress net xpub c)
---
-lemma-derive-notCustomer {net} xpub c eq =
-    bang (prop-deriveAddress-injective {net} {xpub} eq)
-  where
-    bang : DerivationChange ≡ DerivationCustomer c → ⊥
-    bang ()
 
 {-----------------------------------------------------------------------------
     Type definition
@@ -746,10 +599,7 @@ prop-changeAddress-not-Customer s addr eq-known eq-change =
 -- This address should not be used in a transaction.
 mockMaxLengthChangeAddress : AddressState → Address
 mockMaxLengthChangeAddress s =
-  compactAddrFromEnterpriseAddr
-  ∘ EnterpriseAddrC (getNetworkTag s)
-  ∘ credentialFromXPub
-  $ deriveXPubSoft2 (stateXPub s) 17 0
+  deriveMockMaxLengthChangeAddress (getNetworkTag s) (stateXPub s)
 
 {-# COMPILE AGDA2HS mockMaxLengthChangeAddress #-}
 
@@ -763,35 +613,10 @@ prop-isOurs-mockMaxLengthChangeAddress-False s
   with lookupDerivationPath s (mockMaxLengthChangeAddress s) in eq
 ... | Nothing =
     trans (sym (prop-lookupDerivationPath-isOurs s _)) (cong isJust eq)
-... | Just path =
-    case lem3 path (prop-lookup-DerivationPath-Just s _ path eq) of λ ()
-  where
-    addr = mockMaxLengthChangeAddress s
-
-    lem1
-      : addr ≡ deriveAddress (networkTag s) (stateXPub s) DerivationChange
-      → 17 ≡ 1
-    lem1 =
-      projl
-      ∘ prop-deriveXPubSoft2-injective
-      ∘ prop-credentialFromXPub-injective _ _
-      ∘ lemma-EnterpriseAddrC-injective _ _
-      ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
-    
-    lem2
-      : (c : Customer)
-      → addr ≡ deriveAddress (networkTag s) (stateXPub s) (DerivationCustomer c)
-      → 17 ≡ 0
-    lem2 c =
-      projl
-      ∘ prop-deriveXPubSoft2-injective
-      ∘ prop-credentialFromXPub-injective _ _
-      ∘ lemma-EnterpriseAddrC-injective _ _
-      ∘ prop-compactAddrFromEnterpriseAddr-injective _ _
-
-    lem3
-      : (path : DerivationPath)
-      → addr ≡ deriveAddress (networkTag s) (stateXPub s) path
-      → ⊥
-    lem3 (DerivationCustomer c) eq = case lem2 c eq of λ ()
-    lem3 DerivationChange eq = case lem1 eq of λ ()
+... | Just path
+    using eq' ← prop-lookup-DerivationPath-Just s _ path eq
+    =
+    case
+      prop-mock-not-deriveAddress (networkTag s) (stateXPub s) path
+        (sym eq')
+      of λ ()

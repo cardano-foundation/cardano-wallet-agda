@@ -91,4 +91,5 @@ library
     Data.Maybe.Extra
   other-modules:
     Cardano.Crypto.Wallet.Extra
+    Cardano.Wallet.Deposit.Pure.Address.Customer
     Data.Maps.Maybe
