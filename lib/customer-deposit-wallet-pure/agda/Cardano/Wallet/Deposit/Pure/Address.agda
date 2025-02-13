@@ -28,10 +28,6 @@ module Cardano.Wallet.Deposit.Pure.Address
       ; getMaxCustomer
 
     -- ** Address creation
-      ; createAddress
-      ; prop-create-derive
-      ; prop-create-known
-
       ; newChangeAddress
       ; prop-changeAddress-not-Customer
       ; mockMaxLengthChangeAddress
@@ -655,34 +651,6 @@ createAddress c s0 = ( addr , s1 )
       }
 
 {-# COMPILE AGDA2HS createAddress #-}
-
--- | Creating a customer address is deterministic,
--- and depends essentially on the 'XPub'.
-prop-create-derive
-  : ∀ (c : Customer)
-      (s0 : AddressState)
-  → let (address , _) = createAddress c s0
-    in  deriveCustomerAddress (getNetworkTag s0) (stateXPub s0) c ≡ address
---
-prop-create-derive = λ c s0 → refl
-
--- | Creating an address makes it known.
-@0 prop-create-known
-  : ∀ (c  : Customer)
-      (s0 : AddressState)
-  → let (address , s1) = createAddress c s0
-    in  knownCustomerAddress address s1 ≡ True
---
-prop-create-known c s0 =
-  let (a , s1) = createAddress c s0
-  in
-    begin
-      knownCustomerAddress a s1
-    ≡⟨ sym (lemma-isCustomerAddress-knownCustomerAddress s1 a) ⟩
-      isCustomerAddress s1 a
-    ≡⟨ cong isJust (lemma-lookup-insert-same a c (addresses s0)) ⟩
-      True
-    ∎
 
 {-----------------------------------------------------------------------------
     Operations

@@ -13,10 +13,6 @@ module Cardano.Wallet.Deposit.Pure.Experimental
       ; isOurs
       ; knownCustomerAddress
 
-      ; createAddress
-      ; prop-create-derive
-      ; prop-create-known
-
       ; availableBalance
       ; applyTx
 
@@ -175,24 +171,6 @@ fromXPubAndCount xpub count = record
 -- Specification
 listCustomers : WalletState → List (Customer × Address)
 listCustomers = Addr.listCustomers ∘ addresses
-
--- Specification
-createAddress : Customer → WalletState → (Address × WalletState)
-createAddress c s0 = ( addr , s1 )
-  where
-    pair : Address × AddressState
-    pair = Addr.createAddress c (addresses s0)
-
-    a1 = snd pair
-    addr = fst pair
-
-    s1 : WalletState
-    s1 = record
-      { addresses = a1
-      ; utxo = utxo s0
-      ; txSummaries = txSummaries s0
-      ; localTip = localTip s0
-      }
 
 -- Specification
 knownCustomerAddress : Address → WalletState → Bool

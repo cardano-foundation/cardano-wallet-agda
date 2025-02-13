@@ -28,9 +28,6 @@ module Cardano.Wallet.Deposit.Pure.Address
     , getMaxCustomer
 
       -- ** Address creation
-    , createAddress
-      -- $prop-create-derive
-      -- $prop-create-known
     , newChangeAddress
       -- $prop-changeAddress-not-Customer
     , mockMaxLengthChangeAddress
@@ -296,31 +293,6 @@ mockMaxLengthChangeAddress s =
 --     >       (addr : Address)
 --     >   → knownCustomerAddress addr s ≡ True
 --     >   → ¬(isChange (newChangeAddress s) addr)
-
--- $prop-create-derive
--- #p:prop-create-derive#
---
--- [prop-create-derive]:
---     Creating a customer address is deterministic,
---     and depends essentially on the 'XPub'.
---
---     > prop-create-derive
---     >   : ∀ (c : Customer)
---     >       (s0 : AddressState)
---     >   → let (address , _) = createAddress c s0
---     >     in  deriveCustomerAddress (getNetworkTag s0) (stateXPub s0) c ≡ address
-
--- $prop-create-known
--- #p:prop-create-known#
---
--- [prop-create-known]:
---     Creating an address makes it known.
---
---     > @0 prop-create-known
---     >   : ∀ (c  : Customer)
---     >       (s0 : AddressState)
---     >   → let (address , s1) = createAddress c s0
---     >     in  knownCustomerAddress address s1 ≡ True
 
 -- $prop-isCustomerAddress-deriveCustomerAddress
 -- #p:prop-isCustomerAddress-deriveCustomerAddress#
