@@ -25,13 +25,9 @@ module Cardano.Wallet.Deposit.Pure.Address
       ; getBIP32Path
       ; listCustomers
       ; knownCustomerAddress
-      ; getMaxCustomer
+      ; getKnownCustomerCount
 
     -- ** Address creation
-      ; createAddress
-      ; prop-create-derive
-      ; prop-create-known
-
       ; newChangeAddress
       ; prop-changeAddress-not-Customer
       ; mockMaxLengthChangeAddress
@@ -269,7 +265,7 @@ record AddressState : Set where
     stateXPub : XPub
     addresses : Map.Map Address Customer
 --    customers : Map.Map Customer Address
-    maxCustomer : Customer
+    customerCount : Word31
 
     change    : Address
 
@@ -560,11 +556,11 @@ lemma-isCustomerAddress-knownCustomerAddress s addr =
 {-----------------------------------------------------------------------------
     Observations
 ------------------------------------------------------------------------------}
--- | Maximum 'Customer' number that is being tracked.
-getMaxCustomer : AddressState → Customer
-getMaxCustomer = maxCustomer
+-- | Total number of known 'Customer's.
+getKnownCustomerCount : AddressState → Word31
+getKnownCustomerCount = customerCount
 
-{-# COMPILE AGDA2HS getMaxCustomer #-}
+{-# COMPILE AGDA2HS getKnownCustomerCount #-}
 
 {-----------------------------------------------------------------------------
     Operations
@@ -648,41 +644,13 @@ createAddress c s0 = ( addr , s1 )
       { networkId = networkId s0
       ; stateXPub = stateXPub s0
       ; addresses = addresses1
-      ; maxCustomer = max c (maxCustomer s0)
+      ; customerCount = 0 -- FIXME: Remove `createAddress`
       ; change = change s0
       ; invariant-change = invariant-change s0
       ; invariant-customer = lem
       }
 
 {-# COMPILE AGDA2HS createAddress #-}
-
--- | Creating a customer address is deterministic,
--- and depends essentially on the 'XPub'.
-prop-create-derive
-  : ∀ (c : Customer)
-      (s0 : AddressState)
-  → let (address , _) = createAddress c s0
-    in  deriveCustomerAddress (getNetworkTag s0) (stateXPub s0) c ≡ address
---
-prop-create-derive = λ c s0 → refl
-
--- | Creating an address makes it known.
-@0 prop-create-known
-  : ∀ (c  : Customer)
-      (s0 : AddressState)
-  → let (address , s1) = createAddress c s0
-    in  knownCustomerAddress address s1 ≡ True
---
-prop-create-known c s0 =
-  let (a , s1) = createAddress c s0
-  in
-    begin
-      knownCustomerAddress a s1
-    ≡⟨ sym (lemma-isCustomerAddress-knownCustomerAddress s1 a) ⟩
-      isCustomerAddress s1 a
-    ≡⟨ cong isJust (lemma-lookup-insert-same a c (addresses s0)) ⟩
-      True
-    ∎
 
 {-----------------------------------------------------------------------------
     Operations
@@ -696,7 +664,7 @@ emptyFromXPub net xpub =
     { networkId = net
     ; stateXPub = xpub
     ; addresses = Map.empty
-    ; maxCustomer = 0
+    ; customerCount = 0
     ; change = deriveAddress (fromNetworkId net) xpub DerivationChange
     ; invariant-change = refl
     ; invariant-customer = λ addr c eq →
@@ -709,7 +677,7 @@ emptyFromXPub net xpub =
 -- a customer count.
 fromXPubAndCount : NetworkId → XPub → Word31 → AddressState
 fromXPubAndCount net xpub count =
-    foldl (λ s c → snd (createAddress c s)) s0 customers
+    record s1' { customerCount = count}
   where
     s0 = emptyFromXPub net xpub
 
@@ -721,6 +689,8 @@ fromXPubAndCount net xpub count =
         let @0 notMin : _
             notMin = subst IsFalse (sym neq) IsFalse.itsFalse
         in  enumFromTo 0 (pred count {{notMin}})
+
+    s1' = foldl (λ s c → snd (createAddress c s)) s0 customers
 
 {-# COMPILE AGDA2HS fromXPubAndCount #-}
 
