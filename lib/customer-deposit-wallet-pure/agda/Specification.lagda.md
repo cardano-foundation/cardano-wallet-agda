@@ -1,6 +1,6 @@
 # Specification: Customer Deposit Wallet
 
-Revision 2025-02-06
+Revision 2025-02-13
 
 ## Introduction
 
@@ -208,7 +208,7 @@ Operations:
     field
 
       deriveCustomerAddress : XPub → Customer → Address
-      fromXPubAndMax        : XPub → Word31 → WalletState
+      fromXPubAndCount      : XPub → Word31 → WalletState
       listCustomers         : WalletState → List (Customer × Address)
 
       applyTx       : ChainPoint → Tx → WalletState → WalletState
@@ -253,7 +253,7 @@ the following operations:
 
     deriveCustomerAddress : XPub → Customer → Address
 
-    fromXPubAndMax        : XPub → Word31 → WalletState
+    fromXPubAndCount      : XPub → Word31 → WalletState
     listCustomers         : WalletState → List (Customer × Address)
 
 Here,
@@ -261,8 +261,8 @@ Here,
 * `deriveCustomerAddress` deterministically creates an address
   for a given customer index.
 
-* `fromXPubAndMax xpub cmax` creates an empty `WalletState`
-  at genesis which keeps track of customers indices `0` to `cmax`.
+* `fromXPubAndCount xpub count` creates an empty `WalletState`
+  at genesis which keeps track of `count` many customers, starting at index `0`.
   Their addresses are derived deterministically from the public key `xpub`.
 
 * `listCustomers` returns the mapping between customers and addresses
@@ -304,34 +304,34 @@ We require that the mapping is a bijection
         → isBijection (listCustomers w) ≡ True
 ```
 
-The relation between `listCustomers` and `fromXPubAndMax`
+The relation between `listCustomers` and `fromXPubAndCount`
 is specified as follows:
-First, the mapping precisely contains customers indices `0` to `cmax`:
+First, the mapping precisely contains `count` many customers, starting at index `0`:
 
 ```agda
-      prop-listCustomers-fromXPubAndMax-max
-        : ∀ (c : Customer) (xpub : XPub) (cmax : Word31)
-        → knownCustomer c (fromXPubAndMax xpub cmax)
-          ≡ (0 <= c && c <= cmax)
+      prop-listCustomers-fromXPubAndCount-range
+        : ∀ (c : Customer) (xpub : XPub) (count : Word31)
+        → knownCustomer c (fromXPubAndCount xpub count)
+          ≡ (0 <= c && c < count)
 ```
 
 Second, the addresses are derived deterministically from
 the public key and the customer index.
 
 ```agda
-      prop-listCustomers-fromXPubAndMax-xpub
-        : ∀ (c : Customer)
-            (xpub : XPub)
-            (cmax : Word31)
-            (addr : Address)
-        → customerAddress c (fromXPubAndMax xpub cmax)
+      prop-listCustomers-fromXPubAndCount-xpub
+        : ∀ (c     : Customer)
+            (xpub  : XPub)
+            (count : Word31)
+            (addr  : Address)
+        → customerAddress c (fromXPubAndCount xpub count)
           ≡ Just addr
         → deriveCustomerAddress xpub c
           ≡ addr
 ```
 
 The idea is that these properties hold not only for the initial state
-at `fromXPubAndMax`, but also for any state obtained through
+at `fromXPubAndCount`, but also for any state obtained through
 other operations such as `applyTx`.
 
 For compatibility with hardware wallets and the [BIP-32][] standard,
@@ -390,14 +390,14 @@ applied; we express this property as:
                 ≡ slot
 ```
 
-An initial `WalletState` created with `fromXPubAndMax`
+An initial `WalletState` created with `fromXPubAndCount`
 starts at genesis:
 
 ```agda
-      prop-getWalletSlot-fromXPubAndMax
-        : ∀ (xpub : XPub)
-            (cmax : Customer)
-        → getWalletSlot (fromXPubAndMax xpub cmax)
+      prop-getWalletSlot-fromXPubAndCount
+        : ∀ (xpub  : XPub)
+            (count : Word31)
+        → getWalletSlot (fromXPubAndCount xpub count)
           ≡ genesis
 ```
 
@@ -594,9 +594,11 @@ Finally, a wallet that was just initialized does
 not contain a history of transactions, yet:
 
 ```agda
-      prop-getCustomerHistory-fromXPubAndMax
-        : ∀ (xpub : XPub) (cmax : Customer) (c : Customer)
-        → getCustomerHistory (fromXPubAndMax xpub cmax) c
+      prop-getCustomerHistory-fromXPubAndCount
+        : ∀ (xpub : XPub)
+            (count : Word31)
+            (c : Customer)
+        → getCustomerHistory (fromXPubAndCount xpub count) c
           ≡ []
 ```
 

@@ -5,7 +5,7 @@ import Cardano.Wallet.Address.Encoding (NetworkTag, fromNetworkId)
 import Cardano.Wallet.Deposit.Pure.Address (AddressState, Customer)
 import qualified Cardano.Wallet.Deposit.Pure.Address as Addr
     ( deriveCustomerAddress
-    , fromXPubAndMax
+    , fromXPubAndCount
     , getNetworkTag
     , getXPub
     , isOurs
@@ -73,10 +73,10 @@ deriveCustomerAddress :: XPub -> Customer -> Address
 deriveCustomerAddress =
     Addr.deriveCustomerAddress (fromNetworkId defaultNetworkId)
 
-fromXPubAndMax :: XPub -> Word31 -> WalletState
-fromXPubAndMax xpub cmax =
+fromXPubAndCount :: XPub -> Word31 -> WalletState
+fromXPubAndCount xpub count =
     WalletState
-        (Addr.fromXPubAndMax defaultNetworkId xpub cmax)
+        (Addr.fromXPubAndCount defaultNetworkId xpub count)
         UTxO.empty
         Map.empty
         GenesisPoint

@@ -153,7 +153,7 @@ fromTxSummary x =
 operations : DepositWallet.Operations
 operations = record
   { deriveCustomerAddress = Wallet.deriveCustomerAddress
-  ; fromXPubAndMax = Wallet.fromXPubAndMax
+  ; fromXPubAndCount = Wallet.fromXPubAndCount
   ; listCustomers = Wallet.listCustomers
 
   ; getWalletSlot = Wallet.getWalletSlot
@@ -175,10 +175,10 @@ operations = record
 @0 properties : DepositWallet.Properties operations
 properties = record
     { prop-listCustomers-isBijection = {!   !}
-    ; prop-listCustomers-fromXPubAndMax-max = {!   !}
-    ; prop-listCustomers-fromXPubAndMax-xpub = {!   !}
+    ; prop-listCustomers-fromXPubAndCount-range = {!   !}
+    ; prop-listCustomers-fromXPubAndCount-xpub = {!   !}
 
-    ; prop-getWalletSlot-fromXPubAndMax = {!   !}
+    ; prop-getWalletSlot-fromXPubAndCount = {!   !}
     ; prop-getWalletSlot-applyTx = {!   !}
     ; prop-getWalletSlot-applyTx-past = {!   !}
     ; prop-listCustomers-applyTx = {!   !}
@@ -188,7 +188,7 @@ properties = record
 
     ; prop-getCustomerHistory-applyTx = {!   !}
     ; prop-getCustomerHistory-knownCustomer = {!   !}
-    ; prop-getCustomerHistory-fromXPubAndMax = {!   !}
+    ; prop-getCustomerHistory-fromXPubAndCount = {!   !}
 
     ; prop-createPayment-destinations = {!   !}
     ; prop-createPayment-isOurs = {!   !}
