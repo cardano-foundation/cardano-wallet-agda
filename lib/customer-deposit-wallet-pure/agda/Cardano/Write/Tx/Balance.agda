@@ -37,7 +37,7 @@ open import Cardano.Wallet.Read using
     ; largerOrEqual
     ; subtract
     )
-open import Haskell.Data.List.Prop using ( _∈_ )
+open import Data.List.Law using ( _∈_ )
 open import Haskell.Data.Maybe using ( isJust )
 
 import Cardano.Wallet.Deposit.Pure.UTxO.UTxO as UTxO

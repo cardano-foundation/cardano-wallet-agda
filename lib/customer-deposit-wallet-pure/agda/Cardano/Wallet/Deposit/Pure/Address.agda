@@ -72,11 +72,12 @@ open import Cardano.Write.Tx.Balance using
     ( ChangeAddressGen
     ; isChange
     )
+open import Data.List.Law using
+    ( _∈_
+    )
 open import Data.Maybe.Extra using
     ( prop-Just-injective
     )
-open import Haskell.Data.List.Prop using
-    ( _∈_ )
 open import Haskell.Data.Maybe using
     ( isJust
     )

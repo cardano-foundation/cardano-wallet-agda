@@ -3,11 +3,11 @@ module Data.Maps.InverseMap where
 
 open import Haskell.Prelude
 
-open import Haskell.Data.List using
-    ( foldl'
-    )
 open import Haskell.Data.Maybe using
     ( fromMaybe
+    )
+open import Data.List using
+    ( foldl'
     )
 open import Data.Map using
     ( Map

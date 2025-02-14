@@ -39,7 +39,7 @@ module Data.Maps.Timeline
 open import Haskell.Prelude
 open import Haskell.Reasoning
 
-open import Haskell.Data.List using
+open import Data.List using
     ( foldl'
     )
 open import Data.Map using

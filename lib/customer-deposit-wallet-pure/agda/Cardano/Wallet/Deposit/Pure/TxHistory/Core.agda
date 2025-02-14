@@ -30,9 +30,8 @@ open import Cardano.Wallet.Read using
     ; WithOrigin
     ; IsEra
     )
-open import Haskell.Data.List using
+open import Data.List using
     ( foldl'
-    ; sortOn
     )
 open import Data.Map using
     ( Map
