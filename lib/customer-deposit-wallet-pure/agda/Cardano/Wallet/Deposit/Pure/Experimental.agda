@@ -102,7 +102,7 @@ open import Cardano.Write.Tx.Balance using
     ; balanceTransaction
     ; prop-balanceTransaction-addresses
     )
-open import Haskell.Data.List.Prop using
+open import Data.List.Law using
     ( _∈_ )
 open import Haskell.Data.Maybe using
     ( isJust

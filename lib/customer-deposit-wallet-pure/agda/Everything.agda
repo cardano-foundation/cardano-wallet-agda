@@ -28,5 +28,5 @@ import Cardano.Wallet.Read
 import Data.Maps.InverseMap
 import Data.Maps.PairMap
 import Data.Maps.Timeline
-import Haskell.Data.List
+import Data.List
 import Haskell.Data.Word.Odd
