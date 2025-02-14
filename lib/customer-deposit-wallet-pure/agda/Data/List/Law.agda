@@ -9,12 +9,17 @@ module Data.List.Law
     ; prop-elem-deleteAll
 
     -- ** Searching with a predicate
+    ; prop-filter-sym
     ; prop-filter-filter
 
     -- * Special lists
     -- ** \"Set\" operations
+    ; prop-nub-empty
+    ; prop-nub-::
+    ; prop-nub-nub
     ; isDeduplicated
       ; prop-isDeduplicated
+      ; prop-isDeduplicated-nub
     ; deleteAll
       ; prop-deleteAll
       ; prop-deleteAll-deleteAll
@@ -41,6 +46,30 @@ x ∈ xs = elem x xs ≡ True
     Properties
     Searching with a predicate
 ------------------------------------------------------------------------------}
+-- | Two 'filter' can be applied in any order.
+prop-filter-sym
+  : ∀ (p q : a → Bool) (xs : List a)
+  → filter p (filter q xs)
+    ≡ filter q (filter p xs)
+--
+prop-filter-sym p q [] = refl
+prop-filter-sym p q (x ∷ xs)
+  with p x in eqp
+  with q x in eqq
+... | True  | True
+    rewrite eqp
+    rewrite eqq
+    rewrite prop-filter-sym p q xs
+    = refl
+... | True  | False
+    rewrite eqq
+    rewrite prop-filter-sym p q xs
+    = refl
+... | False | True
+    rewrite eqp
+    = prop-filter-sym p q xs
+... | False | False
+    = prop-filter-sym p q xs
 
 -- | Filtering with the same predicate twice is the same
 -- als filtering once.
@@ -102,6 +131,71 @@ prop-deleteAll-deleteAll
 --
 prop-deleteAll-deleteAll x ys =
   prop-filter-filter (not ∘ (x ==_)) ys
+
+-- | 'deleteAll' commutes with 'nub'.
+prop-deleteAll-nub
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      (x : a) (xs : List a)
+  → deleteAll x (nub xs)
+    ≡ nub (deleteAll x xs)
+--
+prop-deleteAll-nub x [] = refl
+prop-deleteAll-nub x (y ∷ ys)
+  using p ← not ∘ (x ==_)
+  using q ← not ∘ (y ==_)
+  with x == y in eqxy
+... | True
+    rewrite sym (equality x y eqxy)
+    rewrite prop-filter-filter p (nub ys)
+    rewrite prop-deleteAll-nub x ys
+    = refl
+... | False
+    rewrite prop-filter-sym p q (nub ys)
+    rewrite prop-deleteAll-nub x ys
+    = refl
+
+-- | Definition of 'nub' on the empty list.
+prop-nub-empty
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
+  → nub {a} []
+    ≡ []
+--
+prop-nub-empty = refl
+
+-- | Definition of 'nub' on a non-empty list.
+prop-nub-::
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
+  → (x : a) (xs : List a)
+  → nub (x ∷ xs)
+    ≡ x ∷ deleteAll x (nub xs)
+--
+prop-nub-:: x xs = refl
+
+-- | Applying 'nub' twice is the same as applying it once.
+prop-nub-nub
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      (xs : List a)
+  → nub (nub xs)
+    ≡ nub xs
+--
+prop-nub-nub [] = refl
+prop-nub-nub (x ∷ xs)
+  using p ← not ∘ (x ==_)
+  rewrite sym (prop-deleteAll-nub x (nub xs))
+  rewrite prop-filter-filter p (nub (nub xs))
+  rewrite prop-nub-nub xs
+  = refl
+
+-- | The purpose of 'nub' is to deduplicate a list.
+prop-isDeduplicated-nub
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      (xs : List a)
+  → isDeduplicated (nub xs)
+    ≡ True
+--
+prop-isDeduplicated-nub xs
+  rewrite prop-nub-nub xs
+  = eqReflexivity (nub xs)
 
 --
 lemma-neq-trans

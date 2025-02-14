@@ -6,13 +6,18 @@ module Data.List.Law
       -- $prop-elem-deleteAll
 
       -- ** Searching with a predicate
+      -- $prop-filter-sym
       -- $prop-filter-filter
 
       -- * Special lists
 
       -- ** \"Set\" operations
+      -- $prop-nub-empty
+      -- $prop-nub-::
+      -- $prop-nub-nub
       isDeduplicated
       -- $prop-isDeduplicated
+      -- $prop-isDeduplicated-nub
     , deleteAll
       -- $prop-deleteAll
       -- $prop-deleteAll-deleteAll
@@ -66,6 +71,18 @@ isSorted xs = and (zipWith (<=) xs (drop 1 xs))
 --     >   → deleteAll x (deleteAll x ys)
 --     >     ≡ deleteAll x ys
 
+-- $prop-deleteAll-nub
+-- #p:prop-deleteAll-nub#
+--
+-- [prop-deleteAll-nub]:
+--     'deleteAll' commutes with 'nub'.
+--
+--     > prop-deleteAll-nub
+--     >   : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+--     >       (x : a) (xs : List a)
+--     >   → deleteAll x (nub xs)
+--     >     ≡ nub (deleteAll x xs)
+
 -- $prop-elem-deleteAll
 -- #p:prop-elem-deleteAll#
 --
@@ -103,6 +120,17 @@ isSorted xs = and (zipWith (<=) xs (drop 1 xs))
 --     >   → filter p (filter p xs)
 --     >     ≡ filter p xs
 
+-- $prop-filter-sym
+-- #p:prop-filter-sym#
+--
+-- [prop-filter-sym]:
+--     Two 'filter' can be applied in any order.
+--
+--     > prop-filter-sym
+--     >   : ∀ (p q : a → Bool) (xs : List a)
+--     >   → filter p (filter q xs)
+--     >     ≡ filter q (filter p xs)
+
 -- $prop-isDeduplicated
 -- #p:prop-isDeduplicated#
 --
@@ -113,3 +141,50 @@ isSorted xs = and (zipWith (<=) xs (drop 1 xs))
 --     >   : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
 --     >   → (xs : List a)
 --     >   → isDeduplicated xs ≡ (nub xs == xs)
+
+-- $prop-isDeduplicated-nub
+-- #p:prop-isDeduplicated-nub#
+--
+-- [prop-isDeduplicated-nub]:
+--     The purpose of 'nub' is to deduplicate a list.
+--
+--     > prop-isDeduplicated-nub
+--     >   : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+--     >       (xs : List a)
+--     >   → isDeduplicated (nub xs)
+--     >     ≡ True
+
+-- $prop-nub-::
+-- #p:prop-nub-::#
+--
+-- [prop-nub-::]:
+--     Definition of 'nub' on a non-empty list.
+--
+--     > prop-nub-::
+--     >   : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
+--     >   → (x : a) (xs : List a)
+--     >   → nub (x ∷ xs)
+--     >     ≡ x ∷ deleteAll x (nub xs)
+
+-- $prop-nub-empty
+-- #p:prop-nub-empty#
+--
+-- [prop-nub-empty]:
+--     Definition of 'nub' on the empty list.
+--
+--     > prop-nub-empty
+--     >   : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
+--     >   → nub {a} []
+--     >     ≡ []
+
+-- $prop-nub-nub
+-- #p:prop-nub-nub#
+--
+-- [prop-nub-nub]:
+--     Applying 'nub' twice is the same as applying it once.
+--
+--     > prop-nub-nub
+--     >   : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+--     >       (xs : List a)
+--     >   → nub (nub xs)
+--     >     ≡ nub xs
