@@ -2,9 +2,12 @@
 
 module Data.List.Law
     {-|
-    
+    -- * List transformations
+    ; prop-elem-map
+
     -- * Searching lists
     -- ** Searching by equality
+    ; prop-elem-/=
     ; prop-elem-nub
     ; prop-elem-deleteAll
 
@@ -14,22 +17,29 @@ module Data.List.Law
 
     -- * Special lists
     -- ** \"Set\" operations
-    ; prop-nub-empty
-    ; prop-nub-::
-    ; prop-nub-nub
+      ; prop-nub-empty
+      ; prop-nub-::
+      ; prop-nub-nub
     ; isDeduplicated
+      ; prop-isDeduplicated-empty
+      ; prop-isDeduplicated-::
       ; prop-isDeduplicated
       ; prop-isDeduplicated-nub
+      ; prop-isDeduplicated-map
     ; deleteAll
       ; prop-deleteAll
+      ; prop-deleteAll-==
       ; prop-deleteAll-deleteAll
+      ; prop-map-deleteAll
 
     -- ** Ordered lists
     ; isSorted
     -}
     where
 
+open import Data.Function
 open import Haskell.Prelude
+open import Haskell.Law.Bool
 open import Haskell.Law.Eq
 open import Haskell.Law.Equality
 open import Haskell.Data.List
@@ -38,9 +48,56 @@ open import Haskell.Data.List
     Properties
     List membership
 ------------------------------------------------------------------------------}
+-- | A mapped item is a member of the mapped list
+-- iff it is a member of the original list — if the function is injective.
+prop-elem-map
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      ⦃ _ : Eq b ⦄ ⦃ _ : IsLawfulEq b ⦄
+  → ∀ (f : a → b) → Injective f
+  → ∀ (x : a) (ys : List a)
+  → elem (f x) (map f ys)
+    ≡ elem x ys
+--
+prop-elem-map f inj x [] = refl
+prop-elem-map f inj x (y ∷ ys)
+  with f x == f y in eqf
+... | True
+    rewrite prop-==-Injective f inj x y
+    rewrite eqf
+    = refl
+... | False
+    rewrite prop-==-Injective f inj x y
+    rewrite eqf
+    rewrite prop-elem-map f inj x ys
+    = refl
+
+{-----------------------------------------------------------------------------
+    Properties
+    List membership
+------------------------------------------------------------------------------}
 -- | Predicate version of list membership.
 _∈_ : ∀ {a : Set} ⦃ _ : Eq a ⦄ → a → List a → Set
 x ∈ xs = elem x xs ≡ True
+
+-- | An item which is contained in one of the lists
+-- but not in the other, witnesses that the lists are unequal.
+prop-elem-/=
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      (x : a) (ys zs : List a)
+  → (elem x ys /= elem x zs) ≡ True
+  → (ys /= zs) ≡ True
+--
+prop-elem-/= x [] (z ∷ zs) cond = refl
+prop-elem-/= x (y ∷ ys) [] cond = refl
+prop-elem-/= x (y ∷ ys) (z ∷ zs) cond
+  with y == z in eqyz
+... | False
+    = refl
+prop-elem-/= x (y ∷ ys) (z ∷ zs) cond
+    | True
+    rewrite equality y z eqyz
+    with x == z in eqxz
+...   | False = prop-elem-/= x ys zs cond
 
 {-----------------------------------------------------------------------------
     Properties
@@ -92,20 +149,6 @@ prop-filter-filter p (x ∷ xs)
     Properties
     "Set" operations
 ------------------------------------------------------------------------------}
--- | Decide whether a list does not contain duplicated elements.
-isDeduplicated : ∀ ⦃ _ : Eq a ⦄ → @0 ⦃ IsLawfulEq a ⦄ → List a → Bool
-isDeduplicated xs = nub xs == xs
-
--- | Definition of 'isDeduplicated'.
-prop-isDeduplicated
-  : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
-  → (xs : List a)
-  → isDeduplicated xs ≡ (nub xs == xs)
---
-prop-isDeduplicated xs = refl
-
-{-# COMPILE AGDA2HS isDeduplicated #-}
-
 -- | Remove /all/ occurrences of the item from the list.
 deleteAll : ⦃ Eq a ⦄ → a → List a → List a
 deleteAll x = filter (not ∘ (x ==_))
@@ -154,7 +197,7 @@ prop-deleteAll-nub x (y ∷ ys)
     rewrite prop-deleteAll-nub x ys
     = refl
 
--- | Definition of 'nub' on the empty list.
+-- | Recursive definition of 'nub', empty list.
 prop-nub-empty
   : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
   → nub {a} []
@@ -162,7 +205,7 @@ prop-nub-empty
 --
 prop-nub-empty = refl
 
--- | Definition of 'nub' on a non-empty list.
+-- | Recursive definition of 'nub', non-empty list.
 prop-nub-::
   : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
   → (x : a) (xs : List a)
@@ -185,17 +228,6 @@ prop-nub-nub (x ∷ xs)
   rewrite prop-filter-filter p (nub (nub xs))
   rewrite prop-nub-nub xs
   = refl
-
--- | The purpose of 'nub' is to deduplicate a list.
-prop-isDeduplicated-nub
-  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
-      (xs : List a)
-  → isDeduplicated (nub xs)
-    ≡ True
---
-prop-isDeduplicated-nub xs
-  rewrite prop-nub-nub xs
-  = eqReflexivity (nub xs)
 
 --
 lemma-neq-trans
@@ -241,6 +273,30 @@ prop-elem-deleteAll x y (z ∷ zs)
 ...   | False
       = recurse
 
+-- | Deleting an item will do nothing precisely
+-- when the item is not an element.
+prop-deleteAll-==
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+  → ∀ (x : a) (ys : List a)
+  → (deleteAll x ys == ys)
+    ≡ not (elem x ys)
+--
+prop-deleteAll-== x [] = refl
+prop-deleteAll-== x (y ∷ ys)
+  with x == y in eq
+... | True
+    with lemma1 ← prop-elem-/= y (deleteAll y ys) (y ∷ ys) 
+    rewrite prop-elem-deleteAll y y ys
+    rewrite equality x y eq
+    rewrite eqReflexivity y
+    with lemma2 ← cong not (lemma1 refl)
+    rewrite not-not (deleteAll y ys == y ∷ ys)
+    rewrite lemma2
+    = refl
+... | False
+    rewrite eqReflexivity y
+    = prop-deleteAll-== x ys
+
 -- | An item is an element of the 'nub' iff it is
 -- an element of the original list.
 --
@@ -256,6 +312,117 @@ prop-elem-nub x (y ∷ ys)
   with x == y
 ... | True = refl
 ... | False = prop-elem-nub x ys
+
+-- | Deleting an item and mapping with a function
+-- is the same as deleting the mapped item —
+-- if the function is injective.
+prop-map-deleteAll
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      ⦃ _ : Eq b ⦄ ⦃ _ : IsLawfulEq b ⦄
+  → ∀ (f : a → b) → Injective f
+  → ∀ (x : a) (ys : List a)
+  → map f (deleteAll x ys)
+    ≡ deleteAll (f x) (map f ys)
+--
+prop-map-deleteAll f inj x [] = refl
+prop-map-deleteAll f inj x (y ∷ ys)
+  with f x == f y in eqf
+... | True
+    rewrite prop-==-Injective f inj x y
+    rewrite eqf
+    rewrite prop-map-deleteAll f inj x ys
+    = refl
+... | False
+    rewrite prop-==-Injective f inj x y
+    rewrite eqf
+    rewrite prop-map-deleteAll f inj x ys
+    = refl
+
+{-----------------------------------------------------------------------------
+    Properties
+    "Set" operations
+    isDeduplicated
+------------------------------------------------------------------------------}
+-- | Decide whether a list does not contain duplicated elements.
+isDeduplicated : ∀ ⦃ _ : Eq a ⦄ → @0 ⦃ IsLawfulEq a ⦄ → List a → Bool
+isDeduplicated [] = True
+isDeduplicated (x ∷ xs) = not (elem x xs) && isDeduplicated xs
+
+{-# COMPILE AGDA2HS isDeduplicated #-}
+
+-- | Recursive definition of 'isDeduplicated', empty list.
+prop-isDeduplicated-empty
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
+  → isDeduplicated {a} []
+    ≡ True
+--
+prop-isDeduplicated-empty = refl
+
+-- | Recursive definition of 'isDeduplicated', non-empty list.
+prop-isDeduplicated-::
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
+  → (x : a) (xs : List a)
+  → isDeduplicated (x ∷ xs)
+    ≡ (not (elem x xs) && isDeduplicated xs)
+--
+prop-isDeduplicated-:: x xs = refl
+
+-- | A definition of 'isDeduplicated' in terms of 'nub'.
+prop-isDeduplicated
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+  → (xs : List a)
+  → isDeduplicated xs ≡ (nub xs == xs)
+--
+prop-isDeduplicated [] = refl
+prop-isDeduplicated (x ∷ xs)
+  rewrite eqReflexivity x
+  with eqDeleteAll ← prop-deleteAll-== x xs
+  with elem x xs in eq
+... | True
+    with lemma1 ← prop-elem-/= x (deleteAll x (nub xs)) xs
+    rewrite prop-elem-deleteAll x x (nub xs)
+    rewrite eqReflexivity x
+    rewrite eq
+    = trans (sym (cong not (lemma1 refl))) (not-not _)
+... | False
+    rewrite prop-deleteAll-nub x xs
+    rewrite equality (deleteAll x xs) xs eqDeleteAll
+    rewrite prop-isDeduplicated xs
+    = refl
+
+-- | The purpose of 'nub' is to deduplicate a list.
+prop-isDeduplicated-nub
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      (xs : List a)
+  → isDeduplicated (nub xs)
+    ≡ True
+--
+prop-isDeduplicated-nub xs
+  rewrite prop-isDeduplicated (nub xs)
+  rewrite prop-nub-nub xs
+  rewrite eqReflexivity (nub xs)
+  = refl
+
+-- | Applying an injective function to a deduplicated list
+-- yields a deduplicated list.
+prop-isDeduplicated-map
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      ⦃ _ : Eq b ⦄ ⦃ _ : IsLawfulEq b ⦄
+  → ∀ (f : a → b) → Injective f
+  → ∀ (xs : List a)
+  → isDeduplicated xs ≡ True
+  → isDeduplicated (map f xs) ≡ True
+--
+prop-isDeduplicated-map f inj [] cond = refl
+prop-isDeduplicated-map f inj (x ∷ xs) cond
+  rewrite eqReflexivity x
+  rewrite eqReflexivity (f x)
+  using isDedupxs ← &&-rightTrue _ (isDeduplicated xs) cond
+  rewrite prop-isDeduplicated-map f inj xs isDedupxs
+  using notElemx ← &&-leftTrue (not (elem x xs)) _ cond
+  rewrite prop-elem-map f inj x xs
+  rewrite notElemx
+  = refl
 
 {-----------------------------------------------------------------------------
     Properties
