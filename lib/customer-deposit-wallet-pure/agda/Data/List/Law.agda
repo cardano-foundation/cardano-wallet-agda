@@ -2,7 +2,9 @@
 
 module Data.List.Law
     {-|
-    
+    -- * List transformations
+    ; prop-elem-map
+
     -- * Searching lists
     -- ** Searching by equality
     ; prop-elem-nub
@@ -23,16 +25,46 @@ module Data.List.Law
     ; deleteAll
       ; prop-deleteAll
       ; prop-deleteAll-deleteAll
+      ; prop-map-deleteAll
 
     -- ** Ordered lists
     ; isSorted
     -}
     where
 
+open import Data.Function
 open import Haskell.Prelude
+open import Haskell.Law.Bool
 open import Haskell.Law.Eq
 open import Haskell.Law.Equality
 open import Haskell.Data.List
+
+{-----------------------------------------------------------------------------
+    Properties
+    List membership
+------------------------------------------------------------------------------}
+-- | A mapped item is a member of the mapped list
+-- iff it is a member of the original list — if the function is injective.
+prop-elem-map
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      ⦃ _ : Eq b ⦄ ⦃ _ : IsLawfulEq b ⦄
+  → ∀ (f : a → b) → Injective f
+  → ∀ (x : a) (ys : List a)
+  → elem (f x) (map f ys)
+    ≡ elem x ys
+--
+prop-elem-map f inj x [] = refl
+prop-elem-map f inj x (y ∷ ys)
+  with f x == f y in eqf
+... | True
+    rewrite prop-==-Injective f inj x y
+    rewrite eqf
+    = refl
+... | False
+    rewrite prop-==-Injective f inj x y
+    rewrite eqf
+    rewrite prop-elem-map f inj x ys
+    = refl
 
 {-----------------------------------------------------------------------------
     Properties
@@ -154,7 +186,7 @@ prop-deleteAll-nub x (y ∷ ys)
     rewrite prop-deleteAll-nub x ys
     = refl
 
--- | Definition of 'nub' on the empty list.
+-- | Recursive definition of 'nub', empty list.
 prop-nub-empty
   : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
   → nub {a} []
@@ -162,7 +194,7 @@ prop-nub-empty
 --
 prop-nub-empty = refl
 
--- | Definition of 'nub' on a non-empty list.
+-- | Recursive definition of 'nub', non-empty list.
 prop-nub-::
   : ∀ ⦃ _ : Eq a ⦄ ⦃ @0 _ : IsLawfulEq a ⦄
   → (x : a) (xs : List a)
@@ -257,6 +289,30 @@ prop-elem-nub x (y ∷ ys)
 ... | True = refl
 ... | False = prop-elem-nub x ys
 
+-- | Deleting an item and mapping with a function
+-- is the same as deleting the mapped item —
+-- if the function is injective.
+prop-map-deleteAll
+  : ∀ ⦃ _ : Eq a ⦄ ⦃ _ : IsLawfulEq a ⦄
+      ⦃ _ : Eq b ⦄ ⦃ _ : IsLawfulEq b ⦄
+  → ∀ (f : a → b) → Injective f
+  → ∀ (x : a) (ys : List a)
+  → map f (deleteAll x ys)
+    ≡ deleteAll (f x) (map f ys)
+--
+prop-map-deleteAll f inj x [] = refl
+prop-map-deleteAll f inj x (y ∷ ys)
+  with f x == f y in eqf
+... | True
+    rewrite prop-==-Injective f inj x y
+    rewrite eqf
+    rewrite prop-map-deleteAll f inj x ys
+    = refl
+... | False
+    rewrite prop-==-Injective f inj x y
+    rewrite eqf
+    rewrite prop-map-deleteAll f inj x ys
+    = refl
 {-----------------------------------------------------------------------------
     Properties
     Sorting
