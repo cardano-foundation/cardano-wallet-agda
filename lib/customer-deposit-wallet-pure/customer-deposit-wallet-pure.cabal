@@ -85,6 +85,7 @@ library
     Cardano.Wallet.Deposit.Pure.TxSummary
     Cardano.Wallet.Deposit.Read.Temp
     Cardano.Write.Tx.Balance
+    Data.Function.Law
     Data.List.Law
     Data.Maps.InverseMap
     Data.Maps.PairMap
