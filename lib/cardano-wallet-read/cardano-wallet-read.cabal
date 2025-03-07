@@ -1,6 +1,6 @@
 cabal-version:   3.6
 name:            cardano-wallet-read
-version:         1.0.0.0
+version:         1.0.0.1
 synopsis:
   Read Cardano block data, parametrized by era
 description:
