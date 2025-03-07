@@ -12,6 +12,9 @@ import Prelude
 import Cardano.Ledger.Binary
     ( EncCBOR
     )
+import Cardano.Ledger.Core
+    ( EraSegWits (..)
+    )
 import Cardano.Read.Ledger.Block.Block
     ( Block (..)
     )
@@ -38,13 +41,13 @@ import Ouroboros.Consensus.Shelley.Protocol.TPraos
 import qualified Cardano.Chain.Block as Byron
 import qualified Cardano.Chain.UTxO as Byron
 import qualified Cardano.Ledger.Api as Ledger
-import qualified Cardano.Ledger.Era as Shelley
 import qualified Cardano.Ledger.Shelley.API as Shelley
 import qualified Ouroboros.Consensus.Byron.Ledger as Byron
 import qualified Ouroboros.Consensus.Byron.Ledger as O
 import qualified Ouroboros.Consensus.Shelley.Ledger as O
 
-{-# INLINABLE getEraTransactions #-}
+{-# INLINEABLE getEraTransactions #-}
+
 -- | Get the list of transactions in the block.
 getEraTransactions :: forall era. IsEra era => Block era -> [Tx era]
 getEraTransactions = case theEra @era of
@@ -65,8 +68,8 @@ getTxsFromBlockByron block =
         Byron.ABOBBoundary _ -> []
 
 getTxsFromBlockShelleyAndOn
-    :: (Shelley.EraSegWits era, EncCBOR (ShelleyProtocolHeader proto))
+    :: (EraSegWits era, EncCBOR (ShelleyProtocolHeader proto))
     => O.ShelleyBlock proto era
     -> [Ledger.Tx era]
 getTxsFromBlockShelleyAndOn (O.ShelleyBlock (Shelley.Block _ txs) _) =
-    toList (Shelley.fromTxSeq txs)
+    toList (fromTxSeq txs)
