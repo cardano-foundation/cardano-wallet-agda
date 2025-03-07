@@ -23,7 +23,8 @@ index-state:
   , hackage.haskell.org 2025-01-01T23:24:19Z
   , cardano-haskell-packages 2025-03-01T00:00:00Z
 
-
+constraints:
+    plutus-core ==1.37.0.0
 --------------------------------------------------------------------------------
 -- Projects in the present repository
 --------------------------------------------------------------------------------
