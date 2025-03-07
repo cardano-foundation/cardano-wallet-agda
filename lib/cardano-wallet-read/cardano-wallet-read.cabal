@@ -22,7 +22,7 @@ description:
   types that are specific to the current (and the upcoming) era.
 
   The source code for this package also contains a partial,
-  preliminary axiomatization of these types using 
+  preliminary axiomatization of these types using
   [agda2hs](https://github.com/agda/agda2hs).
 
 homepage:        https://github.com/cardano-foundation/cardano-wallet
@@ -57,7 +57,7 @@ common opts-exe
 common opts-lib
   ghc-options:
     -Wall -Wcompat -Wredundant-constraints -Wincomplete-uni-patterns
-    -Wincomplete-record-updates
+    -Wincomplete-record-updates -Wunused-packages
 
   if flag(release)
     ghc-options: -O2 -Werror
@@ -149,7 +149,6 @@ library
     , cardano-crypto >= 1.1.2 && < 1.2
     , cardano-crypto-praos >= 2.2.0.0 && < 2.3
     , cardano-crypto-class >= 2.1.5.0 && < 2.2
-    , cardano-crypto-praos
     , cardano-crypto-wrapper >= 1.5.1.3 && < 1.6
     , cardano-data >= 1.2.3.1 && < 1.3
     , cardano-ledger-allegra >= 1.6.1.0 && < 1.7
