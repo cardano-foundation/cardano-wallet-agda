@@ -8,16 +8,14 @@ module Cardano.Read.Ledger.Block.HeaderHash
     ( HeaderHash (..)
     , HeaderHashT
     , getEraHeaderHash
-
     , EraIndependentBlockHeader
     , RawHeaderHash
     , getRawHeaderHash
-
     , PrevHeaderHash (..)
     , PrevHeaderHashT
     , getEraPrevHeaderHash
 
-    -- * Testing utilities
+      -- * Testing utilities
     , mockRawHeaderHash
     )
 where
@@ -31,7 +29,7 @@ import Cardano.Ledger.Binary
     ( EncCBOR
     , EncCBORGroup
     )
-import Cardano.Ledger.Era
+import Cardano.Ledger.Core
     ( EraSegWits (..)
     )
 import Cardano.Ledger.Hashes
@@ -107,8 +105,9 @@ type family HeaderHashT era where
 -- | Era-specific header hash type from the ledger
 newtype HeaderHash era = HeaderHash (HeaderHashT era)
 
-{-# INLINABLE getEraHeaderHash #-}
-getEraHeaderHash :: forall era . IsEra era => Block era -> HeaderHash era
+{-# INLINEABLE getEraHeaderHash #-}
+getEraHeaderHash
+    :: forall era. IsEra era => Block era -> HeaderHash era
 getEraHeaderHash = case theEra @era of
     Byron -> \(Block block) -> HeaderHash $ O.blockHash block
     Shelley -> \(Block block) -> HeaderHash $ getHeaderHashShelley block
@@ -140,8 +139,9 @@ mockRawHeaderHash n =
         (\_ -> B8.pack $ show n)
         (error "undefined :: EraIndependentBlockHeader")
 
-{-# INLINABLE getRawHeaderHash #-}
-getRawHeaderHash :: forall era. IsEra era => HeaderHash era -> RawHeaderHash
+{-# INLINEABLE getRawHeaderHash #-}
+getRawHeaderHash
+    :: forall era. IsEra era => HeaderHash era -> RawHeaderHash
 getRawHeaderHash = case theEra @era of
     Byron -> \(HeaderHash h) -> fromByron h
     Shelley -> \(HeaderHash h) -> castHash $ unShelleyHash h
@@ -154,9 +154,9 @@ getRawHeaderHash = case theEra @era of
     fromByron :: ByronHash -> Hash Blake2b_256 EraIndependentBlockHeader
     fromByron =
         fromJust
-        . hashFromBytesShort
-        . Byron.abstractHashToShort
-        . unByronHash
+            . hashFromBytesShort
+            . Byron.abstractHashToShort
+            . unByronHash
 
 {-----------------------------------------------------------------------------
     PrevHeaderHash
@@ -186,8 +186,9 @@ getPrevHeaderHashShelley
 getPrevHeaderHashShelley (O.ShelleyBlock (Shelley.Block header _) _) =
     Shelley.pHeaderPrevHash header
 
-{-# INLINABLE getEraPrevHeaderHash #-}
-getEraPrevHeaderHash :: forall era . IsEra era => Block era -> PrevHeaderHash era
+{-# INLINEABLE getEraPrevHeaderHash #-}
+getEraPrevHeaderHash
+    :: forall era. IsEra era => Block era -> PrevHeaderHash era
 getEraPrevHeaderHash = case theEra @era of
     Byron -> \(Block block) -> PrevHeaderHash $ headerPrevHash $ O.getHeader block
     Shelley -> \(Block block) -> PrevHeaderHash $ getPrevHeaderHashShelley block

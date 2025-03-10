@@ -1,6 +1,6 @@
 cabal-version:   3.6
 name:            cardano-wallet-read
-version:         1.0.0.0
+version:         1.0.0.1
 synopsis:
   Read Cardano block data, parametrized by era
 description:
@@ -22,7 +22,7 @@ description:
   types that are specific to the current (and the upcoming) era.
 
   The source code for this package also contains a partial,
-  preliminary axiomatization of these types using 
+  preliminary axiomatization of these types using
   [agda2hs](https://github.com/agda/agda2hs).
 
 homepage:        https://github.com/cardano-foundation/cardano-wallet
@@ -57,7 +57,7 @@ common opts-exe
 common opts-lib
   ghc-options:
     -Wall -Wcompat -Wredundant-constraints -Wincomplete-uni-patterns
-    -Wincomplete-record-updates
+    -Wincomplete-record-updates -Wunused-packages
 
   if flag(release)
     ghc-options: -O2 -Werror
@@ -147,21 +147,21 @@ library
     , base >= 4.14 && < 5
     , bytestring >= 0.10.6 && < 0.13
     , cardano-crypto >= 1.1.2 && < 1.2
+    , cardano-crypto-praos >= 2.2.0.0 && < 2.3
     , cardano-crypto-class >= 2.1.5.0 && < 2.2
-    , cardano-crypto-praos
-    , cardano-crypto-wrapper
-    , cardano-data >= 1.2.3.0 && < 1.3
-    , cardano-ledger-allegra
-    , cardano-ledger-alonzo
-    , cardano-ledger-api >= 1.9.2.0 && < 1.10
-    , cardano-ledger-babbage
+    , cardano-crypto-wrapper >= 1.5.1.3 && < 1.6
+    , cardano-data >= 1.2.3.1 && < 1.3
+    , cardano-ledger-allegra >= 1.6.1.0 && < 1.7
+    , cardano-ledger-alonzo >= 1.12.0.0 && < 1.13
+    , cardano-ledger-api >= 1.10.0.0 && < 1.11
+    , cardano-ledger-babbage >= 1.10.1.0 && < 1.11
     , cardano-ledger-binary
-    , cardano-ledger-byron
-    , cardano-ledger-conway
-    , cardano-ledger-core
-    , cardano-ledger-mary
-    , cardano-ledger-shelley
-    , cardano-protocol-tpraos
+    , cardano-ledger-byron >= 1.0.2.0 && < 1.1
+    , cardano-ledger-conway >= 1.18.1.0 && < 1.19
+    , cardano-ledger-core >= 1.16.0.0 && < 1.17
+    , cardano-ledger-mary >= 1.7.1.0 && < 1.8
+    , cardano-ledger-shelley >= 1.15.0.0 && < 1.16
+    , cardano-protocol-tpraos >= 1.3.0.0 && < 1.4
     , cardano-strict-containers >= 0.1.3.0 && < 0.2
     , containers >= 0.5 && < 0.8
     , deepseq >= 1.4.4 && < 1.6
@@ -171,10 +171,10 @@ library
     , memory >= 0.18.0 && < 0.19
     , nothunks >= 0.1.5 && < 0.4
     , operational >= 0.2.4.2 && < 0.3
-    , ouroboros-consensus >= 0.20.0.0 && < 0.22.0.0
-    , ouroboros-consensus-cardano
-    , ouroboros-consensus-protocol
-    , ouroboros-network-api
+    , ouroboros-consensus >= 0.22.0.0 && < 0.23
+    , ouroboros-consensus-cardano >= 0.21.0.1 && < 0.22
+    , ouroboros-consensus-protocol >= 0.10.0.0 && < 0.11
+    , ouroboros-network-api >= 0.12.0.0 && < 0.13
     , QuickCheck >= 2.14 && <= 2.16
     , text >= 1.2 && < 2.2
     , time >= 1.12.2 && < 1.15
@@ -204,9 +204,9 @@ test-suite test
   build-depends:
     , base
     , bytestring
-    , cardano-ledger-api
-    , cardano-ledger-core
-    , cardano-ledger-mary
+    , cardano-ledger-api >= 1.10.0.0 && < 1.11
+    , cardano-ledger-core >= 1.16.0.0 && < 1.17
+    , cardano-ledger-mary >= 1.7.1.0 && < 1.8
     , cardano-wallet-read
     , hspec >= 2.11.0 && < 2.12
     , lens

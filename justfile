@@ -38,3 +38,8 @@ ci-check:
     # We do not rebuild the .hs files,
     # as the ci-build step fails if they are not up-to-date.
     cabal test -v0 -O0 -j all
+
+format-read:
+  ( cd lib/cardano-wallet-read && \
+    stylish-haskell -v --config ../../.stylish-haskell.yaml --inplace $(git ls-files -- '*.hs') \
+  )
