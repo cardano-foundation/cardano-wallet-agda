@@ -1,0 +1,8 @@
+prelude:
+  implicit: true
+  hiding:
+    - "filter"
+
+rewrites:
+  - from: "Agda.Builtin.Nat.Nat.suc"
+    to: "succ"
