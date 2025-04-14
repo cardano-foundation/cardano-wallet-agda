@@ -17,6 +17,7 @@ EOF
 # Add local libraries
 cat <<EOF >> agda2hs-libraries
 $PWD/lib/containers/containers.agda-lib
+$PWD/lib/bags/bags.agda-lib
 $PWD/lib/cardano-wallet-read/cardano-wallet-read.agda-lib
 $PWD/lib/customer-deposit-wallet-pure/customer-deposit-wallet-pure.agda-lib
 EOF

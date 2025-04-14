@@ -10,6 +10,7 @@ agda2hs-libraries:
 haskell:
     just agda2hs-libraries
     cd lib/customer-deposit-wallet-pure/ && ./generate-haskell.sh
+    cd lib/bags/ && ./generate-haskell.sh
 
 build:
     cabal build -O -j all
@@ -17,8 +18,8 @@ build:
 build0:
     cabal build -v0 -O0 -j all
 
-doc:
-    cabal haddock -v0 -O0 -j all
+doc target='all':
+    cabal haddock -v0 -O0 -j {{target}}
 
 test:
     cabal test -v0 -O0 -j all

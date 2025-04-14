@@ -31,6 +31,7 @@ constraints:
 
 packages:
     lib/agda2hs-fixer/
+    lib/bags/
     lib/cardano-wallet-read/
     lib/customer-deposit-wallet-pure/
 
